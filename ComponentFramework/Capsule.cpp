@@ -86,11 +86,19 @@ RayIntersectionInfo GEOMETRY::Capsule::rayIntersectionInfo(const Ray& ray) const
 
 RayIntersectionInfo GEOMETRY::Capsule::checkInfiniteCylinder(const Ray& ray) const
 {
-	Vec3 AS = ray.GetStart() - capPosA;
-	Vec3 AB = capPosB - capPosA;
+	// Swap Y & Z Axes of the capsule
+	Vec3 capAFix = capPosA;
+	std::swap(capAFix.y, capAFix.z);
+
+	Vec3 capBFix = capPosB;
+	std::swap(capBFix.y, capBFix.z);
+
+
+	Vec3 AS = ray.GetStart() - capAFix;
+	Vec3 AB = capBFix - capAFix;
 
 	float a = VMath::dot(ray.GetDir(), ray.GetDir()) - pow(VMath::dot(ray.GetDir(), VMath::normalize(AB)), 2);
-	float b = 2 * (VMath::dot(ray.GetStart() - capPosA, ray.GetDir()) - VMath::dot(ray.GetDir(), VMath::normalize(AB)) * VMath::dot(AS, VMath::normalize(AB)));
+	float b = 2 * (VMath::dot(ray.GetStart() - capAFix, ray.GetDir()) - VMath::dot(ray.GetDir(), VMath::normalize(AB)) * VMath::dot(AS, VMath::normalize(AB)));
 	float c = VMath::dot(AS, AS) - pow(VMath::dot(AS, VMath::normalize(AB)), 2.0f) - pow(r, 2.0f);
 
 	QuadraticSolution qs;
@@ -121,7 +129,7 @@ RayIntersectionInfo GEOMETRY::Capsule::checkInfiniteCylinder(const Ray& ray) con
 
 	// The intersection point is between CapPosA and CapPosB
 	// The intersection point is on the cylinder
-	if (VMath::dot(capPosB - capPosA, P - capPosA) > 0.0f && VMath::dot(capPosA - capPosB, P - capPosB) > 0.0f)
+	if (VMath::dot(capBFix - capAFix, P - capAFix) > 0.0f && VMath::dot(capAFix - capBFix, P - capBFix) > 0.0f)
 	{
 		return intersection;
 	}
@@ -134,15 +142,22 @@ RayIntersectionInfo GEOMETRY::Capsule::checkInfiniteCylinder(const Ray& ray) con
 
 RayIntersectionInfo GEOMETRY::Capsule::checkEndSpheres(const Ray& ray) const
 {
+	// Swap Y & Z Axes of the capsule
+	Vec3 capAFix = capPosA;
+	std::swap(capAFix.y, capAFix.z);
+
+	Vec3 capBFix = capPosB;
+	std::swap(capBFix.y, capBFix.z);
+
 	// Check End Sphere A
-	Sphere CapSphere = Sphere(capPosA, r);
+	Sphere CapSphere = Sphere(capAFix, r);
 	RayIntersectionInfo intersection = CapSphere.rayIntersectionInfo(ray);
 	if (intersection.isIntersected) {
 		return intersection;
 	}
 
 	// Check End Sphere B
-	CapSphere = Sphere(capPosB, r);
+	CapSphere = Sphere(capBFix, r);
 	intersection = CapSphere.rayIntersectionInfo(ray);
 	return intersection;
 }
