@@ -40,7 +40,7 @@ public:
 	virtual void Render() const;
 	virtual void HandleEvents(const SDL_Event& sdlEvent);
 
-	void HandleGUI();
+	virtual void HandleGUI();
 
 	// Keep track of Actors from XML asset manager
 	std::unordered_map< std::string, Ref<Component>> actors;

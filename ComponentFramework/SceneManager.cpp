@@ -2,6 +2,7 @@
 #include "SceneManager.h"
 #include "Timer.h"
 #include "Scene0.h"
+#include <thread>
 
 #include "OpenGLRenderer.h"
 #include "VulkanRenderer.h"
@@ -147,49 +148,24 @@ void SceneManager::Run() {
 	isRunning = true;
 
 	while (isRunning) {
-		handleEventsProfiler->StartProfilerTimer();
 
+		// Handle Events
 		HandleEvents();
+		//std::thread eventsThread([this] {HandleEvents(); });
+	
+		// Update
+		Update();
+		//std::thread updateThread([this] {Update(); });
 
-		handleEventsProfiler->EndProfilerTimer("HandleEvents");
-		handleEventsProfiler->PrintFunctionAvgTime("HandleEvents");
+		// Render
+		Render();
+		//std::thread renderThread([this] {Render(); });
 
+		//eventsThread.join();
+		//updateThread.join();
+		//renderThread.join();
 
-		switch (rendererType)
-		{
-		case RendererType::OPENGL:
-			ImGui_ImplOpenGL3_NewFrame();
-			ImGui_ImplSDL2_NewFrame();
-			ImGui::NewFrame();
-			if (show_demo_window) {
-				ImGui::ShowDemoWindow(&show_demo_window);
-			}
-			break;
-		case RendererType::VULKAN:
-			// TODO:: Implement Vulkan Renderer ImGui
-			break;
-		default:
-			break;
-		}
-
-		timer->UpdateFrameTicks();
-
-		updateProfiler->StartProfilerTimer();
-
-		currentScene->Update(timer->GetDeltaTime());
-
-		updateProfiler->EndProfilerTimer("Update");
-		updateProfiler->PrintFunctionAvgTime("Update");
-
-		renderProfiler->StartProfilerTimer();
-
-		currentScene->Render();
-
-		renderProfiler->EndProfilerTimer("Render");
-		renderProfiler->PrintFunctionAvgTime("Render");
-
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		HandleGUI();
 
 		switch (rendererType)
 		{
@@ -207,6 +183,9 @@ void SceneManager::Run() {
 }
 
 void SceneManager::HandleEvents() {
+
+	handleEventsProfiler->StartProfilerTimer();
+
 	SDL_Event sdlEvent;
 	while (SDL_PollEvent(&sdlEvent)) {
 		ImGui_ImplSDL2_ProcessEvent(&sdlEvent);
@@ -229,9 +208,74 @@ void SceneManager::HandleEvents() {
 			isRunning = false;
 			return;
 		}
-
-
 		currentScene->HandleEvents(sdlEvent);
+	}
+	handleEventsProfiler->EndProfilerTimer("HandleEvents");
+	handleEventsProfiler->PrintFunctionAvgTime("HandleEvents");
+}
+
+void SceneManager::Update()
+{
+	timer->UpdateFrameTicks();
+
+	updateProfiler->StartProfilerTimer();
+
+	currentScene->Update(timer->GetDeltaTime());
+
+	updateProfiler->EndProfilerTimer("Update");
+	updateProfiler->PrintFunctionAvgTime("Update");
+}
+
+void SceneManager::Render()
+{
+	renderProfiler->StartProfilerTimer();
+
+	currentScene->Render();
+
+	renderProfiler->EndProfilerTimer("Render");
+	renderProfiler->PrintFunctionAvgTime("Render");
+}
+
+void SceneManager::HandleGUI()
+{
+	// ImGui New Frame
+	switch (rendererType)
+	{
+	case RendererType::OPENGL:
+		ImGui_ImplOpenGL3_NewFrame();
+		break;
+	case RendererType::VULKAN:
+		// TODO:: Implement Vulkan Renderer ImGui
+		break;
+	default:
+		break;
+	}
+
+	ImGui_ImplSDL2_NewFrame();
+	ImGui::NewFrame();
+	if (show_demo_window) {
+		ImGui::ShowDemoWindow(&show_demo_window);
+	}
+
+	currentScene->HandleGUI();
+
+	// ImGui Render
+	ImGui::Render();
+	switch (rendererType)
+	{
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		break;
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
 	}
 }
 

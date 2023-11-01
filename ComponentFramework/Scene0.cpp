@@ -71,6 +71,9 @@ void Scene0::OnDestroy()
 
 void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 {
+	//std::mutex mtx;
+	//mtx.lock();
+
 	Ref<TransformComponent> cameraTransform = camera->GetComponent <TransformComponent>();
 	switch (sdlEvent.type) {
 	case SDL_KEYDOWN:
@@ -199,12 +202,13 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 	default:
 		break;
 	}
-
+	//mtx.unlock();
 }
 
 void Scene0::Update(const float deltaTime)
 {
-	HandleGUI();
+	//std::mutex mtx;
+	//mtx.lock();
 	for (int i = 0; i < rays.size(); i++)
 	{
 		rays[i]->age += deltaTime;
@@ -213,10 +217,13 @@ void Scene0::Update(const float deltaTime)
 			rays.erase(rays.begin() + i);
 		}
 	}
+	//mtx.unlock();
 }
 
 void Scene0::Render() const
 {
+	//std::mutex mtx;
+	//mtx.lock();
 	switch (renderer->GetRendererType()) {
 
 	case RendererType::OPENGL:
@@ -302,63 +309,54 @@ void Scene0::Render() const
 		break;
 
 	}
-
+	//mtx.unlock();
 }
 
 void Scene0::HandleGUI()
 {
-	switch (renderer->GetRendererType())
-	{
-	case RendererType::OPENGL:
-	{
-		bool open = true;
-		ImGui::Begin("Frame rate", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground);
-		ImGui::Text("%.1f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::End();
 
-		// Hide menu when interacting with scene
-		if (showMenu)
-		{
-			ImGui::Begin("Scene Settings", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-			ImGui::SetWindowSize(ImVec2(600.0f, 300.0f));
-			if (ImGui::CollapsingHeader("Colors"))
+	bool open = true;
+	ImGui::Begin("Frame rate", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground);
+	ImGui::Text("%.1f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::End();
+
+	// Hide menu when interacting with scene
+	if (showMenu)
+	{
+		ImGui::Begin("Scene Settings", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+		ImGui::SetWindowSize(ImVec2(600.0f, 300.0f));
+		if (ImGui::CollapsingHeader("Colors"))
 			{
 				ImGui::ColorEdit4("Background Color", bGColor);
 				ImGui::ColorEdit4("Debug Color", debugColor);
 				ImGui::ColorEdit4("Selection Color", selectionColor);
 			}
-			if (ImGui::CollapsingHeader("Rendering"))
+		if (ImGui::CollapsingHeader("Rendering"))
 			{
 				ImGui::Checkbox("Render Meshes", &renderMeshes);
 				ImGui::Checkbox("Render Colliders", &renderCollisionShapes);
 				ImGui::Checkbox("Render Raycasts", &renderRaycasts);
 			}
 
-			if (selectedActor)
+		if (selectedActor)
+		{
+			if (ImGui::CollapsingHeader("Selected Actor"))
 			{
-				if (ImGui::CollapsingHeader("Selected Actor"))
+				ImGui::Text("Actor Name: %s", selectedActorName.c_str());
+				if (selectedTransform)
 				{
-					ImGui::Text("Actor Name: %s", selectedActorName.c_str());
-					if (selectedTransform)
+					if (ImGui::TreeNode("Transform"))
 					{
-						if (ImGui::TreeNode("Transform"))
-						{
-							showTransformMenu();
-							ImGui::TreePop();
-						}
+						showTransformMenu();
+						ImGui::TreePop();
 					}
 				}
 			}
-
-			ImGui::End();
 		}
+		ImGui::End();
 	}
-		break;
-	case RendererType::VULKAN:
-		break;
-	default:
-		break;
-	}
+
+
 
 }
 

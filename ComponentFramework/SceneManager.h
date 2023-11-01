@@ -5,6 +5,7 @@
 #include "Component.h"
 #include "Renderer.h"
 #include "OpenGLRenderer.h"
+#include <thread>
 
 class ControllerManager;
 class Profiler;
@@ -17,6 +18,9 @@ public:
 	void Run();
 	bool Initialize(std::string name_, int width_, int height_);
 	void HandleEvents();
+	void HandleGUI();
+	void Update();
+	void Render();
 	
 	
 private:

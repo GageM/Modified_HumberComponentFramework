@@ -3,6 +3,7 @@
 union SDL_Event;
 #include "Component.h"
 #include "Renderer.h"
+#include <mutex>
 
 class ControllerManager;
 
@@ -16,6 +17,7 @@ public:
 	virtual void Update(const float deltaTime) = 0;
 	virtual void Render() const = 0;
 	virtual void HandleEvents(const SDL_Event &sdlEvent) = 0;
+	virtual void HandleGUI() = 0;
 	
 	Ref<ControllerManager> controllerManager;
 
