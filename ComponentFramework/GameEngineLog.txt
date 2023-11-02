@@ -1,10 +1,9 @@
-Wed Nov  1 23:23:22 2023
+Thu Nov  2 13:40:09 2023
 [INFO]: Starting the SceneManager
 [INFO]: OpenGL Version: 4.6.0 NVIDIA 536.67
 [INFO]: Graphics card vendor NVIDIA Corporation
 [INFO]: Graphics card name NVIDIA GeForce RTX 3080 Laptop GPU/PCIe/SSE2
 [INFO]: GLSL Version 4.60 NVIDIA
-[INFO]: Created Scene0
 [INFO]: Uniforms:
 "colour" loc:-1
 "lightPos" loc:-1
@@ -19,3 +18,4 @@ Wed Nov  1 23:23:22 2023
 "projection" loc:-1
 "view" loc:-1
 
+[INFO]: Created Scene0

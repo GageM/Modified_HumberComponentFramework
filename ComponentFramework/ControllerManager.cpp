@@ -6,12 +6,18 @@ ControllerManager::ControllerManager() : isCreated(false)
 
 ControllerManager::~ControllerManager()
 {
+	for (auto& controller : controllers)
+	{
+		controller = nullptr;
+	}
+	controllers.clear();
 }
 
 bool ControllerManager::OnCreate()
 {
 	if (isCreated) return true;
 
+	FindConnectedControllers();
 
 	isCreated = true;
 	return isCreated;
@@ -26,10 +32,13 @@ void ControllerManager::HandleEvents(const SDL_Event& sdlEvent)
 	switch (sdlEvent.type)
 	{
 	case SDL_CONTROLLERDEVICEADDED:
-		controllers.push_back(SDL_GameControllerOpen(sdlEvent.cdevice.which));
+	{
+		SDL_GameController* controller = SDL_GameControllerOpen(sdlEvent.cdevice.which);
+		controllers.push_back(controller);
 		break;
+	}
 	case SDL_CONTROLLERDEVICEREMOVED:
-		for (int i = 0; i < controllers.size(); i++)
+		for (unsigned int i = 0; i < controllers.size(); i++)
 		{
 			if (controllers[i] && sdlEvent.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controllers[i])))
 			{
@@ -49,14 +58,14 @@ void ControllerManager::FindConnectedControllers()
 	{
 		if (SDL_IsGameController(i))
 		{
-			controllers.push_back(SDL_GameControllerOpen(i));
+			SDL_GameController* controller = SDL_GameControllerOpen(i);
+			controllers.push_back(controller);
 		}
 	}
 }
 
 SDL_GameController* ControllerManager::GetController()
 {
-
 	if (controllers[0] != nullptr)
 	{
 		return controllers[0];

@@ -43,6 +43,7 @@ private:
 	Ref<OpenGLRenderer> glRenderer;
 	
 	Ref<ControllerManager> controllerManager;
+	SDL_GameController* controller;
 	
 	unsigned int fps;
 	bool isRunning;
@@ -67,6 +68,7 @@ private:
 	long long RPF_AvgTime;
 	long long HEPF_AvgTime;
 
+	void showSystemMenu();
 	void showProfilerMenu();
 };
 

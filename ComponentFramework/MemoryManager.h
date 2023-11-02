@@ -34,7 +34,9 @@ public:
 	void Print();
 	void Print(std::size_t numBytes, bool isAllocating);
 
-	size_t getMemoryUsage() { return currentMemoryUsage; }
+	inline size_t getMemoryUsage() const { return currentMemoryUsage; }
+	inline size_t getMaxMemoryUsage() const { return maxMemoryUsage; }
+
 	void setMemoryUsage(size_t a) {
 		currentMemoryUsage = a;
 		if (currentMemoryUsage > maxMemoryUsage)

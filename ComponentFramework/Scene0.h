@@ -5,16 +5,19 @@
 #include "Actor.h"
 #include "LightActor.h"
 #include "CameraActor.h"
+#include "XMLAssetManager.h"
 
 #include <Vector.h>
 
 class Ray;
-class RayIntersectionInfo;
+struct RayIntersectionInfo;
 class ShaderComponent;
 
 struct Scene0 : public Scene
 {
 private:
+	XMLAssetManager assetManager;
+
 	Vec4 bGColor;
 	Vec4 debugColor;
 	Vec4 selectionColor;
@@ -23,10 +26,14 @@ private:
 	// For Adjusting Selected Actor
 	Ref<Actor> selectedActor;
 	std::string selectedActorName;
-	Ref<TransformComponent> selectedTransform;
+	//Ref<TransformComponent> selectedTransform;
 
+	void showSelectionSettings();
 	void showTransformMenu();
 	void showSceneSettings();
+	void showHeirarchy();
+	void showComponentMenu();
+	void showAddActorMenu();
 
 public:
 	bool renderMeshes = true;

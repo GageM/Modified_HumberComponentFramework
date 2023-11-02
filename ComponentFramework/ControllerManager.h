@@ -5,6 +5,8 @@
 #include <iostream>
 #include "Debug.h"
 #include <vector>
+// Gives access to Ref
+#include "Component.h"
 
 class ControllerManager
 {

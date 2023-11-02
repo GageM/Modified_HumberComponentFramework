@@ -27,6 +27,9 @@ public:
 	void OnDestroy();
 	void Update(const float deltaTime_);
 	void Render() const;
+
+
+	inline std::vector<Ref<Component>> GetComponentList() const { return components; }
 	
 	/// Footnote to those who think you can't write code in the header file - this is true
 	/// with a few exceptions. (1) You can't inline code (implicitly or not) unless it is in 

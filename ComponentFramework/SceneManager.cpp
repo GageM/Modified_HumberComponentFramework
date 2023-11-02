@@ -4,6 +4,8 @@
 #include "Scene0.h"
 #include <thread>
 
+#include "MemoryManager.h"
+
 #include "OpenGLRenderer.h"
 #include "VulkanRenderer.h"
 
@@ -20,6 +22,7 @@ SceneManager::SceneManager():
 	currentScene(nullptr), timer(nullptr), controllerManager(nullptr),
 	fps(60), isRunning(false), fullScreen(false), show_demo_window(false),
 	handleEventsProfiler(nullptr), updateProfiler(nullptr), renderProfiler(nullptr),
+	controller(nullptr),
 	rendererType(RendererType::OPENGL)
 {
 	Debug::Info("Starting the SceneManager", __FILE__, __LINE__);
@@ -35,6 +38,11 @@ SceneManager::~SceneManager() {
 	if (timer) {
 		delete timer;
 		timer = nullptr;
+	}
+
+	if (controller)
+	{
+		controller = nullptr;
 	}
 
 	ImGui_ImplOpenGL3_Shutdown();
@@ -93,6 +101,7 @@ bool SceneManager::Initialize(std::string name_, int width_, int height_) {
 		Debug::FatalError("Failed to initialize Controller Manager", __FILE__, __LINE__);
 		return false;
 	}
+	controller = controllerManager->GetController();
 
 	updateProfiler = std::make_shared<Profiler>();
 	if (updateProfiler == nullptr)
@@ -100,12 +109,14 @@ bool SceneManager::Initialize(std::string name_, int width_, int height_) {
 		Debug::FatalError("Failed to initialize Update Profiler", __FILE__, __LINE__);
 		return false;
 	}
+
 	handleEventsProfiler = std::make_shared<Profiler>();
 	if (handleEventsProfiler == nullptr)
 	{
 		Debug::FatalError("Failed to initialize Handle Events Profiler", __FILE__, __LINE__);
 		return false;
 	}
+
 	renderProfiler = std::make_shared<Profiler>();
 	if(renderProfiler == nullptr)
 	{
@@ -212,6 +223,29 @@ void SceneManager::HandleEvents() {
 				break;
 			}
 		}
+
+		else if (sdlEvent.type == SDL_CONTROLLERBUTTONDOWN)
+		{
+			switch (sdlEvent.cbutton.button)
+			{
+			case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A:
+				break;
+
+			case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B:
+				break;
+
+			case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X:
+				showSceneMenu = !showSceneMenu;
+				break;
+
+			case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y:
+				break;
+
+			default:
+				break;
+			}
+		}
+
 		if (currentScene == nullptr) {
 			Debug::FatalError("Failed to initialize Scene", __FILE__, __LINE__);
 			isRunning = false;
@@ -282,14 +316,20 @@ void SceneManager::HandleGUI()
 		ImGui::ShowDemoWindow(&show_demo_window);
 	}
 
-	// Display Scene Menu
+	// Display Scene Manager Menu
 	if (showSceneMenu)
 	{
 		bool open = true;
 		ImGui::Begin("Scene", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
 		ImGui::SetWindowSize(ImVec2(600.0f, 300.0f));
 		ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-		if (ImGui::CollapsingHeader("Scene Manager Settings"))
+
+		if (ImGui::CollapsingHeader("System"))
+		{
+			showSystemMenu();
+		}
+
+		if (ImGui::CollapsingHeader("Scene Manager"))
 		{
 			if (ImGui::TreeNode("Settings"))
 			{
@@ -297,33 +337,20 @@ void SceneManager::HandleGUI()
 			}
 			if (ImGui::TreeNode("Profilers"))
 			{
-				ImGui::Checkbox("Enable Profilers", &enableProfilers);
-
-				// Display profiler data
-				if (enableProfilers)
-				{
-					ImGui::Text("Render Profiler Time: %lld Microseconds", RPF_Time);
-					ImGui::Text("Render Profiler Average Time: %lld Microseconds", RPF_AvgTime);
-					ImGui::Text("Update Profiler Time: %lld Microseconds", UPF_Time);
-					ImGui::Text("Update Profiler Average Time: %lld Microseconds", UPF_AvgTime);
-					ImGui::Text("Handle Events Profiler Time: %lld Microseconds", HEPF_Time);
-					ImGui::Text("Handle Events Profiler Average Time: %lld Microseconds", HEPF_AvgTime);
-				}
-
-				ImGui::TreePop();
+				showProfilerMenu();
 			}
 		}
+
+		// Add Scene Menu  
 		currentScene->HandleGUI();
 
-		if (!currentScene || !currentScene->showMenu)
-		{
-			ImGui::End();
-		}
+		ImGui::End();
+
 	}
 
 	// Show Framerate
 	bool open = true;
-	ImGui::Begin("Frame rate", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground);
+	ImGui::Begin("Frame rate", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
 	ImGui::Text("%.1f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
 
@@ -360,6 +387,7 @@ void SceneManager::BuildNewScene(SCENE_NUMBER scene) {
 	case SCENE_NUMBER::SCENE0:
 		currentScene = new Scene0(renderer);
 		currentScene->controllerManager = controllerManager;
+		currentScene->controller = controller;
 		status = currentScene->OnCreate();
 		break;
 
@@ -372,7 +400,57 @@ void SceneManager::BuildNewScene(SCENE_NUMBER scene) {
 
 void SceneManager::showProfilerMenu()
 {
+	ImGui::Checkbox("Enable Profilers", &enableProfilers);
 
+	// Display profiler data
+	if (enableProfilers)
+	{
+		ImGui::Text("Render Profiler Time: %lld Microseconds", RPF_Time);
+		ImGui::Text("Render Profiler Average Time: %lld Microseconds", RPF_AvgTime);
+		ImGui::Text("Update Profiler Time: %lld Microseconds", UPF_Time);
+		ImGui::Text("Update Profiler Average Time: %lld Microseconds", UPF_AvgTime);
+		ImGui::Text("Handle Events Profiler Time: %lld Microseconds", HEPF_Time);
+		ImGui::Text("Handle Events Profiler Average Time: %lld Microseconds", HEPF_AvgTime);
+	}
+
+	ImGui::TreePop();
 }
 
+void SceneManager::showSystemMenu()
+{
+	size_t memUsage = MemoryMonitor::GetInstance().getMemoryUsage();
+	size_t maxMemUsage = MemoryMonitor::GetInstance().getMaxMemoryUsage();
+
+	if (memUsage > MB)
+	{
+		memUsage /= MB;
+		ImGui::Text("Current Memory Usage: %d MB", memUsage);
+	}
+	else if (memUsage > KB)
+	{
+		memUsage /= KB;
+		ImGui::Text("Current Memory Usage: %d KB", memUsage);
+	}
+	else
+	{
+		ImGui::Text("Current Memory Usage: %d Bytes", memUsage);
+	}
+
+	if (maxMemUsage > MB)
+	{
+		maxMemUsage /= MB;
+		ImGui::Text("Max Memory Usage: %d MB", maxMemUsage);
+	}
+	else if (maxMemUsage > KB)
+	{
+		maxMemUsage /= KB;
+		ImGui::Text("Max Memory Usage: %d KB", maxMemUsage);
+	}
+	else
+	{
+		ImGui::Text("Max Memory Usage: %d Bytes", maxMemUsage);
+	}
+
+
+}
 

@@ -8,7 +8,6 @@
 #include "TransformComponent.h"
 #include "MaterialComponent.h"
 #include <QMath.h>
-#include "XMLAssetManager.h"
 #include "ShaderComponent.h"
 #include "MeshComponent.h"
 #include "ShapeComponent.h"
@@ -35,7 +34,6 @@ bool Scene0::OnCreate()
 	{
 	case RendererType::OPENGL:
 	{
-		XMLAssetManager assetManager;
 		// Make sure these names match the stuff in your xml file:
 		std::vector<std::string> names{
 			"ActorGameBoard" , "ActorChecker1", "ActorChecker2",
@@ -64,6 +62,11 @@ bool Scene0::OnCreate()
 void Scene0::OnDestroy()
 {
 	actors.clear();
+
+	if (controller)
+	{
+		controller = nullptr;
+	}
 }
 
 void Scene0::HandleEvents(const SDL_Event& sdlEvent)
@@ -180,13 +183,34 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 					std::cout << "Picked: " << it->first << ", Distance: " << distance << "\n";
 					selectedActorName = it->first;
 					selectedActor = actor;
-					selectedTransform = selectedActor->GetComponent<TransformComponent>();
 				}				
 			}			
 		}
 		break;
 
 	case SDL_CONTROLLERBUTTONDOWN:
+		switch (sdlEvent.cbutton.button)
+		{
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A:
+			printf("A Button Pressed\n");
+			break;
+
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B:
+			printf("B Button Pressed\n");
+			break;
+
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X:
+			printf("X Button Pressed\n");
+			break;
+
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y:
+			printf("Y Button Pressed\n");
+			break;
+
+		default: 
+			break;
+		}
+
 		break;
 	default:
 		break;
@@ -198,7 +222,7 @@ void Scene0::Update(const float deltaTime)
 {
 	std::mutex mtx;
 	mtx.lock();
-	for (int i = 0; i < rays.size(); i++)
+	for (unsigned int i = 0; i < rays.size(); i++)
 	{
 		rays[i]->age += deltaTime;
 		if (rays[i]->age >= rays[i]->maxAge)
@@ -262,9 +286,11 @@ void Scene0::Render() const
 				glStencilMask(0x00);
 				glDisable(GL_DEPTH_TEST);
 
+				Ref<TransformComponent> transform = selectedActor->GetComponent<TransformComponent>();
 				// Scale outline by amount
 				if (outlineScale > 0.0f) {
-					selectedTransform->SetScale(selectedTransform->scale * outlineScale);
+
+					transform->SetScale(transform->scale * outlineScale);
 				}
 
 				glUseProgram(debugShader->GetProgram());
@@ -274,7 +300,7 @@ void Scene0::Render() const
 
 				// Unscale model
 				if (outlineScale > 0.0f) {
-					selectedTransform->SetScale(selectedTransform->scale / outlineScale);
+					transform->SetScale(transform->scale / outlineScale);
 				}
 
 				glStencilMask(0xFF);
@@ -335,30 +361,31 @@ void Scene0::HandleGUI()
 	// Hide menu when interacting with scene
 	if (showMenu)
 	{
-		if (ImGui::CollapsingHeader("Scene 1 Settings"))
+		if (ImGui::CollapsingHeader("Scene"))
 		{
 			showSceneSettings();
-		}
+			showHeirarchy();
 
-		if ( selectedActor && ImGui::CollapsingHeader("Selected Actor"))
-		{
-			ImGui::Text("Actor Name: %s", selectedActorName.c_str());
-			if (selectedTransform)
+			if (ImGui::TreeNode("Add Actor"))
 			{
-				if (ImGui::TreeNode("Transform"))
-				{
-					showTransformMenu();
-					ImGui::TreePop();
-				}
+				showAddActorMenu();
+				ImGui::TreePop();
+			}
+
+			// If there is an actor selected show the dropdown
+			if (selectedActor && ImGui::TreeNode(selectedActorName.c_str()))
+			{
+				showSelectionSettings();
+				ImGui::TreePop();
 			}
 		}
-		ImGui::End();
+
+
 	}
 }
 
 void Scene0::showSceneSettings()
 {
-
 	if (ImGui::TreeNode("Colors"))
 	{
 		ImGui::ColorEdit4("Background Color", bGColor);
@@ -378,28 +405,89 @@ void Scene0::showSceneSettings()
 
 }
 
+void Scene0::showSelectionSettings()
+{
+	showComponentMenu();
+	showTransformMenu();
+}
+
 void Scene0::showTransformMenu()
 {
-	if (ImGui::TreeNode("Position")) {
-		ImGui::DragFloat("X", &selectedTransform->pos.x, 0.1f, -100.0f, 100.0f);
-		ImGui::DragFloat("Y", &selectedTransform->pos.y, 0.1f, -100.0f, 100.0f);
-		ImGui::DragFloat("Z", &selectedTransform->pos.z, 0.1f, -100.0f, 100.0f);
+	Ref<TransformComponent> transform = selectedActor->GetComponent<TransformComponent>();
+	if (!transform)
+	{
+		return;
+	}
+
+	if (ImGui::TreeNode("Transform"))
+	{
+		if (ImGui::TreeNode("Position")) {
+				ImGui::DragFloat("X", &transform->pos.x, 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat("Y", &transform->pos.y, 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat("Z", &transform->pos.z, 0.1f, -100.0f, 100.0f);
+				ImGui::TreePop();
+			}
+
+		if (ImGui::TreeNode("Rotation")) {
+				ImGui::DragFloat("X", &transform->rotation.xAxis, 0.1f, -360.0f, 360.0f, "%.3f Degrees");
+				ImGui::DragFloat("Y", &transform->rotation.yAxis, 0.1f, -360.0f, 360.0f, "%.3f Degrees");
+				ImGui::DragFloat("Z", &transform->rotation.zAxis, 0.1f, -360.0f, 360.0f, "%.3f Degrees");
+				transform->UpdateOrientation();
+				ImGui::TreePop();
+			}
+
+		if (ImGui::TreeNode("Scale")) {
+				ImGui::DragFloat("X", &transform->scale.x, 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat("Y", &transform->scale.y, 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat("Z", &transform->scale.z, 0.1f, -100.0f, 100.0f);
+				ImGui::TreePop();
+			}
+
+		ImGui::TreePop();
+	}
+}
+
+void Scene0::showHeirarchy()
+{
+	if (ImGui::TreeNode("Heirarchy"))
+	{
+		// List all the actors
+		for (auto& it : actors)
+		{
+			Ref<Actor> actor = std::dynamic_pointer_cast<Actor>(it.second);
+
+			// List the components in the actor
+			if (ImGui::TreeNode(it.first.c_str()))
+			{
+				for (auto& component : actor->GetComponentList())
+				{
+					ImGui::Text(typeid(*component.get()).name());
+				}
+				ImGui::TreePop();
+			}
+		}
+
+		ImGui::TreePop();
+	}
+}
+
+void Scene0::showComponentMenu()
+{
+	// TODO:: Allow adding components to actor
+	if (ImGui::TreeNode("Add Component"))
+	{
 		ImGui::TreePop();
 	}
 
-	if (ImGui::TreeNode("Rotation")) {
-		ImGui::DragFloat("X", &selectedTransform->rotation.xAxis, 0.1f, -360.0f, 360.0f, "%.3f Degrees");
-		ImGui::DragFloat("Y", &selectedTransform->rotation.yAxis, 0.1f, -360.0f, 360.0f, "%.3f Degrees");
-		ImGui::DragFloat("Z", &selectedTransform->rotation.zAxis, 0.1f, -360.0f, 360.0f, "%.3f Degrees");
-		selectedTransform->UpdateOrientation();
+	// TODO:: Allow removal of components from actor
+	if (ImGui::TreeNode("Remove Component"))
+	{
 		ImGui::TreePop();
 	}
+}
 
-	if (ImGui::TreeNode("Scale")) {
-		ImGui::DragFloat("X", &selectedTransform->scale.x, 0.1f, -100.0f, 100.0f);
-		ImGui::DragFloat("Y", &selectedTransform->scale.y, 0.1f, -100.0f, 100.0f);
-		ImGui::DragFloat("Z", &selectedTransform->scale.z, 0.1f, -100.0f, 100.0f);
-		ImGui::TreePop();
-	}
+void Scene0::showAddActorMenu()
+{
+	// TODO:: Add an add actor menu
 }
 

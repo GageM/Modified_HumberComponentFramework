@@ -49,7 +49,7 @@ void OpenGLRenderer::Render()
 
 SDL_Window* OpenGLRenderer::NewWindow(std::string name_, int width_, int height_)
 {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
 	{
 		Debug::FatalError("Failed To Initialize SDL", __FILE__, __LINE__);
 		return nullptr;
