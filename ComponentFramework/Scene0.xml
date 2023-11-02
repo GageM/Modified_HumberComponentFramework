@@ -66,7 +66,7 @@
 	  <Shader name="Shader" vertFilename="shaders/textureVert.glsl" fragFilename="shaders/textureFrag.glsl"/>
     <Shader name="debugShader" vertFilename="shaders/debugVert.glsl" fragFilename="shaders/debugFrag.glsl"/>
     <Shader name="PBR_Shader" vertFilename="shaders/PBRVert.glsl" fragFilename="shaders/PBRFrag.glsl"/>
-    <Shader name="HDRI_Shader" vertFilename="shaders/SkyboxVert.glsl" fragFilename="shaders/SkyboxFrag"/>
+    <Shader name="HDRI_Shader" vertFilename="shaders/SkyboxVert.glsl" fragFilename="shaders/SkyboxFrag.glsl"/>
 	  
 	  <!--Now that we have meshes, textures, and a shader we can set up actors-->
 	  <Actor actorname="ActorGameBoard" parent="none">

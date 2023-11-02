@@ -1,4 +1,4 @@
-Thu Nov  2 15:41:22 2023
+Thu Nov  2 16:14:42 2023
 [INFO]: Starting the SceneManager
 [INFO]: OpenGL Version: 4.6.0 NVIDIA 536.67
 [INFO]: Graphics card vendor NVIDIA Corporation
@@ -18,14 +18,33 @@ Thu Nov  2 15:41:22 2023
 "projection" loc:-1
 "view" loc:-1
 
+[INFO]: Uniforms:
+"baseColor_" loc:32
+"metallicMap" loc:11
+"metallic_" loc:9
+"modelMatrix" loc:2
+"projectionMatrix" loc:0
+"roughnessMap" loc:12
+"roughness_" loc:8
+"useMetallicMap" loc:5
+"useRoughnessMap" loc:4
+"vLights[0].diffuseColor" loc:3
+"vLights[0].direction" loc:7
+"vLights[0].position" loc:10
+"vLights[1].diffuseColor" loc:14
+"vLights[1].direction" loc:15
+"vLights[1].position" loc:16
+"vLights[2].diffuseColor" loc:17
+"vLights[2].direction" loc:18
+"vLights[2].position" loc:19
+"vLights[3].diffuseColor" loc:20
+"vLights[3].direction" loc:21
+"vLights[3].position" loc:22
+"vLights[4].diffuseColor" loc:23
+"vLights[4].direction" loc:24
+"vLights[4].position" loc:25
+"vNumLights" loc:26
+"viewMatrix" loc:1
+
+[ERROR]: Can't open shader file: shaders/SkyboxFrag in file: D:\School\Game Physics 3 GAME 306\CompFramework_Phys_Vulkan_23.00.8\ComponentFramework\ShaderComponent.cpp on line: 243
 [INFO]: Created Scene0
-[INFO]: Created Scene0
-[INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleting the SceneManager
