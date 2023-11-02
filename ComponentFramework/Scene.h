@@ -10,7 +10,7 @@ class ControllerManager;
 
 class Scene{
 public:	
-	explicit Scene(Ref<Renderer> renderer_): renderer(renderer_) {};
+	explicit Scene(Ref<Renderer> renderer_, bool showMenu_): renderer(renderer_), showMenu(showMenu_) {};
 	virtual ~Scene() {}
 	virtual bool OnCreate() = 0;
 	virtual void OnDestroy() = 0;
@@ -20,6 +20,7 @@ public:
 	virtual void HandleGUI() = 0;
 	
 	Ref<ControllerManager> controllerManager;
+	bool showMenu;
 
 protected:
 	Ref<Renderer> renderer;

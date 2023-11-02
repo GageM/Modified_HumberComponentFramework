@@ -50,11 +50,24 @@ private:
 	void BuildNewScene(SCENE_NUMBER scene_);
 
 	bool show_demo_window;
-	const bool enableProfilers = false;
+
+	bool showSceneMenu = false;
+	bool enableProfilers = false;
 
 	Ref<Profiler> updateProfiler;
 	Ref<Profiler> renderProfiler;
 	Ref<Profiler> handleEventsProfiler;
+
+	// Used for displaying profiler data
+	long long UPF_Time;
+	long long RPF_Time;
+	long long HEPF_Time;
+
+	long long UPF_AvgTime;
+	long long RPF_AvgTime;
+	long long HEPF_AvgTime;
+
+	void showProfilerMenu();
 };
 
 

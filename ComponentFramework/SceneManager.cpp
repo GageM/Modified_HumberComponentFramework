@@ -18,7 +18,7 @@
 // gets them done before the constructor even starts
 SceneManager::SceneManager(): 
 	currentScene(nullptr), timer(nullptr), controllerManager(nullptr),
-	fps(60), isRunning(false), fullScreen(false), show_demo_window(true),
+	fps(60), isRunning(false), fullScreen(false), show_demo_window(false),
 	handleEventsProfiler(nullptr), updateProfiler(nullptr), renderProfiler(nullptr),
 	rendererType(RendererType::OPENGL)
 {
@@ -94,19 +94,19 @@ bool SceneManager::Initialize(std::string name_, int width_, int height_) {
 		return false;
 	}
 
-	updateProfiler = std::make_shared<Profiler>(enableProfilers);
+	updateProfiler = std::make_shared<Profiler>();
 	if (updateProfiler == nullptr)
 	{
 		Debug::FatalError("Failed to initialize Update Profiler", __FILE__, __LINE__);
 		return false;
 	}
-	handleEventsProfiler = std::make_shared<Profiler>(enableProfilers);
+	handleEventsProfiler = std::make_shared<Profiler>();
 	if (handleEventsProfiler == nullptr)
 	{
 		Debug::FatalError("Failed to initialize Handle Events Profiler", __FILE__, __LINE__);
 		return false;
 	}
-	renderProfiler = std::make_shared<Profiler>(enableProfilers);
+	renderProfiler = std::make_shared<Profiler>();
 	if(renderProfiler == nullptr)
 	{
 		Debug::FatalError("Failed to initialize Render Profiler", __FILE__, __LINE__);
@@ -184,7 +184,10 @@ void SceneManager::Run() {
 
 void SceneManager::HandleEvents() {
 
-	handleEventsProfiler->StartProfilerTimer();
+	if (enableProfilers)
+	{
+		handleEventsProfiler->StartProfilerTimer();
+	}
 
 	SDL_Event sdlEvent;
 	while (SDL_PollEvent(&sdlEvent)) {
@@ -195,6 +198,12 @@ void SceneManager::HandleEvents() {
 		}
 		else if (sdlEvent.type == SDL_KEYDOWN) {
 			switch (sdlEvent.key.keysym.scancode) {
+				// Toggle Menus
+			case SDL_SCANCODE_TAB:
+				showSceneMenu = !showSceneMenu;
+				currentScene->showMenu = showSceneMenu;
+				break;
+
 			case SDL_SCANCODE_ESCAPE:
 				isRunning = false;
 				return;
@@ -210,30 +219,46 @@ void SceneManager::HandleEvents() {
 		}
 		currentScene->HandleEvents(sdlEvent);
 	}
-	handleEventsProfiler->EndProfilerTimer("HandleEvents");
-	handleEventsProfiler->PrintFunctionAvgTime("HandleEvents");
+
+	if (enableProfilers)
+	{
+		HEPF_Time = handleEventsProfiler->EndProfilerTimer("HandleEvents");
+		HEPF_AvgTime = handleEventsProfiler->GetFunctionAvgTime("HandleEvents");
+	}
 }
 
 void SceneManager::Update()
 {
 	timer->UpdateFrameTicks();
 
-	updateProfiler->StartProfilerTimer();
+	if (enableProfilers)
+	{
+		updateProfiler->StartProfilerTimer();
+	}
 
 	currentScene->Update(timer->GetDeltaTime());
 
-	updateProfiler->EndProfilerTimer("Update");
-	updateProfiler->PrintFunctionAvgTime("Update");
+	if (enableProfilers)
+	{
+		UPF_Time = updateProfiler->EndProfilerTimer("Update");
+		UPF_AvgTime = updateProfiler->GetFunctionAvgTime("Update");
+	}
 }
 
 void SceneManager::Render()
 {
-	renderProfiler->StartProfilerTimer();
+	if (enableProfilers)
+	{
+		renderProfiler->StartProfilerTimer();
+	}
 
 	currentScene->Render();
 
-	renderProfiler->EndProfilerTimer("Render");
-	renderProfiler->PrintFunctionAvgTime("Render");
+	if (enableProfilers)
+	{
+		RPF_Time = renderProfiler->EndProfilerTimer("Render");
+		RPF_AvgTime = renderProfiler->GetFunctionAvgTime("Render");
+	}
 }
 
 void SceneManager::HandleGUI()
@@ -257,7 +282,50 @@ void SceneManager::HandleGUI()
 		ImGui::ShowDemoWindow(&show_demo_window);
 	}
 
-	currentScene->HandleGUI();
+	// Display Scene Menu
+	if (showSceneMenu)
+	{
+		bool open = true;
+		ImGui::Begin("Scene", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+		ImGui::SetWindowSize(ImVec2(600.0f, 300.0f));
+		ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+		if (ImGui::CollapsingHeader("Scene Manager Settings"))
+		{
+			if (ImGui::TreeNode("Settings"))
+			{
+				ImGui::TreePop();
+			}
+			if (ImGui::TreeNode("Profilers"))
+			{
+				ImGui::Checkbox("Enable Profilers", &enableProfilers);
+
+				// Display profiler data
+				if (enableProfilers)
+				{
+					ImGui::Text("Render Profiler Time: %lld Microseconds", RPF_Time);
+					ImGui::Text("Render Profiler Average Time: %lld Microseconds", RPF_AvgTime);
+					ImGui::Text("Update Profiler Time: %lld Microseconds", UPF_Time);
+					ImGui::Text("Update Profiler Average Time: %lld Microseconds", UPF_AvgTime);
+					ImGui::Text("Handle Events Profiler Time: %lld Microseconds", HEPF_Time);
+					ImGui::Text("Handle Events Profiler Average Time: %lld Microseconds", HEPF_AvgTime);
+				}
+
+				ImGui::TreePop();
+			}
+		}
+		currentScene->HandleGUI();
+
+		if (!currentScene || !currentScene->showMenu)
+		{
+			ImGui::End();
+		}
+	}
+
+	// Show Framerate
+	bool open = true;
+	ImGui::Begin("Frame rate", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground);
+	ImGui::Text("%.1f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::End();
 
 	// ImGui Render
 	ImGui::Render();
@@ -300,6 +368,11 @@ void SceneManager::BuildNewScene(SCENE_NUMBER scene) {
 		currentScene = nullptr;
 		break;
 	}	
+}
+
+void SceneManager::showProfilerMenu()
+{
+
 }
 
 

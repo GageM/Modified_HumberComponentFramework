@@ -18,7 +18,7 @@
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 
-Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(1.0f, 0.0f, 0.0f, 1.0f)),
+Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(1.0f, 0.0f, 0.0f, 1.0f)),
 	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f)
 {
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
@@ -129,11 +129,7 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 
 			}
 		}
-		// Toggle Menu
-		if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_TAB)
-		{
-			showMenu = !showMenu;
-		}
+
 		break;
 		
 	case SDL_MOUSEBUTTONDOWN:
@@ -336,35 +332,23 @@ void Scene0::Render() const
 
 void Scene0::HandleGUI()
 {
-	bool open = true;
-	ImGui::Begin("Frame rate", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground);
-	ImGui::Text("%.1f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	ImGui::End();
-
 	// Hide menu when interacting with scene
 	if (showMenu)
 	{
-		ImGui::Begin("Scene Menu", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-		ImGui::SetWindowSize(ImVec2(600.0f, 300.0f));
-
-
-		if (ImGui::CollapsingHeader("Scene Settings"))
+		if (ImGui::CollapsingHeader("Scene 1 Settings"))
 		{
 			showSceneSettings();
 		}
 
-		if (selectedActor)
+		if ( selectedActor && ImGui::CollapsingHeader("Selected Actor"))
 		{
-			if (ImGui::CollapsingHeader("Selected Actor"))
+			ImGui::Text("Actor Name: %s", selectedActorName.c_str());
+			if (selectedTransform)
 			{
-				ImGui::Text("Actor Name: %s", selectedActorName.c_str());
-				if (selectedTransform)
+				if (ImGui::TreeNode("Transform"))
 				{
-					if (ImGui::TreeNode("Transform"))
-					{
-						showTransformMenu();
-						ImGui::TreePop();
-					}
+					showTransformMenu();
+					ImGui::TreePop();
 				}
 			}
 		}

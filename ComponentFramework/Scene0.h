@@ -20,8 +20,6 @@ private:
 	Vec4 selectionColor;
 	float outlineScale;
 
-	bool showMenu = false;
-
 	// For Adjusting Selected Actor
 	Ref<Actor> selectedActor;
 	std::string selectedActorName;
