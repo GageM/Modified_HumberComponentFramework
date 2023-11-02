@@ -19,7 +19,7 @@
 #include "imgui_impl_opengl3.h"
 
 Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(1.0f, 0.0f, 0.0f, 1.0f)),
-	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName("")
+	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f)
 {
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
 }
@@ -45,14 +45,11 @@ bool Scene0::OnCreate()
 			auto asset = assetManager.xmlAssets.find(name);
 			actors[name] = asset->second;
 		}
-		camera = std::dynamic_pointer_cast<CameraActor>(assetManager.xmlAssets.find("Camera1")->second);
-		light = std::dynamic_pointer_cast<LightActor>(assetManager.xmlAssets.find("Light1")->second);
 
-		debugShader = std::make_shared<ShaderComponent>(nullptr, "shaders/debugVert.glsl", "shaders/debugFrag.glsl"); // TODO:: Set this up in the xml file
-		if (debugShader->OnCreate() == false)
-		{
-			return false;
-		}
+		camera = assetManager.GetComponent<CameraActor>("Camera1");
+		light = assetManager.GetComponent<LightActor>("Light1");
+
+		debugShader = assetManager.GetComponent<ShaderComponent>("debugShader");
 	}
 		break;
 	case RendererType::VULKAN:
@@ -71,8 +68,8 @@ void Scene0::OnDestroy()
 
 void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 {
-	//std::mutex mtx;
-	//mtx.lock();
+	std::mutex mtx;
+	mtx.lock();
 
 	Ref<TransformComponent> cameraTransform = camera->GetComponent <TransformComponent>();
 	switch (sdlEvent.type) {
@@ -147,26 +144,24 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 			// Need to convert this into world space to build our ray
 			printf("Mouse Click: \n");
 
+			// Transform mouse pos into world pos
 			Matrix4 ndcToPixel = MMath::viewportNDC(1280, 720);
 			Vec4 mouseNDCCoords = MMath::inverse(ndcToPixel) * mouseCoords;
-
 			Matrix4 perspectiveToNDC = camera->GetProjectionMatrix();
 			Vec4 mousePrespectiveCoords = MMath::inverse(perspectiveToNDC)* mouseNDCCoords;
-
 			mousePrespectiveCoords /= mousePrespectiveCoords.w;
-
 			Matrix4 worldToPerspective = camera->GetViewMatrix();
 			Vec4 mouseWorldCoords = MMath::inverse(worldToPerspective) * mousePrespectiveCoords;
+
+			//Arbitrary max distance for selection
+			float distance = 1000.0f; 
 
 			// Create a ray from the camera
 			Vec3 rayStart = -cameraTransform->pos;
 			Vec3 rayDir = VMath::normalize(mouseWorldCoords - rayStart);
 
-			Ref<Ray> ray = std::make_shared<Ray>(rayStart, rayDir);
-
-			rays.push_back(ray);
-
-			float distance = 1000.0f; //Arbitrary max distance for selection
+			Ref<Ray> drawRay = std::make_shared<Ray>(rayStart, rayDir, distance);
+			rays.push_back(drawRay);
 
 			// Loop through all the actors and check if the ray has collided with them
 			// Pick the one with the smallest positive t value
@@ -176,18 +171,16 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 				Ref<ShapeComponent> shapeComponent = actor->GetComponent <ShapeComponent>();
 				// TODO for Assignment 2: 
 				// Transform the ray into the local space of the object and check if a collision occured
-
 				Matrix4 worldToLocalSpace = MMath::inverse(actor->GetModelMatrix());
-
 				Vec4 localSpaceRayStart = worldToLocalSpace * Vec4(rayStart, 1.0f);
 				Vec4 localSpaceRayDir = worldToLocalSpace * Vec4(rayDir, 0.0f);
-
-				Ray localSpaceRay(localSpaceRayStart, localSpaceRayDir);
+				Ray localSpaceRay(localSpaceRayStart, localSpaceRayDir, distance);
 				
-				RayIntersectionInfo rayInfo = shapeComponent->shape->rayIntersectionInfo(localSpaceRay);
-				if (rayInfo.isIntersected && rayInfo.t < distance)
+				rayInfo = std::make_shared<RayIntersectionInfo>(shapeComponent->shape->rayIntersectionInfo(localSpaceRay));
+				// Pick the closest object to the camera
+				if (rayInfo->isIntersected && rayInfo->t < distance)
 				{
-					distance = rayInfo.t;
+					distance = rayInfo->t;
 					std::cout << "Picked: " << it->first << ", Distance: " << distance << "\n";
 					selectedActorName = it->first;
 					selectedActor = actor;
@@ -202,13 +195,13 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 	default:
 		break;
 	}
-	//mtx.unlock();
+	mtx.unlock();
 }
 
 void Scene0::Update(const float deltaTime)
 {
-	//std::mutex mtx;
-	//mtx.lock();
+	std::mutex mtx;
+	mtx.lock();
 	for (int i = 0; i < rays.size(); i++)
 	{
 		rays[i]->age += deltaTime;
@@ -217,18 +210,19 @@ void Scene0::Update(const float deltaTime)
 			rays.erase(rays.begin() + i);
 		}
 	}
-	//mtx.unlock();
+	mtx.unlock();
 }
 
 void Scene0::Render() const
 {
-	//std::mutex mtx;
-	//mtx.lock();
+	std::mutex mtx;
+	mtx.lock();
 	switch (renderer->GetRendererType()) {
 
 	case RendererType::OPENGL:
 
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_STENCIL_TEST);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 		glClearColor(bGColor.x, bGColor.y, bGColor.z, bGColor.w);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -237,36 +231,81 @@ void Scene0::Render() const
 		// Let it go
 		glBindTexture(GL_TEXTURE_2D, 0);
 
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+		// Draw unselected actors
 		for (auto it = actors.begin(); it != actors.end(); ++it) {
 			Ref<Actor> actor = std::dynamic_pointer_cast<Actor>(it->second);
-
-			if (selectedActor)
+			
+			if (actor != selectedActor)
 			{
-				if (actor == selectedActor)
-				{
-					glStencilFunc(GL_ALWAYS, 1, 0xFF);
-					glStencilMask(0xFF);
+				// Draw actor mesh
+				glUseProgram(actor->GetComponent<ShaderComponent>()->GetProgram());
+				glUniformMatrix4fv(actor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
+				glBindTexture(GL_TEXTURE_2D, actor->GetComponent<MaterialComponent>()->getTextureID());
+				if (renderMeshes) {
+					actor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 				}
-				else
-				{
-					glStencilMask(0x00);
+
+				// Draw actor collider
+				glUseProgram(debugShader->GetProgram());
+				if (renderCollisionShapes) {
+					// Drawing the primitive geometry associated with the mesh to help debug ray intersects, culling, and collision detection
+					glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
+					glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
+					actor->GetComponent<ShapeComponent>()->Render();
 				}
 			}
+		}
 
-			glUseProgram(actor->GetComponent<ShaderComponent>()->GetProgram());
-			glUniformMatrix4fv(actor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
-			glBindTexture(GL_TEXTURE_2D, actor->GetComponent<MaterialComponent>()->getTextureID());
-			if (renderMeshes) {
-				actor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
+		if (selectedActor)
+		{
+			// Draw Outline Around Selected actor
+			{
+				glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+				glStencilMask(0x00);
+				glDisable(GL_DEPTH_TEST);
+
+				// Scale outline by amount
+				if (outlineScale > 0.0f) {
+					selectedTransform->SetScale(selectedTransform->scale * outlineScale);
+				}
+
+				glUseProgram(debugShader->GetProgram());
+				glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
+				glUniform4fv(debugShader->GetUniformID("debugColor"), 1, selectionColor);
+				selectedActor->GetComponent<MeshComponent>()->Render();
+
+				// Unscale model
+				if (outlineScale > 0.0f) {
+					selectedTransform->SetScale(selectedTransform->scale / outlineScale);
+				}
+
+				glStencilMask(0xFF);
+				glStencilFunc(GL_ALWAYS, 1, 0xFF);
+				glEnable(GL_DEPTH_TEST);
 			}
 
-			glStencilMask(0x00);
-			glUseProgram(debugShader->GetProgram());
-			if (renderCollisionShapes) {
-				// Drawing the primitive geometry associated with the mesh to help debug ray intersects, culling, and collision detection
-				glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
-				glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
-				actor->GetComponent<ShapeComponent>()->Render();
+			// Draw selected actor
+			{
+				glStencilFunc(GL_ALWAYS, 1, 0xFF);
+				glStencilMask(0xFF);
+
+				glUseProgram(selectedActor->GetComponent<ShaderComponent>()->GetProgram());
+				glUniformMatrix4fv(selectedActor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
+				glBindTexture(GL_TEXTURE_2D, selectedActor->GetComponent<MaterialComponent>()->getTextureID());
+				if (renderMeshes) {
+					selectedActor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
+				}
+
+				glStencilMask(0xFF);
+				glUseProgram(debugShader->GetProgram());
+				if (renderCollisionShapes) {
+					// Drawing the primitive geometry associated with the mesh to help debug ray intersects, culling, and collision detection
+					glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
+					glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
+					selectedActor->GetComponent<ShapeComponent>()->Render();
+				}
 			}
 		}
 
@@ -282,23 +321,6 @@ void Scene0::Render() const
 			}
 		}
 
-		if (selectedActor)
-		{
-			// Draw Outline Around Selected Object
-			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-			glStencilMask(0x00);
-			glDisable(GL_DEPTH_TEST);
-
-			glUseProgram(debugShader->GetProgram());
-			glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
-			glUniform4fv(debugShader->GetUniformID("debugColor"), 1, selectionColor);
-			selectedActor->GetComponent<MeshComponent>()->Render();
-
-			glStencilMask(0xFF);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glEnable(GL_DEPTH_TEST);
-		}
-
 		break;
 
 	case RendererType::VULKAN:
@@ -309,12 +331,11 @@ void Scene0::Render() const
 		break;
 
 	}
-	//mtx.unlock();
+	mtx.unlock();
 }
 
 void Scene0::HandleGUI()
 {
-
 	bool open = true;
 	ImGui::Begin("Frame rate", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground);
 	ImGui::Text("%.1f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -323,20 +344,14 @@ void Scene0::HandleGUI()
 	// Hide menu when interacting with scene
 	if (showMenu)
 	{
-		ImGui::Begin("Scene Settings", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+		ImGui::Begin("Scene Menu", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 		ImGui::SetWindowSize(ImVec2(600.0f, 300.0f));
-		if (ImGui::CollapsingHeader("Colors"))
-			{
-				ImGui::ColorEdit4("Background Color", bGColor);
-				ImGui::ColorEdit4("Debug Color", debugColor);
-				ImGui::ColorEdit4("Selection Color", selectionColor);
-			}
-		if (ImGui::CollapsingHeader("Rendering"))
-			{
-				ImGui::Checkbox("Render Meshes", &renderMeshes);
-				ImGui::Checkbox("Render Colliders", &renderCollisionShapes);
-				ImGui::Checkbox("Render Raycasts", &renderRaycasts);
-			}
+
+
+		if (ImGui::CollapsingHeader("Scene Settings"))
+		{
+			showSceneSettings();
+		}
 
 		if (selectedActor)
 		{
@@ -355,8 +370,27 @@ void Scene0::HandleGUI()
 		}
 		ImGui::End();
 	}
+}
 
+void Scene0::showSceneSettings()
+{
 
+	if (ImGui::TreeNode("Colors"))
+	{
+		ImGui::ColorEdit4("Background Color", bGColor);
+		ImGui::ColorEdit4("Debug Color", debugColor);
+		ImGui::ColorEdit4("Selection Color", selectionColor);
+		ImGui::TreePop();
+	}
+
+	if (ImGui::TreeNode("Rendering"))
+	{
+		ImGui::DragFloat("Selection Outline Scale", &outlineScale, 0.1f, 0.01f, 2.0f, "%.2f");
+		ImGui::Checkbox("Render Meshes", &renderMeshes);
+		ImGui::Checkbox("Render Colliders", &renderCollisionShapes);
+		ImGui::Checkbox("Render Raycasts", &renderRaycasts);
+		ImGui::TreePop();
+	}
 
 }
 
@@ -378,11 +412,10 @@ void Scene0::showTransformMenu()
 	}
 
 	if (ImGui::TreeNode("Scale")) {
-		ImGui::DragFloat("X", &selectedTransform->scale.x, -100.0f, 100.0f);
-		ImGui::DragFloat("Y", &selectedTransform->scale.y, -100.0f, 100.0f);
-		ImGui::DragFloat("Z", &selectedTransform->scale.z, -100.0f, 100.0f);
+		ImGui::DragFloat("X", &selectedTransform->scale.x, 0.1f, -100.0f, 100.0f);
+		ImGui::DragFloat("Y", &selectedTransform->scale.y, 0.1f, -100.0f, 100.0f);
+		ImGui::DragFloat("Z", &selectedTransform->scale.z, 0.1f, -100.0f, 100.0f);
 		ImGui::TreePop();
 	}
-
 }
 

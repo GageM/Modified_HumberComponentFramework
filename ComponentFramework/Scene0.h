@@ -9,6 +9,7 @@
 #include <Vector.h>
 
 class Ray;
+class RayIntersectionInfo;
 class ShaderComponent;
 
 struct Scene0 : public Scene
@@ -17,6 +18,7 @@ private:
 	Vec4 bGColor;
 	Vec4 debugColor;
 	Vec4 selectionColor;
+	float outlineScale;
 
 	bool showMenu = false;
 
@@ -26,6 +28,7 @@ private:
 	Ref<TransformComponent> selectedTransform;
 
 	void showTransformMenu();
+	void showSceneSettings();
 
 public:
 	bool renderMeshes = true;
@@ -54,6 +57,6 @@ public:
 
 	// TODO for Assignment 2:
 	// We'll use a ray to click on our geometry objects 
-	//RayIntersectionInfo rayInfo;
+	Ref<RayIntersectionInfo> rayInfo;
 };
 

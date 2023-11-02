@@ -34,8 +34,9 @@ void TransformComponent::Render()const {}
 Matrix4 TransformComponent::GetTransformMatrix() const
 {
 	// we're gonna get translation, rotation, and scale
-	// so let's do rotation first so that origin is at the centre before we rotate
+	// scale first so that scale is applied on local axes instead of global axes
+	// so let's do rotation second so that origin is at the centre before we rotate
 	Matrix4 m;
-	m = MMath::translate(pos) * MMath::scale(scale) * MMath::toMatrix4(orientation);
+	m = MMath::translate(pos) * MMath::toMatrix4(orientation) * MMath::scale(scale);
 	return m;
 }
