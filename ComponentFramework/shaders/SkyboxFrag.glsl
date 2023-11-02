@@ -4,6 +4,7 @@
 layout(location = 0) out vec4 fragColor;
 
 layout(location = 0) in vec3 texCoord;
+
 uniform samplerCube skybox;
 
 void main() {

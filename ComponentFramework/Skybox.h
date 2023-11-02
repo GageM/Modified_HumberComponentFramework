@@ -1,31 +1,30 @@
 #pragma once
 #include <glew.h>
-#include "Component.h"
-#include "Camera.h"
+#include "Actor.h"
 
 //Forward Declarations
-class Mesh;
-class Shader;
+class MeshComponent;
+class ShaderComponent;
+class CubemapComponent;
 
-class Skybox : public Component
+class Skybox : public Actor
 {
 private:
-	GLuint textureID;
-	Mesh* mesh;
-	Shader* shader;
-	const char *posXfilename, *posYfilename, *posZfilename, *negXfilename, *negYfilename, *negZfilename;
+	Ref<MeshComponent> mesh;
+	Ref<ShaderComponent> shader;
+	Ref<CubemapComponent> cubemap;
 
 public:
-	Skybox(const char *posXfilename_, const char *posYfilename_, const char *posZfilename_, 
-		   const char *negXfilename_, const char *negYfilename_, const char *negZfilename_);
+	Skybox(Component* parent_);
 	~Skybox();
 
-	inline Shader* GetShader() { return shader; }
-	inline GLuint GetTextureID() { return textureID; }
+	inline Ref<ShaderComponent> GetShader() { return shader; }
+	inline Ref<MeshComponent> GetMesh() { return mesh; }
+	inline Ref<CubemapComponent> GetCubemap() { return cubemap; }
 
-	bool OnCreate() override;
-	void OnDestroy() override;
-	void Update(const float deltaTime_) override;
-	void Render()const override;
+	virtual bool OnCreate() override;
+	virtual void OnDestroy() override;
+	virtual void Update(const float deltaTime_) override;
+	virtual void Render()const override;
 };
 

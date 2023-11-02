@@ -22,7 +22,7 @@ layout(std140, binding = 1) uniform LightData{
     vec4 colour;
 };
 
-layout(location = 2) uniform mat4 modelMatrix;
+layout(location = 3) uniform mat4 modelMatrix;
 
 layout(location = 0) out vec3 vertNormal; // technically the next stage is the tesselation shader, then geometry shader
 layout(location = 1) out vec3 lightDir;

@@ -54,7 +54,6 @@ bool CameraActor::OnCreate()
 	return isCreated;
 }
 
-
 void CameraActor::UpdateProjectionMatrix(const float fovy, const float aspectRatio, const float near, const float far)
 {
 	projectionMatrix = MMath::perspective(fovy, aspectRatio, near, far);

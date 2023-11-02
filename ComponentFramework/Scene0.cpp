@@ -47,6 +47,8 @@ bool Scene0::OnCreate()
 		camera = assetManager.GetComponent<CameraActor>("Camera1");
 		light = assetManager.GetComponent<LightActor>("Light1");
 
+		skybox = std::make_shared<Skybox>(nullptr);
+
 		debugShader = assetManager.GetComponent<ShaderComponent>("debugShader");
 	}
 		break;
@@ -67,6 +69,8 @@ void Scene0::OnDestroy()
 	{
 		controller = nullptr;
 	}
+
+	if(skybox) skybox = nullptr;
 }
 
 void Scene0::HandleEvents(const SDL_Event& sdlEvent)
@@ -240,6 +244,8 @@ void Scene0::Render() const
 	switch (renderer->GetRendererType()) {
 
 	case RendererType::OPENGL:
+
+		skybox->Render();
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);

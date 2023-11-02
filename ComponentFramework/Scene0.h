@@ -5,6 +5,7 @@
 #include "Actor.h"
 #include "LightActor.h"
 #include "CameraActor.h"
+#include "Skybox.h"
 #include "XMLAssetManager.h"
 
 #include <Vector.h>
@@ -55,6 +56,7 @@ public:
 	// We only have one camera and light, so they don't need to be in the map
 	Ref<CameraActor> camera;
 	Ref<LightActor> light;
+	Ref<Skybox> skybox;
 
 	std::vector<Ref<Ray>> rays;
 

@@ -156,6 +156,7 @@
     <ClCompile Include="CameraActor.cpp" />
     <ClCompile Include="Capsule.cpp" />
     <ClCompile Include="ControllerManager.cpp" />
+    <ClCompile Include="CubemapComponent.cpp" />
     <ClCompile Include="Cylinder.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="Frustrum.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="Capsule.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ControllerManager.h" />
+    <ClInclude Include="CubemapComponent.h" />
     <ClInclude Include="Cylinder.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="Frustrum.h" />

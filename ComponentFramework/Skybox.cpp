@@ -1,124 +1,47 @@
 #include <SDL_image.h>
 #include "Skybox.h"
-#include "Mesh.h"
-#include "Shader.h"
 #include "Debug.h"
+#include "CubemapComponent.h"
+#include "MeshComponent.h"
+#include "ShaderComponent.h"
 
-Skybox::Skybox(const char* posXfilename_, const char* posYfilename_, const char* posZfilename_,
-		       const char* negXfilename_, const char* negYfilename_, const char* negZfilename_) : Component(parent)
+Skybox::Skybox(Component* parent_) : Actor(parent_), mesh(nullptr), shader(nullptr), cubemap(nullptr)
 {
-	posXfilename = posXfilename_;
-	posYfilename = posYfilename_;
-	posZfilename = posZfilename_;
-	negXfilename = negXfilename_;
-	negYfilename = negYfilename_;
-	negZfilename = negZfilename_;
 
-	textureID = 0;
-	mesh = nullptr;
-	shader = nullptr;
 }
 
 Skybox::~Skybox()
 {
-	
+	OnDestroy();
 }
 
 bool Skybox::OnCreate()
 {
-	mesh = new Mesh(nullptr, "meshes/Cube.obj");
-	if (!mesh->OnCreate())
-	{
-		Debug::Info("Failed to create Skybox Mesh", __FILE__, __LINE__);
-		return false;
-	}
+	// Add Mesh Component
+	mesh = std::make_shared<MeshComponent>(nullptr, "meshes/Cube.obj");
+	mesh->OnCreate();
 
-	shader = new Shader(nullptr, "shaders/SkyboxVert.glsl", "shaders/SkyboxFrag.glsl");
-	if (!shader->OnCreate())
-	{
-		Debug::Info("Failed to create Skybox Shader", __FILE__, __LINE__);
-		return false;
-	}
+	// Add Shader Component
+	shader = std::make_shared<ShaderComponent>(nullptr, "shaders/SkyboxVert.glsl", "shaders/SkyboxFrag.glsl");
+	shader->OnCreate();
 
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-	SDL_Surface* textureSurface;
-	int mode;
-
-	//
-	textureSurface = IMG_Load(posXfilename);
-	if (textureSurface == nullptr) {
-		return false;
-	}
-	mode = (textureSurface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, mode, textureSurface->w, textureSurface->h, 0, mode, GL_UNSIGNED_BYTE, textureSurface->pixels);
-	SDL_FreeSurface(textureSurface);
-	//
-	textureSurface = IMG_Load(posYfilename);
-	if (textureSurface == nullptr) {
-		return false;
-	}
-	mode = (textureSurface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, mode, textureSurface->w, textureSurface->h, 0, mode, GL_UNSIGNED_BYTE, textureSurface->pixels);
-	SDL_FreeSurface(textureSurface);
-	//
-	textureSurface = IMG_Load(posZfilename);
-	if (textureSurface == nullptr) {
-		return false;
-	}
-	mode = (textureSurface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, mode, textureSurface->w, textureSurface->h, 0, mode, GL_UNSIGNED_BYTE, textureSurface->pixels);
-	SDL_FreeSurface(textureSurface);
-	//
-	textureSurface = IMG_Load(negXfilename);
-	if (textureSurface == nullptr) {
-		return false;
-	}
-	mode = (textureSurface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, mode, textureSurface->w, textureSurface->h, 0, mode, GL_UNSIGNED_BYTE, textureSurface->pixels);
-	SDL_FreeSurface(textureSurface);
-	//
-	textureSurface = IMG_Load(negYfilename);
-	if (textureSurface == nullptr) {
-		return false;
-	}
-	mode = (textureSurface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, mode, textureSurface->w, textureSurface->h, 0, mode, GL_UNSIGNED_BYTE, textureSurface->pixels);
-	SDL_FreeSurface(textureSurface);
-	//
-	textureSurface = IMG_Load(negZfilename);
-	if (textureSurface == nullptr) {
-		return false;
-	}
-	mode = (textureSurface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, mode, textureSurface->w, textureSurface->h, 0, mode, GL_UNSIGNED_BYTE, textureSurface->pixels);
-	SDL_FreeSurface(textureSurface);
-
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
+	// Add CubemapComponent
+	cubemap = std::make_shared<CubemapComponent>(nullptr, 
+		"textures/CN_Tower/posx.jpg", "textures/CN_Tower/posy.jpg", "textures/CN_Tower/posz.jpg",
+		"textures/CN_Tower/negx.jpg", "textures/CN_Tower/negy.jpg", "textures/CN_Tower/negz.jpg");
+	cubemap->OnCreate();
+	
 	return true;
 }
 	
 void Skybox::OnDestroy()
 {
-	if (mesh)
-	{
-		mesh->OnDestroy();
-		delete mesh;
-	}
-
-	if (shader)
-	{
-		shader->OnDestroy();
-		delete shader;
-	}
-
-	glDeleteTextures(1, &textureID);
+	if(shader) shader->OnDestroy();
+	if (mesh) mesh->OnDestroy();
+	if (cubemap) cubemap->OnDestroy();
+	shader = nullptr;
+	mesh = nullptr;
+	cubemap = nullptr;
 }
 
 void Skybox::Update(const float deltaTime_)
@@ -128,10 +51,17 @@ void Skybox::Update(const float deltaTime_)
 
 void Skybox::Render()const
 {
+	// use skybox shader
+	glUseProgram(shader->GetProgram());
+
 	glDepthFunc(GL_LEQUAL);
 	glDisable(GL_CULL_FACE);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	// Bind cubemap texture
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getTextureID());
+	// Render skybox
 	mesh->Render(GL_TRIANGLES);
+
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
