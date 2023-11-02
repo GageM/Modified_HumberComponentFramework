@@ -4,8 +4,10 @@
 #include "CubemapComponent.h"
 #include "MeshComponent.h"
 #include "ShaderComponent.h"
+#include <Matrix.h>
+#include <MMath.h>
 
-Skybox::Skybox(Component* parent_) : Actor(parent_), mesh(nullptr), shader(nullptr), cubemap(nullptr)
+Skybox::Skybox(Ref<Component> parent_) : Actor(parent_), mesh(nullptr), shader(nullptr), cubemap(nullptr)
 {
 
 }
@@ -56,6 +58,11 @@ void Skybox::Render()const
 
 	glDepthFunc(GL_LEQUAL);
 	glDisable(GL_CULL_FACE);
+
+	// Set skybox position
+	Ref<Actor> parentActor = std::dynamic_pointer_cast<Actor>(parent);
+
+	MMath::translate(Vec3());
 
 	// Bind cubemap texture
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getTextureID());

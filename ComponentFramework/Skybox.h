@@ -15,7 +15,7 @@ private:
 	Ref<CubemapComponent> cubemap;
 
 public:
-	Skybox(Component* parent_);
+	Skybox(Ref<Component> parent_);
 	~Skybox();
 
 	inline Ref<ShaderComponent> GetShader() { return shader; }

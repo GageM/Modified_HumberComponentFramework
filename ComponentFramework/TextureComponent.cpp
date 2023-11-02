@@ -1,6 +1,6 @@
 #include "TextureComponent.h"
 #include <SDL_image.h>
-TextureComponent::TextureComponent(Component* parent_, const char* filename_):Component(parent_) {
+TextureComponent::TextureComponent(Ref<Component> parent_, const char* filename_):Component(parent_) {
 	textureID = 0;
 	filename = filename_;
 }

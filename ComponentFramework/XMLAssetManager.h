@@ -51,8 +51,8 @@ struct XMLAssetManager {
 	void AddShaderToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor);
 	void AddTextureToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor);
 	void AddShapeToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor);
-	void AddTransformToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Component* parent);
-	void AddPhysicsToActor  (const tinyxml2::XMLElement* child, Ref<Actor> actor, Component* parent);
+	void AddTransformToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent);
+	void AddPhysicsToActor  (const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent);
 
 	XMLAssetManager();
 	~XMLAssetManager();

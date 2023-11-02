@@ -22,7 +22,7 @@ protected:
 	std::unordered_map<std::string, Ref<Component>> components;
 	Matrix4 modelMatrix;
 public:
-	Actor(Component* parent_);
+	Actor(Ref<Component> parent_);
 	~Actor();
 	bool OnCreate();
 	void OnDestroy();

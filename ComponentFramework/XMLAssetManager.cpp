@@ -51,12 +51,12 @@ XMLAssetManager::XMLAssetManager()
 		child = child->NextSiblingElement())
 	{
 		if (std::string(child->Name()) == "Actor") {
-			Component* parent = nullptr;
+			Ref<Component> parent = nullptr;
 			if (std::string(child->Attribute("parent")) == "none") {
 				parent = nullptr;
 			}
 			if (std::string(child->Attribute("parent")) == "ActorGameBoard") {
-				parent = GetComponent<Actor>("ActorGameBoard").get();
+				parent = GetComponent<Actor>("ActorGameBoard");
 			}
 
 			Ref<Actor> actor = std::make_shared<Actor>(parent);
@@ -184,7 +184,7 @@ void XMLAssetManager::AddCamera(const tinyxml2::XMLElement* child)
 	Vec3 axis;
 	Vec3 scale;
 	float angleDeg = 0.0f;
-	Component* cameraParent = nullptr;
+	Ref<Component> cameraParent = nullptr;
 
 	if (child->Attribute("cameraname")) {
 		if (child->FirstChildElement("Transform")) {
@@ -221,7 +221,7 @@ void XMLAssetManager::AddLight(const tinyxml2::XMLElement* child)
 	Vec3 lightPos;
 	Vec4 colour;
 	Vec3 falloff;
-	Component* lightParent = nullptr;
+	Ref<Component> lightParent = nullptr;
 	LightStyle lightstyle;
 	float intensity = 1.0f;
 	if (child->Attribute("lightname")) {
@@ -294,7 +294,7 @@ void XMLAssetManager::AddShapeToActor(const tinyxml2::XMLElement* child, Ref<Act
 	}
 }
 
-void XMLAssetManager::AddTransformToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Component* parent)
+void XMLAssetManager::AddTransformToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent)
 {
 	if (child->FirstChildElement("Transform")) {
 		Vec3 pos;
@@ -316,7 +316,7 @@ void XMLAssetManager::AddTransformToActor(const tinyxml2::XMLElement* child, Ref
 	}
 }
 
-void XMLAssetManager::AddPhysicsToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Component* parent)
+void XMLAssetManager::AddPhysicsToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent)
 {
 	// TODO for assignment 3
 	// Add a default physics component to the actor, but don't forget to match transform component's position & orientation

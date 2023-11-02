@@ -1,4 +1,4 @@
-Thu Nov  2 16:15:26 2023
+Thu Nov  2 18:27:20 2023
 [INFO]: Starting the SceneManager
 [INFO]: OpenGL Version: 4.6.0 NVIDIA 536.67
 [INFO]: Graphics card vendor NVIDIA Corporation
@@ -7,7 +7,7 @@ Thu Nov  2 16:15:26 2023
 [INFO]: Uniforms:
 "colour" loc:-1
 "lightPos" loc:-1
-"modelMatrix" loc:2
+"modelMatrix" loc:3
 "myTexture" loc:0
 "projection" loc:-1
 "view" loc:-1
@@ -47,11 +47,19 @@ Thu Nov  2 16:15:26 2023
 "viewMatrix" loc:1
 
 [INFO]: Uniforms:
-"projectionMatrix" loc:0
-"skybox" loc:2
-"viewMatrix" loc:1
+"modelMatrix" loc:1
+"projection" loc:-1
+"skybox" loc:0
+"view" loc:-1
 
 [INFO]: Created Scene0
+[INFO]: Uniforms:
+"modelMatrix" loc:1
+"projection" loc:-1
+"skybox" loc:0
+"view" loc:-1
+
+[INFO]: Deleting assets for Actor/Components: 
 [INFO]: Created Scene0
 [INFO]: Deleting assets for Actor/Components: 
 [INFO]: Deleting assets for Actor/Components: 

@@ -29,7 +29,7 @@ private:
 	GLuint vao, vbo;
 public:
 
-	MeshComponent(Component* parent_, const char* filename_);
+	MeshComponent(Ref<Component> parent_, const char* filename_);
 	~MeshComponent();
 	bool OnCreate();
 	void OnDestroy();

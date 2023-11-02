@@ -2,12 +2,12 @@
 #include "LightActor.h"
 #include "UBO_Padding.h"
 
-LightActor::LightActor(Component* parent_, LightStyle lightStyle_, Vec3 position_, Vec4 colour_, float intensity_, Vec3 fallOff_) 
+LightActor::LightActor(Ref<Component> parent_, LightStyle lightStyle_, Vec3 position_, Vec4 colour_, float intensity_, Vec3 fallOff_) 
 	: Actor(parent_), lightStyle(lightStyle_), position(position_), colour(colour_), intensity(intensity_), fallOff(fallOff_)
 {
 }
 
-LightActor::LightActor(Component* parent_):Actor(parent_)
+LightActor::LightActor(Ref<Component> parent_):Actor(parent_)
 {
 	position.set(0.0f, 0.0f, 0.0f);
 	colour.set(1.0f, 1.0f, 1.0f, 0.0f);

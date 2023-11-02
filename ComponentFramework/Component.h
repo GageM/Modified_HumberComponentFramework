@@ -10,15 +10,18 @@ using Ref = std::shared_ptr<T>;
 
 class Component {
 	public:
-		Component(Component* parent_):parent(parent_), isCreated(false) {}
+		Component(Ref<Component> parent_):parent(parent_), isCreated(false) {}
 		// using = default; is the same as {};
 		virtual ~Component() = default;
 		virtual bool OnCreate() = 0;
 		virtual void OnDestroy() = 0;
 		virtual void Update(const float deltaTime_) = 0;
 		virtual void Render()const = 0;
+
+		// Allow changing of parents
+		inline void SetParent(Ref<Component> parent_) { parent = parent_; }
 	protected:
-		Component* parent;
+		Ref<Component> parent;
 		// the isCreated variable will be brought into anything inherited from Component
 		// will be handy to stop us doing OnCreate twice!
 		bool isCreated;

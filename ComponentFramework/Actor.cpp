@@ -1,7 +1,7 @@
 #include "Actor.h"
 #include "TransformComponent.h"
 #include "Debug.h"
-Actor::Actor(Component* parent_):Component(parent_) {}
+Actor::Actor(Ref<Component> parent_):Component(parent_) {}
 
 // destructor usually deallocates memory
 Actor::~Actor() {
@@ -57,7 +57,7 @@ Matrix4 Actor::GetModelMatrix()
 	}
 	
 	if (parent) { // if there is a parent, we can dynamic cast the component to an actor
-		modelMatrix = dynamic_cast<Actor*>(parent)->GetModelMatrix()* modelMatrix;
+		modelMatrix = std::dynamic_pointer_cast<Actor>(parent)->GetModelMatrix()* modelMatrix;
 	}
 
 	return modelMatrix;

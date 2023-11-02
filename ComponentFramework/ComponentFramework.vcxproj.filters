@@ -168,9 +168,6 @@
     <ClCompile Include="VulkanRenderer.cpp">
       <Filter>Source Files\Renderers</Filter>
     </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Skybox.cpp">
       <Filter>Source Files\Actors</Filter>
     </ClCompile>
@@ -301,9 +298,6 @@
     </ClInclude>
     <ClInclude Include="Frustrum.h">
       <Filter>Header Files\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="Material.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Skybox.h">
       <Filter>Header Files\Actor</Filter>

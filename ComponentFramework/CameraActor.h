@@ -21,7 +21,7 @@ private:
 	Frustrum frustrum;
 
 public:
-	CameraActor(Component* parent_);
+	CameraActor(Ref<Component> parent_);
 	virtual ~CameraActor();
 
 	// we will override the base class one (new in C++ 11)

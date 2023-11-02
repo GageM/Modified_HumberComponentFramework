@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string.h>
 
-ShaderComponent::ShaderComponent(Component* parent_, const char* vsFilename_, const char* fsFilename_):
+ShaderComponent::ShaderComponent(Ref<Component> parent_, const char* vsFilename_, const char* fsFilename_):
 	Component(parent_),
 	shaderID(0),vertShaderID(0),fragShaderID(0) {
 	vsFilename = vsFilename_;

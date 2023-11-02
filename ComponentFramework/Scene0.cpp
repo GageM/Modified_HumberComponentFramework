@@ -48,6 +48,7 @@ bool Scene0::OnCreate()
 		light = assetManager.GetComponent<LightActor>("Light1");
 
 		skybox = std::make_shared<Skybox>(nullptr);
+		skybox->OnCreate();
 
 		debugShader = assetManager.GetComponent<ShaderComponent>("debugShader");
 	}
@@ -244,9 +245,6 @@ void Scene0::Render() const
 	switch (renderer->GetRendererType()) {
 
 	case RendererType::OPENGL:
-
-		skybox->Render();
-
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -256,6 +254,8 @@ void Scene0::Render() const
 		glBindBuffer(GL_UNIFORM_BUFFER, light->GetLightID());
 		// Let it go
 		glBindTexture(GL_TEXTURE_2D, 0);
+
+		skybox->Render();
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);

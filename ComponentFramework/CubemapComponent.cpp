@@ -1,7 +1,7 @@
 #include "CubemapComponent.h"
 #include <SDL_image.h>
 
-CubemapComponent::CubemapComponent(Component* parent_, const char* PXfile_, const char* PYfile_, const char* PZfile_,
+CubemapComponent::CubemapComponent(Ref<Component> parent_, const char* PXfile_, const char* PYfile_, const char* PZfile_,
 	const char* NXfile_, const char* NYfile_, const char* NZfile_) : Component(parent_), 
 	posXfilename(PXfile_), posYfilename(PYfile_), posZfilename(PZfile_), negXfilename(NXfile_), negYfilename(NYfile_), negZfilename(NZfile_),
 	textureID(0)

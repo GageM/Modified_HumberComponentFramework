@@ -5,7 +5,7 @@
 #include "Debug.h"
 #include "UBO_Padding.h"
 using namespace MATH;
-CameraActor::CameraActor(Component* parent_):Actor(parent_) {
+CameraActor::CameraActor(Ref<Component> parent_):Actor(parent_) {
 // lets set up the projection and view
 	projectionMatrix = Matrix4();
 	viewMatrix = Matrix4();

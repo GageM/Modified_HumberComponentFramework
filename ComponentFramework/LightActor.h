@@ -33,9 +33,9 @@ private:
 	const unsigned int bindingPoint = 1; // remember we used = 0 for the camera
 
 public:
-	LightActor(Component* parent_, LightStyle lightStyle_, Vec3 position_, Vec4 colour_,
+	LightActor(Ref<Component> parent_, LightStyle lightStyle_, Vec3 position_, Vec4 colour_,
 		float intensity_ = 1.0f, Vec3 fallOff_ = Vec3(0.0f, 0.0f, 0.0f));
-	LightActor(Component* parent_);
+	LightActor(Ref<Component> parent_);
 	~LightActor();
 	Vec3 GetPosition() const { return position; }
 	void SetPosition(Vec3 position_) { position = position_; };
