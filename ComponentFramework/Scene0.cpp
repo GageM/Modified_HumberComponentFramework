@@ -47,7 +47,7 @@ bool Scene0::OnCreate()
 		camera = assetManager.GetComponent<CameraActor>("Camera1");
 		light = assetManager.GetComponent<LightActor>("Light1");
 
-		skybox = std::make_shared<Skybox>(nullptr);
+		skybox = std::make_shared<Skybox>(camera);
 		skybox->OnCreate();
 
 		debugShader = assetManager.GetComponent<ShaderComponent>("debugShader");

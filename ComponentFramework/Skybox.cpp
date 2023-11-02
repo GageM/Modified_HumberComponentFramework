@@ -4,6 +4,7 @@
 #include "CubemapComponent.h"
 #include "MeshComponent.h"
 #include "ShaderComponent.h"
+#include "TransformComponent.h"
 #include <Matrix.h>
 #include <MMath.h>
 
@@ -60,9 +61,20 @@ void Skybox::Render()const
 	glDisable(GL_CULL_FACE);
 
 	// Set skybox position
-	Ref<Actor> parentActor = std::dynamic_pointer_cast<Actor>(parent);
+	Matrix4 modelMatrix = MMath::translate(Vec3(10.0f, 0.0f, 0.0f)) * Matrix4();
 
-	MMath::translate(Vec3());
+	Ref<Actor> parentActor = std::dynamic_pointer_cast<Actor>(parent);
+	if (parentActor)
+	{
+		Ref<TransformComponent> parentTransform = parentActor->GetComponent<TransformComponent>();
+		if (parentTransform)
+		{
+			modelMatrix = MMath::translate(-parentTransform->pos) * Matrix4();
+		}
+	}
+
+	// Pass skybox model matrix
+	glUniformMatrix4fv(shader->GetUniformID("modelMatrix"), 1, GL_FALSE, modelMatrix);
 
 	// Bind cubemap texture
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getTextureID());

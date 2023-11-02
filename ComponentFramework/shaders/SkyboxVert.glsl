@@ -11,13 +11,12 @@ layout(std140, binding = 0) uniform CameraMatrices{ // this is not a struct
 
 layout(location = 1) uniform mat4 modelMatrix;
 
-
 layout(location = 0) out vec3 texCoord;
 
 void main() {
     texCoord = vec3(-vVertex.x, vVertex.y, vVertex.z);
     
-    vec4 pos = projection * view * modelMatrix *vec4(vec3(vVertex), 1.0);
+    vec4 pos = projection * view * modelMatrix * vVertex;
 
     gl_Position = pos.xyww;
 }
