@@ -174,7 +174,6 @@ void XMLAssetManager::AddShader(const tinyxml2::XMLElement* child)
 		Ref<ShaderComponent> shader = std::make_shared<ShaderComponent>(nullptr, child->Attribute("vertFilename"), child->Attribute("fragFilename"));
 		shader->OnCreate();
 		AddComponent(child->Attribute("name"), shader);
-		//AddComponent<ShaderComponent>(child->Attribute("name"), nullptr, child->Attribute("vertFilename"), child->Attribute("fragFilename"));
 	}
 }
 
