@@ -168,6 +168,8 @@
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="LightActor.cpp" />
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="TextureComponent.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
@@ -208,6 +210,8 @@
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="LightActor.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="Skybox.h" />
     <ClInclude Include="TextureComponent.h" />
     <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="MeshComponent.h" />
@@ -238,6 +242,10 @@
     <None Include="shaders\debugVert.glsl" />
     <None Include="shaders\defaultFrag.glsl" />
     <None Include="shaders\defaultVert.glsl" />
+    <None Include="shaders\PBRFrag.glsl" />
+    <None Include="shaders\PBRVert.glsl" />
+    <None Include="shaders\SkyboxFrag.glsl" />
+    <None Include="shaders\SkyboxVert.glsl" />
     <None Include="shaders\textureFrag.glsl" />
     <None Include="shaders\textureVert.glsl" />
   </ItemGroup>

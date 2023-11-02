@@ -1,4 +1,4 @@
-Thu Nov  2 16:14:42 2023
+Thu Nov  2 16:15:26 2023
 [INFO]: Starting the SceneManager
 [INFO]: OpenGL Version: 4.6.0 NVIDIA 536.67
 [INFO]: Graphics card vendor NVIDIA Corporation
@@ -46,5 +46,19 @@ Thu Nov  2 16:14:42 2023
 "vNumLights" loc:26
 "viewMatrix" loc:1
 
-[ERROR]: Can't open shader file: shaders/SkyboxFrag in file: D:\School\Game Physics 3 GAME 306\CompFramework_Phys_Vulkan_23.00.8\ComponentFramework\ShaderComponent.cpp on line: 243
+[INFO]: Uniforms:
+"projectionMatrix" loc:0
+"skybox" loc:2
+"viewMatrix" loc:1
+
 [INFO]: Created Scene0
+[INFO]: Created Scene0
+[INFO]: Deleting assets for Actor/Components: 
+[INFO]: Deleting assets for Actor/Components: 
+[INFO]: Deleting assets for Actor/Components: 
+[INFO]: Deleting assets for Actor/Components: 
+[INFO]: Deleting assets for Actor/Components: 
+[INFO]: Deleting assets for Actor/Components: 
+[INFO]: Deleting assets for Actor/Components: 
+[INFO]: Deleting assets for Actor/Components: 
+[INFO]: Deleting the SceneManager
