@@ -17,7 +17,7 @@ void Actor::OnDestroy() {
 bool Actor::OnCreate() {
 	if (isCreated) return isCreated;
 	for (const auto &component : components) {
-		if (component->OnCreate() == false) {
+		if (component.second->OnCreate() == false) {
 			Debug::Error("Loading assets for Actor/Components: ", __FILE__, __LINE__);
 				isCreated = false;
 				return isCreated;
@@ -38,14 +38,12 @@ void Actor::RemoveAllComponents() {
 }
 
 void Actor::ListComponents() const {
-	// This is the RTTI stuff
-	// will look up what these components point to. by dereferences we get the type of object
-	// otherwise you get the base class. we want the polymorphic answer
 	std::cout << typeid(*this).name() << " contains the following components:\n";
-	for (const auto &component : components) {
-		std::cout << typeid(*component.get()).name() << std::endl;
+	for (const auto& component : components)
+	{
+		std::cout << component.first << std::endl;
 	}
-	std::cout << '\n';
+	std::cout << std::endl;
 }
 
 Matrix4 Actor::GetModelMatrix()

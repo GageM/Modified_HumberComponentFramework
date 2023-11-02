@@ -207,7 +207,9 @@ void XMLAssetManager::AddCamera(const tinyxml2::XMLElement* child)
 
 	if (std::string(child->Name()) == "Camera") {
 		Ref<CameraActor> camera = std::make_shared<CameraActor>(cameraParent);
-		camera->AddComponent<TransformComponent>(nullptr, cameraPos, QMath::angleAxisRotation(angleDeg, axis));
+		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(nullptr, cameraPos, QMath::angleAxisRotation(angleDeg, axis));
+
+		camera->AddComponent<TransformComponent>("Transform", transform);
 		camera->OnCreate();
 		AddComponent(child->Attribute("cameraname"), camera);
 	}
@@ -260,7 +262,7 @@ void XMLAssetManager::AddMeshToActor(const tinyxml2::XMLElement* child, Ref<Acto
 	if (child->FirstChildElement("Mesh")) {
 		const char* name = child->FirstChildElement("Mesh")->Attribute("name");
 		Ref<MeshComponent> mesh = GetComponent<MeshComponent>(name);
-		actor->AddComponent<MeshComponent>(mesh);
+		actor->AddComponent<MeshComponent>(name, mesh);
 	}
 
 }
@@ -270,7 +272,7 @@ void XMLAssetManager::AddShaderToActor(const tinyxml2::XMLElement* child, Ref<Ac
 	if (child->FirstChildElement("Shader")) {
 		const char* name = child->FirstChildElement("Shader")->Attribute("name");
 		Ref<ShaderComponent> shader = GetComponent<ShaderComponent>(name);
-		actor->AddComponent<ShaderComponent>(shader);
+		actor->AddComponent<ShaderComponent>(name, shader);
 	}
 }
 
@@ -279,7 +281,7 @@ void XMLAssetManager::AddTextureToActor(const tinyxml2::XMLElement* child, Ref<A
 	if (child->FirstChildElement("Texture")) {
 		const char* name = child->FirstChildElement("Texture")->Attribute("name");
 		Ref<TextureComponent> texture = GetComponent<TextureComponent>(name);
-		actor->AddComponent<TextureComponent>(texture);
+		actor->AddComponent<TextureComponent>(name, texture);
 	}
 }
 
@@ -288,7 +290,7 @@ void XMLAssetManager::AddShapeToActor(const tinyxml2::XMLElement* child, Ref<Act
 	if (std::string(child->FirstChildElement("Shape")->Name()) == "Shape") {
 		const char* name = child->FirstChildElement("Shape")->Attribute("name");
 		Ref<ShapeComponent> shape = GetComponent<ShapeComponent>(name);
-		actor->AddComponent<ShapeComponent>(shape);
+		actor->AddComponent<ShapeComponent>(name, shape);
 	}
 }
 
@@ -309,7 +311,8 @@ void XMLAssetManager::AddTransformToActor(const tinyxml2::XMLElement* child, Ref
 		scale.y = child->FirstChildElement("Transform")->FloatAttribute("scaley");
 		scale.z = child->FirstChildElement("Transform")->FloatAttribute("scalez");
 		
-		actor->AddComponent<TransformComponent>(parent, pos, QMath::angleAxisRotation(angleDeg, axis), scale);
+		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(parent, pos, QMath::angleAxisRotation(angleDeg, axis), scale);
+		actor->AddComponent<TransformComponent>("Transform", transform);
 	}
 }
 

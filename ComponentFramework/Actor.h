@@ -3,6 +3,7 @@
 
 #pragma once
 #include <vector> 
+#include <unordered_map>
 #include <iostream>
 #include "Component.h"
 #include <Matrix.h>
@@ -17,8 +18,8 @@ class Actor: public Component {
 	Actor& operator=(Actor&&) = delete;
 
 protected:
-	// Make a vector list of shared_ptrs
-	std::vector<Ref<Component>> components;
+	// Make an unordered map of shared_ptrs
+	std::unordered_map<std::string, Ref<Component>> components;
 	Matrix4 modelMatrix;
 public:
 	Actor(Component* parent_);
@@ -29,58 +30,103 @@ public:
 	void Render() const;
 
 
-	inline std::vector<Ref<Component>> GetComponentList() const { return components; }
+	inline std::unordered_map<std::string, Ref<Component>> GetComponentList() const { return components; }
 	
-	/// Footnote to those who think you can't write code in the header file - this is true
-	/// with a few exceptions. (1) You can't inline code (implicitly or not) unless it is in 
-	/// the header file and (2) templates must be in the header file
+	// Components must already be created in order to add them to an actor
 
-	// Copying in Scott's new AddComponents that use smart pointers
-	template<typename ComponentTemplate, typename ... Args>
-	void AddComponent(Args&& ... args_) {
-		/// before you add the component, ask if you have the component in the list already,
-		/// if so - don't add a second one. 
-		if (GetComponent<ComponentTemplate>().get() != nullptr) {
+	/*
+	// Adds a component given a name, type and construction arguments
+	template<typename Str = std::string, typename Type, typename ... Args>
+	void AddComponent(std::string name, Args&& ... args_)
+	{
+		// Check if there is a component of that name already attached to the actor
+		if (GetComponent<Type>(name).get() != nullptr) 
+		{
 #ifdef _DEBUG
-			std::cerr << "WARNING: Trying to add a component type that is already added - ignored\n";
-#endif
+			std::cerr << "WARNING: A Component with name: " << name << " is already attached to this actor - ignoring/n";
+#endif // _DEBUG
 			return;
 		}
-		/// Using std::make_shared to do the work. This is the new idea in class!
-		components.push_back(std::make_shared<ComponentTemplate>(std::forward<Args>(args_)...));
-	}
 
-	// To take advantage of an asset manager, make another AddComponent that just takes a component
-	template<typename ComponentTemplate>
-	void AddComponent(Ref<ComponentTemplate> component_) {
-		if (GetComponent<ComponentTemplate>().get() != nullptr) {
+		// Create and attach component to actor
+		components[name] = std::make_shared<ComponentTemplate>(std::forward<Args>(args_)...));
+	}
+	*/
+
+	// Adds a component given a name, type and preconstructed component
+	template<typename Type>
+	void AddComponent(std::string name, Ref<Type> component_)	
+	{
+		// Check if there is a component of that name already attached to the actor
+		if (GetComponent<Type>(name).get() != nullptr) 
+		{
 #ifdef _DEBUG
-			std::cerr << "WARNING: Trying to add a component type that is already added - ignored\n";
-#endif
+			std::cerr << "WARNING: A Component with name: " << name << " is already attached to this actor - ignoring/n";
+#endif // _DEBUG
 			return;
 		}
-		components.push_back(component_);
+
+		// Create and attach component to actor
+		components[name] = component_;
 	}
 
-	// Need this to work nicely with shared pointers
-	template<typename ComponentTemplate>
-	Ref<ComponentTemplate> GetComponent() const{
-		for (auto component : components) {
-			if (dynamic_cast<ComponentTemplate*>(component.get())) {
-				// This is dynamic cast designed for shared_ptr's
-				// https://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast
-				return std::dynamic_pointer_cast<ComponentTemplate>(component);
+	// Returns a component by a given name & type
+	template<typename Type>
+	Ref<Type> GetComponent(std::string name) const
+	{
+		for (const auto& component : components)
+		{
+			// if the component has the same name and is the right type
+			if (name == component.first && std::dynamic_pointer_cast<Type>(component.second))
+			{
+				return std::dynamic_pointer_cast<Type>(component.second);
 			}
 		}
-		return Ref<ComponentTemplate>(nullptr);
+
+		// if no matching component was found return a nullptr
+		return Ref<Type>(nullptr);
 	}
 
-	// code needs to be in the header if it's a templated function
-	template<typename ComponentTemplate>
-	void RemoveComponent() {
-		for (unsigned int i = 0; i < components.size(); i++) {
-			if (dynamic_cast<ComponentTemplate*>(components[i].get()) != nullptr) {
-				components.erase(components.begin() + i);
+	// Returns the first component of a given type
+	template<typename Type>
+	Ref<Type> GetComponent() const
+	{
+		for (const auto& component : components)
+		{
+			// if the component has the same name and is the right type
+			if (std::dynamic_pointer_cast<Type>(component.second))
+			{
+				return std::dynamic_pointer_cast<Type>(component.second);
+			}
+		}
+
+		// if no matching component was found return a nullptr
+		return Ref<Type>(nullptr);
+	}
+
+	// Removes a component given a name and type
+	template<typename Type>
+	void RemoveComponent(std::string name)
+	{
+		for (const auto& component : components)
+		{
+			if (name == component.first && std::dynamic_pointer_cast<Type>(components[name]) != nullptr)
+			{
+				components.erase(name);
+				break;
+			}
+		}
+	}
+
+	// Removes the first component of type
+	template<typename Type>
+	void RemoveComponent()
+	{
+		for (const auto& component : components)
+		{
+			if (std::dynamic_pointer_cast<Type>(component) != nullptr)
+			{
+				components.erase(component.first);
 				break;
 			}
 		}

@@ -461,7 +461,7 @@ void Scene0::showHeirarchy()
 			{
 				for (auto& component : actor->GetComponentList())
 				{
-					ImGui::Text(typeid(*component.get()).name());
+					ImGui::Text(typeid(*component.second.get()).name());
 				}
 				ImGui::TreePop();
 			}
