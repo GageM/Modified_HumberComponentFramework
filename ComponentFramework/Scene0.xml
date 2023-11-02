@@ -53,10 +53,20 @@
 	  <Texture name="RedCheckerTexture" filename="textures/redCheckerPiece.png"/>
 	  <Texture name="WhiteCheckerTexture" filename="textures/whiteCheckerPiece.png"/>
 	  <Texture name="MarioTexture" filename="textures/mario_main.png"/>
+    
+    <!--Scene HDRIs-->
+    <texture name="Scene0HDRI" filename="textures/EveningEnvironmentHDRI.jpg"/>
+    
+    <!--Doom Key Card Textures-->
+    <Texture name="DoomKeyCard_BaseColor" filename="textures/Doom_Key_Card_Base_Color.png"/>
+    <Texture name="DoomKeyCard_Roughness" filename="textures/Doom_Key_Card_Roughness.png"/>
+    <Texture name="DoomKeyCard_Metallic" filename="textures/Doom_Key_Card_Metallic.png"/>
 
 	  <!--Setting up shader-->
 	  <Shader name="Shader" vertFilename="shaders/textureVert.glsl" fragFilename="shaders/textureFrag.glsl"/>
     <Shader name="debugShader" vertFilename="shaders/debugVert.glsl" fragFilename="shaders/debugFrag.glsl"/>
+    <Shader name="PBR_Shader" vertFilename="shaders/PBRVert.glsl" fragFilename="shaders/PBRFrag.glsl"/>
+    <Shader name="HDRI_Shader" vertFilename="shaders/SkyboxVert.glsl" fragFilename="shaders/SkyboxFrag"/>
 	  
 	  <!--Now that we have meshes, textures, and a shader we can set up actors-->
 	  <Actor actorname="ActorGameBoard" parent="none">
