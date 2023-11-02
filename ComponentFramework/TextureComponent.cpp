@@ -1,15 +1,15 @@
-#include "MaterialComponent.h"
+#include "TextureComponent.h"
 #include <SDL_image.h>
-MaterialComponent::MaterialComponent(Component* parent_, const char* filename_):Component(parent_) {
+TextureComponent::TextureComponent(Component* parent_, const char* filename_):Component(parent_) {
 	textureID = 0;
 	filename = filename_;
 }
 
-MaterialComponent::~MaterialComponent() {
+TextureComponent::~TextureComponent() {
 	OnDestroy();
 }
 
-bool MaterialComponent::OnCreate() {
+bool TextureComponent::OnCreate() {
 	if (isCreated) return true;
 		// generate names
 		// just an array of one element
@@ -41,10 +41,10 @@ bool MaterialComponent::OnCreate() {
 		return true;
 }
 
-void MaterialComponent::OnDestroy() {	
+void TextureComponent::OnDestroy() {	
 	// Free up the memory on the GPU
 	glDeleteTextures(1, &textureID);
 	isCreated = false;
 }
-void MaterialComponent::Update(const float deltaTime) {}
-void MaterialComponent::Render()const {}
+void TextureComponent::Update(const float deltaTime) {}
+void TextureComponent::Render()const {}

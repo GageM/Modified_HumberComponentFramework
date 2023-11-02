@@ -81,7 +81,7 @@
     <ClCompile Include="CameraActor.cpp">
       <Filter>Source Files\Actors</Filter>
     </ClCompile>
-    <ClCompile Include="MaterialComponent.cpp">
+    <ClCompile Include="TextureComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="MeshComponent.cpp">
@@ -188,7 +188,7 @@
     <ClInclude Include="Actor.h">
       <Filter>Header Files\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="MaterialComponent.h">
+    <ClInclude Include="TextureComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="MeshComponent.h">

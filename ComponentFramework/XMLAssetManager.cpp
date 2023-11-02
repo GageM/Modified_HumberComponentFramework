@@ -5,7 +5,7 @@
 #include "ShaderComponent.h"
 #include "MeshComponent.h"
 #include "ShapeComponent.h"
-#include "MaterialComponent.h"
+#include "TextureComponent.h"
 #include "CameraActor.h"
 #include "LightActor.h"
 #include "Sphere.h"
@@ -30,7 +30,7 @@ XMLAssetManager::XMLAssetManager()
 		child;
 		child = child->NextSiblingElement())
 	{
-		AddMaterial(child);
+		AddTexture(child);
 		AddShader(child);
 		AddCamera(child);
 		AddLight(child);
@@ -63,7 +63,7 @@ XMLAssetManager::XMLAssetManager()
 			// Add shared assets to the actor
 			AddMeshToActor(child, actor);
 			AddShaderToActor(child, actor);
-			AddMaterialToActor(child, actor);
+			AddTextureToActor(child, actor);
 			AddShapeToActor(child, actor);
 			// The transform is unique for the actor. Needs the parent too
 			AddTransformToActor(child, actor, parent);
@@ -161,10 +161,10 @@ void XMLAssetManager::AddBoxShape(const tinyxml2::XMLElement* child)
 	}
 }
 
-void XMLAssetManager::AddMaterial(const tinyxml2::XMLElement* child)
+void XMLAssetManager::AddTexture(const tinyxml2::XMLElement* child)
 {
-	if (std::string(child->Name()) == "Material") {
-		AddComponent<MaterialComponent>(child->Attribute("name"), nullptr, child->Attribute("filename"));
+	if (std::string(child->Name()) == "Texture") {
+		AddComponent<TextureComponent>(child->Attribute("name"), nullptr, child->Attribute("filename"));
 	}
 }
 
@@ -274,12 +274,12 @@ void XMLAssetManager::AddShaderToActor(const tinyxml2::XMLElement* child, Ref<Ac
 	}
 }
 
-void XMLAssetManager::AddMaterialToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor)
+void XMLAssetManager::AddTextureToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor)
 {
-	if (child->FirstChildElement("Material")) {
-		const char* name = child->FirstChildElement("Material")->Attribute("name");
-		Ref<MaterialComponent> material = GetComponent<MaterialComponent>(name);
-		actor->AddComponent<MaterialComponent>(material);
+	if (child->FirstChildElement("Texture")) {
+		const char* name = child->FirstChildElement("Texture")->Attribute("name");
+		Ref<TextureComponent> texture = GetComponent<TextureComponent>(name);
+		actor->AddComponent<TextureComponent>(texture);
 	}
 }
 

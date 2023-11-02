@@ -4,13 +4,13 @@
 #pragma once
 #include "Component.h"
 #include "glew.h" // so we can make a GLuint
-class MaterialComponent: public Component {
+class TextureComponent: public Component {
 	GLuint textureID;
 	const char* filename;
 
 	public:
-		MaterialComponent(Component* parent_, const char* filename_);
-		virtual ~MaterialComponent();
+		TextureComponent(Component* parent_, const char* filename_);
+		virtual ~TextureComponent();
 		virtual bool OnCreate();
 		virtual void OnDestroy();
 		virtual void Update(const float deltaTime_);

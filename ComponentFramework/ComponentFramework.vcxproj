@@ -168,7 +168,7 @@
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="LightActor.cpp" />
-    <ClCompile Include="MaterialComponent.cpp" />
+    <ClCompile Include="TextureComponent.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="OpenGLRenderer.cpp" />
@@ -208,7 +208,7 @@
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="LightActor.h" />
-    <ClInclude Include="MaterialComponent.h" />
+    <ClInclude Include="TextureComponent.h" />
     <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="OpenGLRenderer.h" />

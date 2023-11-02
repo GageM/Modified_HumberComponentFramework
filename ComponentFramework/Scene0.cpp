@@ -6,7 +6,7 @@
 #include <MMath.h>
 #include "Debug.h"
 #include "TransformComponent.h"
-#include "MaterialComponent.h"
+#include "TextureComponent.h"
 #include <QMath.h>
 #include "ShaderComponent.h"
 #include "MeshComponent.h"
@@ -262,7 +262,7 @@ void Scene0::Render() const
 				// Draw actor mesh
 				glUseProgram(actor->GetComponent<ShaderComponent>()->GetProgram());
 				glUniformMatrix4fv(actor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
-				glBindTexture(GL_TEXTURE_2D, actor->GetComponent<MaterialComponent>()->getTextureID());
+				glBindTexture(GL_TEXTURE_2D, actor->GetComponent<TextureComponent>()->getTextureID());
 				if (renderMeshes) {
 					actor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 				}
@@ -315,7 +315,7 @@ void Scene0::Render() const
 
 				glUseProgram(selectedActor->GetComponent<ShaderComponent>()->GetProgram());
 				glUniformMatrix4fv(selectedActor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
-				glBindTexture(GL_TEXTURE_2D, selectedActor->GetComponent<MaterialComponent>()->getTextureID());
+				glBindTexture(GL_TEXTURE_2D, selectedActor->GetComponent<TextureComponent>()->getTextureID());
 				if (renderMeshes) {
 					selectedActor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 				}

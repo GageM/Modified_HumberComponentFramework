@@ -48,17 +48,17 @@
 		  </Shape>
 	  </Mesh>
 
-	  <!--Setting up materials-->
-	  <Material name="BoardMaterial" filename="textures/8x8_checkered_board.png"/>
-	  <Material name="RedCheckerMaterial" filename="textures/redCheckerPiece.png"/>
-	  <Material name="WhiteCheckerMaterial" filename="textures/whiteCheckerPiece.png"/>
-	  <Material name="MarioMaterial" filename="textures/mario_main.png"/>
+	  <!--Setting up textures-->
+	  <Texture name="BoardTexture" filename="textures/8x8_checkered_board.png"/>
+	  <Texture name="RedCheckerTexture" filename="textures/redCheckerPiece.png"/>
+	  <Texture name="WhiteCheckerTexture" filename="textures/whiteCheckerPiece.png"/>
+	  <Texture name="MarioTexture" filename="textures/mario_main.png"/>
 
 	  <!--Setting up shader-->
 	  <Shader name="Shader" vertFilename="shaders/textureVert.glsl" fragFilename="shaders/textureFrag.glsl"/>
     <Shader name="debugShader" vertFilename="shaders/debugVert.glsl" fragFilename="shaders/debugFrag.glsl"/>
 	  
-	  <!--Now that we have meshes, materials, and a shader we can set up actors-->
+	  <!--Now that we have meshes, textures, and a shader we can set up actors-->
 	  <Actor actorname="ActorGameBoard" parent="none">
 		<Transform posx="0.0" posy="0.0" posz="-17.0" 
 				   angleDeg="-20.0" axisx="1.0" axisy="0.0" axisz="0.0"
@@ -66,7 +66,7 @@
 		<Mesh name="PlaneMesh"/>
 		<Shape name="CheckerboardPlaneShape"/>
 		<Shader name ="Shader"/>
-		<Material name ="BoardMaterial"/>
+		<Texture name ="BoardTexture"/>
 		<Physics />
 	  </Actor>
 
@@ -77,7 +77,7 @@
 		  <Mesh name="CheckerMesh"/>
 		  <Shape name="CheckerCylinderShape"/>
 		  <Shader name ="Shader"/>
-		  <Material name ="RedCheckerMaterial"/>
+		  <Texture name ="RedCheckerTexture"/>
 		  <Physics />
 	  </Actor>
 
@@ -88,7 +88,7 @@
 		  <Mesh name="CheckerMesh"/>
 		  <Shape name="CheckerCylinderShape"/>
 		  <Shader name ="Shader"/>
-		  <Material name ="RedCheckerMaterial"/>
+		  <Texture name ="RedCheckerTexture"/>
 		  <Physics />
 	  </Actor>
 
@@ -99,7 +99,7 @@
 		  <Mesh name="SkullMesh"/>
 		  <Shape name="SkullSphereShape"/>
 		  <Shader name ="Shader"/>
-		  <Material name ="WhiteCheckerMaterial"/>
+		  <Texture name ="WhiteCheckerTexture"/>
 		  <Physics />
 	  </Actor>
 
@@ -110,7 +110,7 @@
 		  <Mesh name="CubeMesh"/>
 		  <Shape name="CubeShape"/>
 		  <Shader name ="Shader"/>
-		  <Material name ="RedCheckerMaterial"/>
+		  <Texture name ="RedCheckerTexture"/>
 		  <Physics />
 	  </Actor>
 
@@ -121,7 +121,7 @@
 		  <Mesh name="MarioMesh"/>
 		  <Shape name="marioCapsuleShape"/>
 		  <Shader name ="Shader"/>
-		  <Material name ="MarioMaterial"/>
+		  <Texture name ="MarioTexture"/>
 		  <Physics />
 	  </Actor>
 
