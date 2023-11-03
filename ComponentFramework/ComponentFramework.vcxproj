@@ -214,6 +214,7 @@
     <ClInclude Include="LightActor.h" />
     <ClInclude Include="MaterialComponent.h" />
     <ClInclude Include="Skybox.h" />
+    <ClInclude Include="stb_image.h" />
     <ClInclude Include="TextureComponent.h" />
     <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="MeshComponent.h" />
@@ -244,6 +245,8 @@
     <None Include="shaders\debugVert.glsl" />
     <None Include="shaders\defaultFrag.glsl" />
     <None Include="shaders\defaultVert.glsl" />
+    <None Include="shaders\HDRIMapFrag.glsl" />
+    <None Include="shaders\HDRIMapVert.glsl" />
     <None Include="shaders\PBRFrag.glsl" />
     <None Include="shaders\PBRVert.glsl" />
     <None Include="shaders\SkyboxFrag.glsl" />

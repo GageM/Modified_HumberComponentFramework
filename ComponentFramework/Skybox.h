@@ -12,7 +12,15 @@ class Skybox : public Actor
 private:
 	Ref<MeshComponent> mesh;
 	Ref<ShaderComponent> shader;
+	Ref<ShaderComponent> hdrShader;
 	Ref<CubemapComponent> cubemap;
+
+	GLuint hdrTextureID;
+
+	void RenderDefaultCubemap() const;
+	void RenderHDRI() const;
+
+	bool useIBL = false;
 
 public:
 	Skybox(Ref<Component> parent_);
@@ -20,6 +28,7 @@ public:
 	~Skybox();
 
 	inline Ref<ShaderComponent> GetShader() { return shader; }
+	inline Ref<ShaderComponent> GetHDRShader() { return hdrShader; }
 	inline Ref<MeshComponent> GetMesh() { return mesh; }
 	inline Ref<CubemapComponent> GetCubemap() { return cubemap; }
 
@@ -27,5 +36,7 @@ public:
 	virtual void OnDestroy() override;
 	virtual void Update(const float deltaTime_) override;
 	virtual void Render()const override;
+
+	void LoadHDRI(const char* filename_);
 };
 

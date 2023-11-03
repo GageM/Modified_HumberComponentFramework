@@ -311,6 +311,9 @@
     <ClInclude Include="MaterialComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="GameEngineLog.txt">
@@ -346,6 +349,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="shaders\SkyboxVert.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\HDRIMapFrag.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\HDRIMapVert.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
