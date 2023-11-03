@@ -12,6 +12,8 @@ layout(location = 2) in vec2 texCoord;
 layout(location = 3) in vec3 vertPos;
 layout(location = 4) in vec3 vertDir;
 layout(location = 5) in vec3 lightDir;
+layout(location = 6) in vec4 camPos;
+layout(location = 7) in vec3 worldVertPos;
 
 layout(std140, binding = 1) uniform LightData{ 
     vec3 lightPos; // remember we filled in the position first
@@ -35,13 +37,14 @@ layout(location = 10) uniform sampler2D normalMap;
 
 uniform samplerCube skybox;
 
+// Function Declarations
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
-vec3 fresnelSchlick(float cosTheta, vec3 F0, float roughness);
+vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
 void main() {
-
+    // Set up material inputs    
     vec3 albedo;
     float metallic;
     float roughness;
@@ -75,14 +78,14 @@ void main() {
 
 
     // for cubeMap reflections
-    vec3 I = normalize(vertDir);
-	vec3 vertNormalFix = vec3(-vertNormal.x, vertNormal.y, vertNormal.z);
-    vec3 Reflection = reflect(I, vertNormalFix);
-    vec3 irradiance = vec3(texture(skybox, Reflection));
+    //vec3 I = normalize(vertDir);
+	//vec3 vertNormalFix = vec3(-vertNormal.x, vertNormal.y, vertNormal.z);
+    //vec3 Reflection = reflect(I, vertNormalFix);
+    //vec3 irradiance = vec3(texture(skybox, Reflection));
 
     // Normals
     vec3 N = normalize(vertNormal);
-    vec3 V = normalize(eyeDir);
+    vec3 V = normalize(vec3(-camPos.xyz) - worldVertPos);
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo, metallic);
@@ -91,29 +94,30 @@ void main() {
     vec3 Lo = vec3(0.0);
 
     //per light radiance
-    vec3 L = lightDir;
-    vec3 H = normalize(lightDir + eyeDir); 
-    float distance = length(lightPos - vertPos);
+    vec3 L = lightPos - worldVertPos;
+    vec3 H = normalize(V + L); 
+    float distance = length(lightPos - worldVertPos);
     float attenuation = 1.0/ (distance * distance);
     vec3 radiance = vec3(colour);// * attenuation; // Add Attenuation for physically accurate lights
 
     // cook-torrance BRDF
     float NDF = DistributionGGX(N, H, roughness);
     float G = GeometrySmith(N, V, L, roughness);
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0, roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);// roughness);
 
     vec3 ks = F;
     vec3 kd = vec3(1.0) - ks;
     kd *= 1.0 - metallic;
 
     vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    // Clamp denominator to prevent divide by 0 errors
+    float denominator = max(4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0), 0.0001);
     vec3 specular = numerator/denominator;
 
     float NdotL = max(dot(N, L), 0.0);
     Lo += (kd * albedo / PI + specular) * radiance * NdotL;
     
-    vec3 diffuse = albedo;
+    //vec3 diffuse = albedo;
     vec3 ambient = vec3(0.03) * albedo;
     vec3 color = ambient + Lo;
 
@@ -161,9 +165,9 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0, float roughness)
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+    return F0 + ( (1 - F0) * pow(1.0 - cosTheta, 5) );
 }
 
     

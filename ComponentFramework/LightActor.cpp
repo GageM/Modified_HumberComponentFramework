@@ -24,13 +24,14 @@ LightActor::~LightActor()
 bool LightActor::OnCreate()
 {
 	if (isCreated) return isCreated;
+
 	// lets do the buffer for the light. Just like how we did for the camera
 	glGenBuffers(1, &uboLightDataID);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboLightDataID);
 
 	// Allocate the memory for the buffer (just the position and colour)
-	// We'll use that UBO-padding header file to generate right size
-	// Need a Vec3 for position and a Vec4 for colour
+// We'll use that UBO-padding header file to generate right size
+// Need a Vec3 for position and a Vec4 for colour
 	size_t buffer_size = UBO_PADDING::VEC3 + UBO_PADDING::VEC4; // same as 2 Vec4's due to padding, but best to be explicit
 	glBufferData(GL_UNIFORM_BUFFER, buffer_size, nullptr, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -55,4 +56,17 @@ bool LightActor::OnCreate()
 void LightActor::OnDestroy(){
 	glDeleteBuffers(1, &uboLightDataID);
 	isCreated = false;
+}
+
+void LightActor::UpdateLightData()
+{
+	glBindBuffer(GL_UNIFORM_BUFFER, uboLightDataID);
+
+	size_t offset = 0;
+	glBufferSubData(GL_UNIFORM_BUFFER, offset, sizeof(Vec3), position);
+
+	offset = UBO_PADDING::VEC3;
+	glBufferSubData(GL_UNIFORM_BUFFER, offset, sizeof(Vec4), colour);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

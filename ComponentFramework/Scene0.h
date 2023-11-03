@@ -37,11 +37,12 @@ private:
 	void showComponentMenu();
 	void showAddActorMenu();
 	void showMaterialMenu();
+	void showLightsMenu();
 
 public:
 	bool renderMeshes = true;
-	bool renderCollisionShapes = true;
-	bool renderRaycasts = true;
+	bool renderCollisionShapes = false;
+	bool renderRaycasts = false;
 	bool renderCubemap = true;
 
 
@@ -60,10 +61,10 @@ public:
 	std::unordered_map< std::string, Ref<Component>> actors;
 	// We only have one camera and light, so they don't need to be in the map
 	Ref<CameraActor> camera;
-	Ref<LightActor> light;
-	Ref<Skybox> skybox;
 
-	Ref<MaterialComponent> PBR_Mat;
+	std::unordered_map <std::string, Ref<LightActor>> lights;
+	//Ref<LightActor> light;
+	Ref<Skybox> skybox;
 
 	std::vector<Ref<Ray>> rays;
 

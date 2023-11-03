@@ -36,24 +36,26 @@ bool Scene0::OnCreate()
 	case RendererType::OPENGL:
 	{
 		// Make sure these names match the stuff in your xml file:
-		std::vector<std::string> names{
+		std::vector<std::string> actorNames{
 			"ActorGameBoard" , "ActorChecker1", "ActorChecker2",
 			"ActorSkull", "ActorCube", "ActorMario", "ActorDoomKeyCard"
 		};
-		for (const auto& name : names) {
-			auto asset = assetManager.xmlAssets.find(name);
-			actors[name] = asset->second;
+		for (const auto& name : actorNames) {
+			actors[name] = assetManager.GetComponent<Actor>(name.c_str());
 		}
 
 		camera = assetManager.GetComponent<CameraActor>("Camera1");
-		light = assetManager.GetComponent<LightActor>("Light1");
+
+		// Make sure these names match the stuff in your xml file:
+		std::vector<std::string> lightNames{
+			"Light1"
+		};
+		for (const auto& name : lightNames) {
+			lights[name] = assetManager.GetComponent<LightActor>(name.c_str());
+		}
 
 		skybox = std::make_shared<Skybox>(camera);
 		skybox->OnCreate();
-
-		PBR_Mat = std::make_shared<MaterialComponent>(nullptr, Vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 0.0f);
-		PBR_Mat->SetShader(assetManager.GetComponent<ShaderComponent>("PBR_Shader"));
-		PBR_Mat->SetCubemap(skybox->GetCubemap());
 
 		debugShader = assetManager.GetComponent<ShaderComponent>("debugShader");
 	}
@@ -256,7 +258,12 @@ void Scene0::Render() const
 		glClearColor(bGColor.x, bGColor.y, bGColor.z, bGColor.w);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		glBindBuffer(GL_UNIFORM_BUFFER, camera->GetMatricesID());
-		glBindBuffer(GL_UNIFORM_BUFFER, light->GetLightID());
+		for (auto& it : lights)
+		{
+			Ref<LightActor> light = it.second;
+			glBindBuffer(GL_UNIFORM_BUFFER, light->GetLightID());
+		}
+		//glBindBuffer(GL_UNIFORM_BUFFER, lights["Light1"]->GetLightID());
 		// Let it go
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -427,6 +434,11 @@ void Scene0::showSceneSettings()
 		ImGui::TreePop();
 	}
 
+	if (ImGui::TreeNode("Lights"))
+	{
+		showLightsMenu();
+		ImGui::TreePop();
+	}
 }
 
 void Scene0::showSelectionSettings()
@@ -547,5 +559,29 @@ void Scene0::showMaterialMenu()
 		}
 
 		ImGui::TreePop();
+	}
+}
+
+void Scene0::showLightsMenu()
+{
+	for (auto& it : lights)
+	{
+		Ref<LightActor> light = it.second;
+		if (ImGui::TreeNode(it.first.c_str()))
+		{
+			ImGui::ColorEdit4("Color", light->colour);
+
+			if (ImGui::TreeNode("Position")) 
+			{
+				ImGui::DragFloat("X", &light->position.x, 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat("Y", &light->position.y, 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat("Z", &light->position.z, 0.1f, -100.0f, 100.0f);
+				ImGui::TreePop();
+			}
+
+			light->UpdateLightData();
+
+			ImGui::TreePop();
+		}
 	}
 }

@@ -23,6 +23,8 @@ layout(location = 2) out vec2 texCoord;
 layout(location = 3) out vec3 vertPos;
 layout(location = 4) out vec3 vertDir;
 layout(location = 5) out vec3 lightDir;
+layout(location = 6) out vec4 camPos;
+layout(location = 7) out vec3 worldVertPos;
 
 layout(location = 20) uniform mat4 modelMatrix;
 
@@ -37,5 +39,9 @@ void main() {
 
     lightDir = normalize(lightPos - vertPos);
 
-	gl_Position = projection * view * modelMatrix * vVertex;
+    camPos = inverse(view) * vec4(vertPos, 1.0);
+
+    worldVertPos = vec3( modelMatrix * vec4(vVertex) );
+
+	gl_Position = projection * view * vec4(worldVertPos, 1.0);
 }
