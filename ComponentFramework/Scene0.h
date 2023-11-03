@@ -13,6 +13,7 @@
 class Ray;
 struct RayIntersectionInfo;
 class ShaderComponent;
+class MaterialComponent;
 
 struct Scene0 : public Scene
 {
@@ -57,6 +58,8 @@ public:
 	Ref<CameraActor> camera;
 	Ref<LightActor> light;
 	Ref<Skybox> skybox;
+
+	Ref<MaterialComponent> PBR_Mat;
 
 	std::vector<Ref<Ray>> rays;
 

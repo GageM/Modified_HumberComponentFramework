@@ -16,6 +16,8 @@ class TextureComponent: public Component {
 		virtual void Update(const float deltaTime_);
 		virtual void Render()const;
 		inline GLuint getTextureID() const { return textureID; }
+		// This is needed to bind multiple textures at one time
+		inline void setTextureID(GLuint newID) { textureID = newID; }
 
 };
 

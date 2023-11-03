@@ -11,6 +11,7 @@
 #include "ShaderComponent.h"
 #include "MeshComponent.h"
 #include "ShapeComponent.h"
+#include "MaterialComponent.h"
 
 #include "ControllerManager.h"
 
@@ -49,6 +50,10 @@ bool Scene0::OnCreate()
 
 		skybox = std::make_shared<Skybox>(camera);
 		skybox->OnCreate();
+
+		PBR_Mat = std::make_shared<MaterialComponent>(nullptr, Vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 0.0f);
+		PBR_Mat->SetShader(assetManager.GetComponent<ShaderComponent>("PBR_Shader"));
+		PBR_Mat->SetCubemap(skybox->GetCubemap());
 
 		debugShader = assetManager.GetComponent<ShaderComponent>("debugShader");
 	}
@@ -319,12 +324,24 @@ void Scene0::Render() const
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glStencilMask(0xFF);
 
+				/*
 				glUseProgram(selectedActor->GetComponent<ShaderComponent>()->GetProgram());
 				glUniformMatrix4fv(selectedActor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
 				glBindTexture(GL_TEXTURE_2D, selectedActor->GetComponent<TextureComponent>()->getTextureID());
 				if (renderMeshes) {
 					selectedActor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 				}
+				*/
+
+				glUseProgram(PBR_Mat->GetShader()->GetProgram());
+				//glUniformMatrix4fv(selectedActor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
+				glUniformMatrix4fv(PBR_Mat->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
+				PBR_Mat->Render();
+				if (renderMeshes) {
+					selectedActor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
+				}
+				PBR_Mat->PostRender();
+
 
 				glStencilMask(0xFF);
 				glUseProgram(debugShader->GetProgram());

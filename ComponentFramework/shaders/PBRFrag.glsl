@@ -3,13 +3,6 @@
 #define MAX_SCENE_LIGHTS 5
 #define PI 3.14159265359f
 
-struct Light
-{
-    vec4 diffuseColor;
-    vec3 position;
-    vec3 direction;
-};
-
 layout(location = 0) out vec4 fragColor;
 
 layout(location = 0) in vec3 vertNormal;
@@ -18,23 +11,26 @@ layout(location = 2) in vec2 texCoord;
 
 layout(location = 3) in vec3 vertPos;
 layout(location = 4) in vec3 vertDir;
+layout(location = 5) in vec3 lightDir;
 
-layout(location = 5) flat in int fNumLights;
-layout(location = 6) in Light fLights[MAX_SCENE_LIGHTS];
+layout(std140, binding = 1) uniform LightData{ 
+    vec3 lightPos; // remember we filled in the position first
+    vec4 colour;
+};
 
-layout(location = 30) uniform bool useBaseColorMap;
-layout(location = 4) uniform bool useRoughnessMap;
-layout(location = 5) uniform bool useMetallicMap;
-layout(location = 6) uniform bool useNormalMap;
+layout(location = 0) uniform bool useBaseColorMap;
+layout(location = 1) uniform bool useRoughnessMap;
+layout(location = 2) uniform bool useMetallicMap;
+layout(location = 3) uniform bool useNormalMap;
 
-layout(location = 32) uniform vec4 baseColor_;
-layout(location = 8) uniform float roughness_;
-layout(location = 9) uniform float metallic_;
+layout(location = 4) uniform vec4 baseColor_;
+layout(location = 5) uniform float roughness_;
+layout(location = 6) uniform float metallic_;
 
-layout(location = 31) uniform sampler2D baseColorMap;
-layout(location = 11) uniform sampler2D metallicMap;
-layout(location = 12) uniform sampler2D roughnessMap;
-layout(location = 13) uniform sampler2D normalMap;
+layout(location = 7) uniform sampler2D baseColorMap;
+layout(location = 8) uniform sampler2D metallicMap;
+layout(location = 9) uniform sampler2D roughnessMap;
+layout(location = 10) uniform sampler2D normalMap;
 //uniform sampler2D normalMap;
 
 uniform samplerCube skybox;
@@ -50,20 +46,11 @@ void main() {
     float metallic;
     float roughness;
 
-    //if(useBaseColorMap)
-    //{
-    //albedo = vec3(texture(baseColorMap, texCoord)) * baseColor_.rgb;
-    //}
-    //else 
-    //{
-    //albedo = baseColor_.rgb;
-    //}
-
     albedo = baseColor_.rgb;
 
-    if(useRoughnessMap)  // Clamping roughness to prevent shader artifacts at extreme values
+    if(useRoughnessMap)  
     {
-    roughness = clamp(float(texture(roughnessMap, texCoord)), 0.05, 0.99) * roughness_;
+    roughness = clamp(float(texture(roughnessMap, texCoord)), 0.05, 0.99);
     }
     else 
     {
@@ -72,7 +59,7 @@ void main() {
 
     if(useMetallicMap) 
     {
-    metallic = float(texture(metallicMap, texCoord)) * metallic_;
+    metallic = float(texture(metallicMap, texCoord));
     }
     else 
     {
@@ -95,31 +82,29 @@ void main() {
     
     // reflectance
     vec3 Lo = vec3(0.0);
-    for(int i = 0; i < fNumLights; i++)
-    {
+
     //per light radiance
-        vec3 L = fLights[i].direction;
-        vec3 H = normalize(fLights[i].direction + eyeDir); 
-        float distance = length(fLights[i].position - vertPos);
-        float attenuation = 1.0/ (distance * distance);
-        vec3 radiance = vec3(fLights[i].diffuseColor);// * attenuation; // Add Attenuation for physically accurate lights
+    vec3 L = lightDir;
+    vec3 H = normalize(lightDir + eyeDir); 
+    float distance = length(lightPos - vertPos);
+    float attenuation = 1.0/ (distance * distance);
+    vec3 radiance = vec3(colour);// * attenuation; // Add Attenuation for physically accurate lights
 
-        // cook-torrance BRDF
-        float NDF = DistributionGGX(N, H, roughness);
-        float G = GeometrySmith(N, V, L, roughness);
-        vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0, roughness);
+    // cook-torrance BRDF
+    float NDF = DistributionGGX(N, H, roughness);
+    float G = GeometrySmith(N, V, L, roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0, roughness);
 
-        vec3 ks = F;
-        vec3 kd = vec3(1.0) - ks;
-        kd *= 1.0 - metallic;
+    vec3 ks = F;
+    vec3 kd = vec3(1.0) - ks;
+    kd *= 1.0 - metallic;
 
-        vec3 numerator = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-        vec3 specular = numerator/denominator;
+    vec3 numerator = NDF * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    vec3 specular = numerator/denominator;
 
-        float NdotL = max(dot(N, L), 0.0);
-        Lo += (kd * albedo / PI + specular) * radiance * NdotL;
-    }
+    float NdotL = max(dot(N, L), 0.0);
+    Lo += (kd * albedo / PI + specular) * radiance * NdotL;
     
     vec3 diffuse = albedo;
     vec3 ambient = vec3(0.03) * albedo;
