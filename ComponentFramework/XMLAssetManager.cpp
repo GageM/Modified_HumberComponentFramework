@@ -173,7 +173,7 @@ void XMLAssetManager::AddTexture(const tinyxml2::XMLElement* child)
 {
 	if (std::string(child->Name()) == "Texture") {
 		Ref<TextureComponent> texture = std::make_shared<TextureComponent>(nullptr, child->Attribute("filename"));
-		texture->OnCreate();
+		//texture->OnCreate();
 
 		AddComponent<TextureComponent>(child->Attribute("name"), texture);
 
