@@ -38,7 +38,7 @@ bool Scene0::OnCreate()
 		// Make sure these names match the stuff in your xml file:
 		std::vector<std::string> names{
 			"ActorGameBoard" , "ActorChecker1", "ActorChecker2",
-			"ActorSkull", "ActorCube", "ActorMario"
+			"ActorSkull", "ActorCube", "ActorMario", "ActorDoomKeyCard"
 		};
 		for (const auto& name : names) {
 			auto asset = assetManager.xmlAssets.find(name);

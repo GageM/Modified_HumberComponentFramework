@@ -48,6 +48,15 @@
 		  </Shape>
 	  </Mesh>
 
+    <Mesh name="DoomKeyCardMesh" filename="meshes/DoomKeyCard.obj">
+      <Shape name ="DoomKeyCardShape">
+        <Box posX ="0.0" posY ="0.0" posZ ="0.0"
+             hExtentX ="1.0" hExtentY ="1.0" hExtentZ="1.0"
+             angleDeg ="0.0" axisX ="1.0" axisY ="0.0" axisZ ="0.0"
+				/>
+      </Shape>
+    </Mesh>
+
 	  <!--Setting up textures-->
 	  <Texture name="BoardTexture" filename="textures/8x8_checkered_board.png"/>
 	  <Texture name="RedCheckerTexture" filename="textures/redCheckerPiece.png"/>
@@ -152,6 +161,18 @@
       <Material name ="MarioMat"/>
 		  <Physics />
 	  </Actor>
+
+    <Actor actorname="ActorDoomKeyCard" parent="none">
+      <Transform posx="2.0" posy="3.0" posz="-10.0"
+					 angleDeg="180.0" axisx="0.0" axisy="1.0" axisz="0.0"
+					 scalex="1.0" scaley="1.0" scalez="1.0"/>
+      <Mesh name="DoomKeyCardMesh"/>
+      <Shape name="DoomKeyCardShape"/>
+      <Shader name ="Shader"/>
+      <Texture name ="DoomKeyCard_BaseColor"/>
+      <Material name ="DoomKeyMat"/>
+      <Physics />
+    </Actor>
 
 	  <!-- Set up camera and light actors-->
 	  <Camera cameraname="Camera1" parent="none">
