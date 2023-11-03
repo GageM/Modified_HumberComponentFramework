@@ -170,7 +170,7 @@ void Skybox::LoadHDRI(const char* filename_)
 		stbi_image_free(data);
 		glActiveTexture(GL_TEXTURE0);
 
-		printf("Image Loaded\n");
+		Debug::Info("Image Loaded", __FILE__, __LINE__);
 	}
 	else
 	{
