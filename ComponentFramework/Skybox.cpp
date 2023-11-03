@@ -81,11 +81,13 @@ void Skybox::Render()const
 	glUniformMatrix4fv(shader->GetUniformID("modelMatrix"), 1, GL_FALSE, modelMatrix);
 
 	// Bind cubemap texture
+	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getTextureID());
 	// Render skybox
 	mesh->Render(GL_TRIANGLES);
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glActiveTexture(GL_TEXTURE0);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 }

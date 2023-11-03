@@ -297,6 +297,7 @@ void Scene0::Render() const
 
 		if (selectedActor)
 		{
+			
 			// Draw Outline Around Selected actor
 			{
 				glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -324,12 +325,14 @@ void Scene0::Render() const
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glEnable(GL_DEPTH_TEST);
 			}
+			
 
 			// Draw selected actor
 			{
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glStencilMask(0xFF);
 
+				
 				// Draw actor mesh
 				glUseProgram(selectedActor->GetComponent<MaterialComponent>()->GetShader()->GetProgram());
 				glUniformMatrix4fv(selectedActor->GetComponent<MaterialComponent>()->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
@@ -340,8 +343,9 @@ void Scene0::Render() const
 				if (renderMeshes) {
 					selectedActor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 				}
+				
 
-				glStencilMask(0xFF);
+				//glStencilMask(0xFF);
 				glUseProgram(debugShader->GetProgram());
 				if (renderCollisionShapes) {
 					// Drawing the primitive geometry associated with the mesh to help debug ray intersects, culling, and collision detection
