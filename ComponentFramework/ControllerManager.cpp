@@ -66,7 +66,7 @@ void ControllerManager::FindConnectedControllers()
 
 SDL_GameController* ControllerManager::GetController()
 {
-	if (controllers[0] != nullptr)
+	if (controllers.size() > 0 && controllers[0] != nullptr)
 	{
 		return controllers[0];
 	}

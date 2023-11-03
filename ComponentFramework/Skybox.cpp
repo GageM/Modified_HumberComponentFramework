@@ -13,6 +13,11 @@ Skybox::Skybox(Ref<Component> parent_) : Actor(parent_), mesh(nullptr), shader(n
 
 }
 
+Skybox::Skybox(Ref<Component> parent_, Ref<MeshComponent> mesh_, Ref<ShaderComponent> shader_, Ref<CubemapComponent> cubemap_) : Actor(parent_), mesh(mesh_), shader(shader_), cubemap(cubemap_)
+{
+
+}
+
 Skybox::~Skybox()
 {
 	OnDestroy();
@@ -29,8 +34,7 @@ bool Skybox::OnCreate()
 	shader->OnCreate();
 
 	// Add CubemapComponent
-	cubemap = std::make_shared<CubemapComponent>(nullptr, 
-		"textures/CN_Tower/posx.jpg", "textures/CN_Tower/posy.jpg", "textures/CN_Tower/posz.jpg",
+	cubemap = std::make_shared<CubemapComponent>(nullptr, "textures/CN_Tower/posx.jpg", "textures/CN_Tower/posy.jpg", "textures/CN_Tower/posz.jpg",
 		"textures/CN_Tower/negx.jpg", "textures/CN_Tower/negy.jpg", "textures/CN_Tower/negz.jpg");
 	cubemap->OnCreate();
 	

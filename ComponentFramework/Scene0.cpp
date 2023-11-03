@@ -260,23 +260,29 @@ void Scene0::Render() const
 		// Let it go
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		skybox->Render();
+		if(renderCubemap) skybox->Render();
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
-		// Draw unselected actors
+
+		// Draw unselected actors		
 		for (auto it = actors.begin(); it != actors.end(); ++it) {
 			Ref<Actor> actor = std::dynamic_pointer_cast<Actor>(it->second);
 			
 			if (actor != selectedActor)
 			{
 				// Draw actor mesh
-				glUseProgram(actor->GetComponent<ShaderComponent>()->GetProgram());
-				glUniformMatrix4fv(actor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
-				glBindTexture(GL_TEXTURE_2D, actor->GetComponent<TextureComponent>()->getTextureID());
+				glUseProgram(actor->GetComponent<MaterialComponent>()->GetShader()->GetProgram());
+				glUniformMatrix4fv(actor->GetComponent<MaterialComponent>()->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
+
+				actor->GetComponent<MaterialComponent>()->SetCubemap(skybox->GetCubemap());
+
+				actor->GetComponent<MaterialComponent>()->Render();
 				if (renderMeshes) {
 					actor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 				}
+
+				actor->GetComponent<MaterialComponent>()->PostRender();
 
 				// Draw actor collider
 				glUseProgram(debugShader->GetProgram());
@@ -287,7 +293,7 @@ void Scene0::Render() const
 					actor->GetComponent<ShapeComponent>()->Render();
 				}
 			}
-		}
+		}		
 
 		if (selectedActor)
 		{
@@ -324,24 +330,16 @@ void Scene0::Render() const
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glStencilMask(0xFF);
 
-				/*
-				glUseProgram(selectedActor->GetComponent<ShaderComponent>()->GetProgram());
-				glUniformMatrix4fv(selectedActor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
-				glBindTexture(GL_TEXTURE_2D, selectedActor->GetComponent<TextureComponent>()->getTextureID());
+				// Draw actor mesh
+				glUseProgram(selectedActor->GetComponent<MaterialComponent>()->GetShader()->GetProgram());
+				glUniformMatrix4fv(selectedActor->GetComponent<MaterialComponent>()->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
+
+				selectedActor->GetComponent<MaterialComponent>()->SetCubemap(skybox->GetCubemap());
+
+				selectedActor->GetComponent<MaterialComponent>()->Render();
 				if (renderMeshes) {
 					selectedActor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 				}
-				*/
-
-				glUseProgram(PBR_Mat->GetShader()->GetProgram());
-				//glUniformMatrix4fv(selectedActor->GetComponent<ShaderComponent>()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
-				glUniformMatrix4fv(PBR_Mat->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
-				PBR_Mat->Render();
-				if (renderMeshes) {
-					selectedActor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
-				}
-				PBR_Mat->PostRender();
-
 
 				glStencilMask(0xFF);
 				glUseProgram(debugShader->GetProgram());
@@ -402,8 +400,6 @@ void Scene0::HandleGUI()
 				ImGui::TreePop();
 			}
 		}
-
-
 	}
 }
 
@@ -423,6 +419,7 @@ void Scene0::showSceneSettings()
 		ImGui::Checkbox("Render Meshes", &renderMeshes);
 		ImGui::Checkbox("Render Colliders", &renderCollisionShapes);
 		ImGui::Checkbox("Render Raycasts", &renderRaycasts);
+		ImGui::Checkbox("Render Cubemap", &renderCubemap);
 		ImGui::TreePop();
 	}
 
@@ -432,6 +429,7 @@ void Scene0::showSelectionSettings()
 {
 	showComponentMenu();
 	showTransformMenu();
+	showMaterialMenu();
 }
 
 void Scene0::showTransformMenu()
@@ -499,6 +497,10 @@ void Scene0::showComponentMenu()
 	// TODO:: Allow adding components to actor
 	if (ImGui::TreeNode("Add Component"))
 	{
+		for (const auto& component : assetManager.xmlAssets)
+		{
+			ImGui::Text("%s", component.first.c_str());
+		}
 		ImGui::TreePop();
 	}
 
@@ -514,3 +516,32 @@ void Scene0::showAddActorMenu()
 	// TODO:: Add an add actor menu
 }
 
+void Scene0::showMaterialMenu()
+{
+	Ref<MaterialComponent> material = selectedActor->GetComponent<MaterialComponent>();
+	if (!material) return;
+
+	if (ImGui::TreeNode("Material"))
+	{
+		ImGui::ColorEdit4("Base Color", material->baseColor);
+		ImGui::DragFloat("Roughness", &material->roughness, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Metallic", &material->metallic, 0.01f, 0.0f, 1.0f);
+
+		if (material->GetBaseColorMap())
+		{
+			ImGui::Checkbox("Enable Base Color Map", &material->useBaseColorMap);
+		}
+
+		if (material->GetRoughnessMap())
+		{
+			ImGui::Checkbox("Enable Roughness Map", &material->useRoughnessMap);
+		}
+
+		if (material->GetMetallicMap())
+		{
+			ImGui::Checkbox("Enable Metallic Map", &material->useMetallicMap);
+		}
+
+		ImGui::TreePop();
+	}
+}

@@ -36,11 +36,15 @@ private:
 	void showHeirarchy();
 	void showComponentMenu();
 	void showAddActorMenu();
+	void showMaterialMenu();
 
 public:
 	bool renderMeshes = true;
 	bool renderCollisionShapes = true;
 	bool renderRaycasts = true;
+	bool renderCubemap = true;
+
+
 	explicit Scene0(Ref<Renderer> renderer_);
 	virtual ~Scene0();
 

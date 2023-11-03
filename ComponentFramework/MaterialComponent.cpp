@@ -5,20 +5,23 @@
 #include "Debug.h"
 
 MaterialComponent::MaterialComponent(Ref<Component> parent_, Ref<TextureComponent> BCMap_, Ref<TextureComponent> RoughMap_, Ref<TextureComponent> MetMap_) : Component(parent_),
-useBaseColorMap(false), baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(0.5f), metallic(0.0f)
+useBaseColorMap(true), useNormalMap(false),
+baseColorMap(BCMap_), roughnessMap(RoughMap_), metallicMap(MetMap_),
+baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(0.5f), metallic(0.0f)
 {
 	if (RoughMap_) useRoughnessMap = true;
 	else useRoughnessMap = false;
 
 	if (MetMap_) useMetallicMap = true;
 	else useMetallicMap = false;
+}
 
-	useNormalMap = false;
+MaterialComponent::MaterialComponent(Ref<Component> parent_, Ref<TextureComponent> BCMap_, float roughness_, float metallic_) : Component(parent_),
+useBaseColorMap(true), useRoughnessMap(false), useMetallicMap(false), useNormalMap(false),
+baseColorMap(BCMap_), roughnessMap(nullptr), metallicMap(nullptr),
+baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(roughness_), metallic(metallic_)
+{
 
-	// Default to a light grey dielectric material
-	baseColor = Vec4(0.7f, 0.7f, 0.7f, 1.0f);
-	roughness = 0.5f;
-	metallic = 0.0f;
 }
 
 MaterialComponent::MaterialComponent(Ref<Component> parent_, Vec4 baseColor_, float roughness_, float metallic_) : Component(parent_),

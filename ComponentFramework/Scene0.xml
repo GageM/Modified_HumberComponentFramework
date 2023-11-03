@@ -66,7 +66,19 @@
 	  <Shader name="Shader" vertFilename="shaders/textureVert.glsl" fragFilename="shaders/textureFrag.glsl"/>
     <Shader name="debugShader" vertFilename="shaders/debugVert.glsl" fragFilename="shaders/debugFrag.glsl"/>
     <Shader name="PBR_Shader" vertFilename="shaders/PBRVert.glsl" fragFilename="shaders/PBRFrag.glsl"/>
-    <Shader name="HDRI_Shader" vertFilename="shaders/SkyboxVert.glsl" fragFilename="shaders/SkyboxFrag.glsl"/>
+    <Shader name="CubemapShader" vertFilename="shaders/SkyboxVert.glsl" fragFilename="shaders/SkyboxFrag.glsl"/>
+
+    <!--Set up the cubemap-->
+    <Cubemap name="mainCubemap" PXfile="textures/CN_Tower/posx.jpg" PYfile="textures/CN_Tower/posy.jpg" PZfile="textures/CN_Tower/posz.jpg"
+																NXfile="textures/CN_Tower/negx.jpg" NYfile="textures/CN_Tower/negy.jpg" NZfile="textures/CN_Tower/negz.jpg"/>
+    
+    <!--Set up the materials-->
+    <Material name="MarioMat" BCMap="MarioTexture" roughness="0.5" metallic="0.0"/>
+    <Material name="RedCheckerMat" BCMap="RedCheckerTexture" roughness="0.5" metallic="0.0"/>
+    <Material name="WhiteCheckerMat" BCMap="WhiteCheckerTexture" roughness="0.5" metallic="0.0"/>
+    <Material name="BoardMat" BCMap="BoardTexture" roughness="0.5" metallic="0.0"/>
+    <Material name="DoomKeyMat" BCMap="DoomKeyCard_BaseColor" roughness="0.5" metallic="0.0"/>
+    
 	  
 	  <!--Now that we have meshes, textures, and a shader we can set up actors-->
 	  <Actor actorname="ActorGameBoard" parent="none">
@@ -77,6 +89,7 @@
 		<Shape name="CheckerboardPlaneShape"/>
 		<Shader name ="Shader"/>
 		<Texture name ="BoardTexture"/>
+    <Material name ="BoardMat"/>
 		<Physics />
 	  </Actor>
 
@@ -88,6 +101,7 @@
 		  <Shape name="CheckerCylinderShape"/>
 		  <Shader name ="Shader"/>
 		  <Texture name ="RedCheckerTexture"/>
+      <Material name ="RedCheckerMat"/>
 		  <Physics />
 	  </Actor>
 
@@ -99,6 +113,7 @@
 		  <Shape name="CheckerCylinderShape"/>
 		  <Shader name ="Shader"/>
 		  <Texture name ="RedCheckerTexture"/>
+      <Material name ="RedCheckerMat"/>
 		  <Physics />
 	  </Actor>
 
@@ -110,6 +125,7 @@
 		  <Shape name="SkullSphereShape"/>
 		  <Shader name ="Shader"/>
 		  <Texture name ="WhiteCheckerTexture"/>
+      <Material name ="WhiteCheckerMat"/>
 		  <Physics />
 	  </Actor>
 
@@ -121,6 +137,7 @@
 		  <Shape name="CubeShape"/>
 		  <Shader name ="Shader"/>
 		  <Texture name ="RedCheckerTexture"/>
+      <Material name ="RedCheckerMat"/>
 		  <Physics />
 	  </Actor>
 
@@ -132,6 +149,7 @@
 		  <Shape name="marioCapsuleShape"/>
 		  <Shader name ="Shader"/>
 		  <Texture name ="MarioTexture"/>
+      <Material name ="MarioMat"/>
 		  <Physics />
 	  </Actor>
 
@@ -146,6 +164,10 @@
 			 posx="0.0" posy="0.0" posz="-10.0"
 		     red="1.0" green="1.0" blue="1.0" alpha="0.0"
 			 intensity="1.0"
-			 falloffx="0.0" falloffy="0.0" falloffz="0.0"/>		  	  
+			 falloffx="0.0" falloffy="0.0" falloffz="0.0"/>	
+    
+    <!-- Set up skybox actor-->
+    <Skybox name="Skybox1" parent="Camera1" mesh ="CubeMesh" shader="CubemapShader" cubemap="mainCubemap"/>
+    
   </Scene0>
 </Root>

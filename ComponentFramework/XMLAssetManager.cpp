@@ -6,6 +6,9 @@
 #include "MeshComponent.h"
 #include "ShapeComponent.h"
 #include "TextureComponent.h"
+#include "CubemapComponent.h"
+#include "MaterialComponent.h"
+#include "Skybox.h"
 #include "CameraActor.h"
 #include "LightActor.h"
 #include "Sphere.h"
@@ -31,7 +34,9 @@ XMLAssetManager::XMLAssetManager()
 		child = child->NextSiblingElement())
 	{
 		AddTexture(child);
+		AddCubemap(child);
 		AddShader(child);
+		AddMaterial(child);
 		AddCamera(child);
 		AddLight(child);
 		
@@ -43,6 +48,8 @@ XMLAssetManager::XMLAssetManager()
 			AddCapsuleShape(child);
 			AddBoxShape(child);
 		}
+
+		AddSkybox(child, xmlAssets["Camera1"]);
 	}
 
 	// Now we have all the shared assets ready, time to build the actors
@@ -69,6 +76,7 @@ XMLAssetManager::XMLAssetManager()
 			AddTransformToActor(child, actor, parent);
 			// Add physics to the actor AFTER the transform. We need them to match in position and orientation
 			AddPhysicsToActor(child, actor, parent);
+			AddMaterialToActor(child, actor, parent);
 
 			actor->OnCreate();
 			AddComponent(child->Attribute("actorname"), actor);
@@ -164,8 +172,22 @@ void XMLAssetManager::AddBoxShape(const tinyxml2::XMLElement* child)
 void XMLAssetManager::AddTexture(const tinyxml2::XMLElement* child)
 {
 	if (std::string(child->Name()) == "Texture") {
-		AddComponent<TextureComponent>(child->Attribute("name"), nullptr, child->Attribute("filename"));
+		Ref<TextureComponent> texture = std::make_shared<TextureComponent>(nullptr, child->Attribute("filename"));
+		texture->OnCreate();
+
+		AddComponent<TextureComponent>(child->Attribute("name"), texture);
+
 	}
+}
+
+void XMLAssetManager::AddCubemap(const tinyxml2::XMLElement* child)
+{
+	/*
+	Ref<CubemapComponent> cubemap = std::make_shared<CubemapComponent>(nullptr, child->Attribute("PXfile"), child->Attribute("PYfile"), child->Attribute("PZfile"),
+		child->Attribute("NXfile"), child->Attribute("NYfile"), child->Attribute("NZfile"));
+	cubemap->OnCreate();
+	AddComponent<CubemapComponent>(child->Attribute("name"), cubemap);
+	*/
 }
 
 void XMLAssetManager::AddShader(const tinyxml2::XMLElement* child)
@@ -175,6 +197,25 @@ void XMLAssetManager::AddShader(const tinyxml2::XMLElement* child)
 		shader->OnCreate();
 		AddComponent(child->Attribute("name"), shader);
 	}
+}
+
+void XMLAssetManager::AddMaterial(const tinyxml2::XMLElement* child)
+{
+	
+	if (std::string(child->Name()) == "Material")
+	{
+		Ref<MaterialComponent> material = std::make_shared<MaterialComponent>(nullptr, 
+			GetComponent<TextureComponent>(child->Attribute("BCMap")), 
+			child->FloatAttribute("roughness"), 
+			child->FloatAttribute("metallic"));
+
+		material->SetShader(GetComponent<ShaderComponent>("PBR_Shader"));
+
+		material->OnCreate();
+
+		AddComponent(child->Attribute("name"), material);
+	}
+	
 }
 
 void XMLAssetManager::AddCamera(const tinyxml2::XMLElement* child)
@@ -257,6 +298,16 @@ void XMLAssetManager::AddLight(const tinyxml2::XMLElement* child)
 	}
 }
 
+void XMLAssetManager::AddSkybox(const tinyxml2::XMLElement* child, Ref<Component> parent)
+{
+	if (std::string(child->Name()) == "Skybox")
+	{
+		Ref<Skybox> skybox = std::make_shared<Skybox>(GetComponent<Component>(child->Attribute("parent")));
+
+		AddComponent(child->Attribute("name"), skybox);
+	}
+}
+
 void XMLAssetManager::AddMeshToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor)
 {
 	if (child->FirstChildElement("Mesh")) {
@@ -322,4 +373,15 @@ void XMLAssetManager::AddPhysicsToActor(const tinyxml2::XMLElement* child, Ref<A
 	// Add a default physics component to the actor, but don't forget to match transform component's position & orientation
 	// You're gonna have to assume the transform component has already been built (fingers crossed!)
 }
+
+void XMLAssetManager::AddMaterialToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent)
+{
+	if (child->FirstChildElement("Material")) {
+		const char* name = child->FirstChildElement("Material")->Attribute("name");
+		Ref<MaterialComponent> material = GetComponent<MaterialComponent>(name);
+		actor->AddComponent<MaterialComponent>(name, material);
+	}
+}
+
+
 

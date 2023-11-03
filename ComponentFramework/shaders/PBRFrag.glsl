@@ -46,24 +46,31 @@ void main() {
     float metallic;
     float roughness;
 
-    albedo = baseColor_.rgb;
+    if(useBaseColorMap)  
+    {
+        albedo = texture(baseColorMap, texCoord).xyz;
+    }
+    else
+    {
+        albedo = baseColor_.rgb;
+    }
 
     if(useRoughnessMap)  
     {
-    roughness = clamp(float(texture(roughnessMap, texCoord)), 0.05, 0.99);
+        roughness = clamp(float(texture(roughnessMap, texCoord)), 0.05, 0.99);
     }
     else 
     {
-    roughness = clamp(roughness_, 0.05, 0.99);
+        roughness = clamp(roughness_, 0.05, 0.99);
     }
 
     if(useMetallicMap) 
     {
-    metallic = float(texture(metallicMap, texCoord));
+        metallic = float(texture(metallicMap, texCoord));
     }
     else 
     {
-    metallic = metallic_;
+        metallic = metallic_;
     }
 
 

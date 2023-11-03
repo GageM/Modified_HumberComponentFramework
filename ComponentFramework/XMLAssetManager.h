@@ -5,6 +5,7 @@
 #define XMLASSETMANAGER_H
 
 #include <unordered_map>
+#include <vector>
 #include "Component.h"
 #include <iostream>
 #include "tinyxml2.h"
@@ -38,21 +39,42 @@ struct XMLAssetManager {
 		return assetWeNeed;
 	}
 
+	// Returns a vector of components of a given type
+	template<typename Type>
+	std::vector<Ref<Type>> GetAllComponentsOfType() const
+	{
+		std::vector<Ref<Type>> componentsOfType;
+		for (auto const& pair : xmlAssets) {
+			if (std::dynamic_pointer_cast<Type>(pair.second) != nullptr) {
+				componentsOfType.push_back(std::dynamic_pointer_cast<Type>(pair.second));
+			}
+		}
+		return componentsOfType;
+	}
+
 	void AddSphereShape(const tinyxml2::XMLElement* child);
 	void AddCylinderShape(const tinyxml2::XMLElement* child); 
 	void AddCapsuleShape(const tinyxml2::XMLElement* child); 
 	void AddBoxShape(const tinyxml2::XMLElement* child); 
 	
 	void AddTexture(const tinyxml2::XMLElement* child);
+	void AddCubemap(const tinyxml2::XMLElement* child);
 	void AddShader(const tinyxml2::XMLElement* child);
+	void AddMaterial(const tinyxml2::XMLElement* child); // NEW!
 	void AddCamera(const tinyxml2::XMLElement* child);
 	void AddLight(const tinyxml2::XMLElement* child);
+	void AddSkybox(const tinyxml2::XMLElement* child, Ref<Component> parent); // NEW!
 	void AddMeshToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor);
 	void AddShaderToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor);
 	void AddTextureToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor);
 	void AddShapeToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor);
 	void AddTransformToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent);
 	void AddPhysicsToActor  (const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent);
+	void AddMaterialToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent); // NEW!
+
+
+
+
 
 	XMLAssetManager();
 	~XMLAssetManager();

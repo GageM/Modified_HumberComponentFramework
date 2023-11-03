@@ -14,6 +14,7 @@ class MaterialComponent : public Component
 {
 public:
 	MaterialComponent(Ref<Component> parent_, Ref<TextureComponent> BCMap_, Ref<TextureComponent> RoughMap_ = nullptr, Ref<TextureComponent> MetMap_ = nullptr);
+	MaterialComponent(Ref<Component> parent_, Ref<TextureComponent> BCMap_, float roughness_ = 0.5f, float metallic_ = 0.0f);
 	MaterialComponent(Ref<Component> parent_, Vec4 baseColor_ = Vec4(0.7f, 0.7f, 0.7f, 1.0f), float roughness_ = 0.5f, float metallic_ = 0.0f);
 	~MaterialComponent();
 
@@ -29,12 +30,9 @@ public:
 	bool useMetallicMap;
 	bool useNormalMap;
 
-	inline Vec4 GetBaseColor() { return baseColor; }
-	inline void SetBaseColor(Vec4 baseColor_) { baseColor = baseColor_; }
-	inline float GetRoughness() { return roughness; }
-	inline void SetRoughness(float roughness_) { roughness = roughness_; }
-	inline float GetMetallic() { return metallic; }
-	inline void SetMetallic(float metallic_) { metallic = metallic_; }
+	Vec4 baseColor;
+	float roughness;
+	float metallic;
 
 	inline Ref<ShaderComponent> GetShader() { return shader; }
 	inline void SetShader(Ref<ShaderComponent> shader_) { shader = shader_; }
@@ -60,8 +58,4 @@ private:
 	Ref<TextureComponent> roughnessMap;
 	Ref<TextureComponent> metallicMap;
 	Ref<TextureComponent> normalMap;
-
-	Vec4 baseColor;
-	float roughness;
-	float metallic;
 };
