@@ -5,7 +5,7 @@
 class CubemapComponent: public Component
 {
 public:
-	CubemapComponent(Ref<Component> parent_, const char* PXfile_, const char* PYfile_, const char* PZfile_,
+	CubemapComponent(Ref<Component> parent_, RendererType renderer_, const char* PXfile_, const char* PYfile_, const char* PZfile_,
 										 const char* NXfile_, const char* NYfile_, const char* NZfile_);
 	virtual ~CubemapComponent();
 	virtual bool OnCreate();

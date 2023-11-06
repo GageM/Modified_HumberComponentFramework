@@ -137,7 +137,7 @@ void VulkanRenderer::initVulkan() {
     createImageViews();
     createRenderPass();
     createDescriptorSetLayout();
-    CreateGraphicsPipeline("shaders/phong.vert.spv", "shaders/phong.frag.spv");
+    CreateGraphicsPipeline("shaders/vulkanShaders/phong.vert.spv", "shaders/vulkanShaders/phong.frag.spv");
     createCommandPool();
     createDepthResources();
     createFramebuffers();
@@ -246,7 +246,7 @@ void VulkanRenderer::recreateSwapChain() {
     createSwapChain();
     createImageViews();
     createRenderPass();
-    CreateGraphicsPipeline("shaders/phong.vert.spv", "shaders/phong.frag.spv");
+    CreateGraphicsPipeline("shaders/vulkanShaders/phong.vert.spv", "shaders/vulkanShaders/phong.frag.spv");
     createDepthResources();
     createFramebuffers();
     createCameraUBO();

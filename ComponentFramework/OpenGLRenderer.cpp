@@ -47,7 +47,7 @@ void OpenGLRenderer::Render()
 {
 }
 
-SDL_Window* OpenGLRenderer::NewWindow(std::string name_, int width_, int height_)
+SDL_Window* OpenGLRenderer::CreateWindow(std::string name_, int width_, int height_)
 {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
 	{

@@ -10,9 +10,13 @@
 #include <iostream>
 #include "tinyxml2.h"
 #include "Actor.h"
+#include "Renderer.h"
 struct XMLAssetManager {
 	// assets can contain meshes, materials, shaders, or actors
 	std::unordered_map< std::string, Ref<Component> > xmlAssets;
+
+	// Need a ref to the renderer to choose whether to build assets for openGL or Vulkan
+	Ref<Renderer> renderer;
 
 	template<typename ComponentTemplate, typename ... Args>
 	void AddComponent(const char* name, Args&& ... args_) {
@@ -75,8 +79,8 @@ struct XMLAssetManager {
 
 
 
-
-	XMLAssetManager();
+	//XMLAssetManager() {}
+	XMLAssetManager(Ref<Renderer> renderer_);
 	~XMLAssetManager();
 };
 #endif

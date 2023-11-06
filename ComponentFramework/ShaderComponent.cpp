@@ -3,8 +3,8 @@
 #include <fstream>
 #include <string.h>
 
-ShaderComponent::ShaderComponent(Ref<Component> parent_, const char* vsFilename_, const char* fsFilename_):
-	Component(parent_),
+ShaderComponent::ShaderComponent(Ref<Component> parent_, RendererType renderer_, const char* vsFilename_, const char* fsFilename_):
+	Component(parent_, renderer_),
 	shaderID(0),vertShaderID(0),fragShaderID(0) {
 	vsFilename = vsFilename_;
 	fsFilename = fsFilename_;
@@ -17,26 +17,62 @@ ShaderComponent::~ShaderComponent() {
 bool ShaderComponent::OnCreate() {
 
 	if (isCreated) return true;
-	bool status;
-	status = CompileAttach();
-	if (status == false) return false;
-	// Take components in the frag and vert shader
-	// and link them. Passing information from the vert to the frag
-	status = Link();
-	if (status == false) return false;
 
-	SetUniformLocations();
+	switch (renderer)
+	{
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+	{
+		bool status;
+		status = CompileAttach();
+		if (status == false) return false;
+		// Take components in the frag and vert shader
+		// and link them. Passing information from the vert to the frag
+		status = Link();
+		if (status == false) return false;
+
+		SetUniformLocations();
+		break;
+	}
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
+	}
 
 	isCreated = true;
 	return true;
 }
 
 void ShaderComponent::OnDestroy() {
-	glDetachShader(shaderID, fragShaderID);
-	glDetachShader(shaderID, vertShaderID);  
-	glDeleteShader(fragShaderID);
-	glDeleteShader(vertShaderID);
-	glDeleteProgram(shaderID);
+	switch (renderer)
+	{
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+	{
+		glDetachShader(shaderID, fragShaderID);
+		glDetachShader(shaderID, vertShaderID);
+		glDeleteShader(fragShaderID);
+		glDeleteShader(vertShaderID);
+		glDeleteProgram(shaderID);
+		break;
+	}
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
+	}
+
 	isCreated = false;
 }
 

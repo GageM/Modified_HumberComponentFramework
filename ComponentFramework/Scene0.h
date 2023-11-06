@@ -15,10 +15,13 @@ struct RayIntersectionInfo;
 class ShaderComponent;
 class MaterialComponent;
 
+class OpenGLRenderer;
+class VulkanRenderer;
+
 struct Scene0 : public Scene
 {
 private:
-	XMLAssetManager assetManager;
+	Ref<XMLAssetManager> assetManager;
 
 	Vec4 bGColor;
 	Vec4 debugColor;
@@ -28,7 +31,6 @@ private:
 	// For Adjusting Selected Actor
 	Ref<Actor> selectedActor;
 	std::string selectedActorName;
-	//Ref<TransformComponent> selectedTransform;
 
 	void showSelectionSettings();
 	void showTransformMenu();

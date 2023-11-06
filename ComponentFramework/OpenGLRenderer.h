@@ -10,7 +10,7 @@ public:
 	virtual void OnDestroy();
 	virtual void Render();
 
-	virtual SDL_Window* NewWindow(std::string name_, int width_, int height_);
+	virtual SDL_Window* CreateWindow(std::string name_, int width_, int height_);
 
 	SDL_Window* GetWindow() const { return window; }
 	SDL_GLContext GetContext() const { return context; }

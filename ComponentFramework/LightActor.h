@@ -33,9 +33,9 @@ private:
 	const GLuint bindingPoint = 1; // remember we used = 0 for the camera
 
 public:
-	LightActor(Ref<Component> parent_, LightStyle lightStyle_, Vec3 position_, Vec4 colour_,
+	LightActor(Ref<Component> parent_, RendererType renderer_, LightStyle lightStyle_, Vec3 position_, Vec4 colour_,
 		float intensity_ = 1.0f, Vec3 fallOff_ = Vec3(0.0f, 0.0f, 0.0f));
-	LightActor(Ref<Component> parent_);
+	LightActor(Ref<Component> parent_, RendererType renderer_);
 	~LightActor();
 
 	Vec3 position;

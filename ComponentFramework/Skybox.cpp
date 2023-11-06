@@ -11,12 +11,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include"stb_image.h"
 
-Skybox::Skybox(Ref<Component> parent_) : Actor(parent_), mesh(nullptr), shader(nullptr), cubemap(nullptr)
+Skybox::Skybox(Ref<Component> parent_, RendererType renderer_) : Actor(parent_, renderer_), mesh(nullptr), shader(nullptr), cubemap(nullptr)
 {
 
 }
 
-Skybox::Skybox(Ref<Component> parent_, Ref<MeshComponent> mesh_, Ref<ShaderComponent> shader_, Ref<CubemapComponent> cubemap_) : Actor(parent_), mesh(mesh_), shader(shader_), cubemap(cubemap_)
+Skybox::Skybox(Ref<Component> parent_, RendererType renderer_, Ref<MeshComponent> mesh_, Ref<ShaderComponent> shader_, Ref<CubemapComponent> cubemap_) : Actor(parent_, renderer_), 
+mesh(mesh_), shader(shader_), cubemap(cubemap_)
 {
 
 }
@@ -29,22 +30,39 @@ Skybox::~Skybox()
 bool Skybox::OnCreate()
 {
 	// Add Mesh Component
-	mesh = std::make_shared<MeshComponent>(nullptr, "meshes/Cube.obj");
+	mesh = std::make_shared<MeshComponent>(nullptr, renderer, "meshes/Cube.obj");
 	mesh->OnCreate();
 
 	// Add Shader Component
-	shader = std::make_shared<ShaderComponent>(nullptr, "shaders/SkyboxVert.glsl", "shaders/SkyboxFrag.glsl");
+	shader = std::make_shared<ShaderComponent>(nullptr, renderer, "shaders/SkyboxVert.glsl", "shaders/SkyboxFrag.glsl");
 	shader->OnCreate();
 
-	hdrShader = std::make_shared<ShaderComponent>(nullptr, "shaders/HDRIMapVert.glsl", "shaders/HDRIMapFrag.glsl");
+	hdrShader = std::make_shared<ShaderComponent>(nullptr, renderer, "shaders/HDRIMapVert.glsl", "shaders/HDRIMapFrag.glsl");
 	hdrShader->OnCreate();
 
 	// Add CubemapComponent
-	cubemap = std::make_shared<CubemapComponent>(nullptr, "textures/CN_Tower/posx.jpg", "textures/CN_Tower/posy.jpg", "textures/CN_Tower/posz.jpg",
+	cubemap = std::make_shared<CubemapComponent>(nullptr, renderer, "textures/CN_Tower/posx.jpg", "textures/CN_Tower/posy.jpg", "textures/CN_Tower/posz.jpg",
 		"textures/CN_Tower/negx.jpg", "textures/CN_Tower/negy.jpg", "textures/CN_Tower/negz.jpg");
 	cubemap->OnCreate();
 
-	LoadHDRI("textures/lebombo_4k.hdr");
+	switch (renderer)
+	{
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+		LoadHDRI("textures/lebombo_4k.hdr");
+		break;
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
+	}
+
+
 	
 	return true;
 }
@@ -66,14 +84,30 @@ void Skybox::Update(const float deltaTime_)
 
 void Skybox::Render()const
 {
-	if (useIBL)
+	switch (renderer)
 	{
-		RenderHDRI();
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+		if (useIBL)
+		{
+			RenderHDRI();
+		}
+		else
+		{
+			RenderDefaultCubemap();
+		}
+		break;
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
 	}
-	else
-	{
-		RenderDefaultCubemap();
-	}
+
 }
 
 void Skybox::RenderDefaultCubemap() const

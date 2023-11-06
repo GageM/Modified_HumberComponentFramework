@@ -23,7 +23,7 @@ SceneManager::SceneManager():
 	fps(60), isRunning(false), fullScreen(false), show_demo_window(false),
 	handleEventsProfiler(nullptr), updateProfiler(nullptr), renderProfiler(nullptr),
 	controller(nullptr),
-	rendererType(RendererType::OPENGL)
+	rendererType(RendererType::VULKAN)
 {
 	Debug::Info("Starting the SceneManager", __FILE__, __LINE__);
 }
@@ -45,7 +45,23 @@ SceneManager::~SceneManager() {
 		controller = nullptr;
 	}
 
-	ImGui_ImplOpenGL3_Shutdown();
+	switch (rendererType)
+	{
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+		ImGui_ImplOpenGL3_Shutdown();
+		break;
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
+	}
+
 	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
 
@@ -59,19 +75,16 @@ bool SceneManager::Initialize(std::string name_, int width_, int height_) {
 	case RendererType::OPENGL:
 		renderer = std::make_shared<OpenGLRenderer>();
 		renderer->SetRendererType(RendererType::OPENGL);
-		renderer->NewWindow(name_, width_, height_);
+		renderer->CreateWindow(name_, width_, height_);
 		renderer->OnCreate();
 
-		//window = new Window();
-		//if (!window->OnCreate(name_, width_, height_)) {
-		//	Debug::FatalError("Failed to initialize Window object", __FILE__, __LINE__);
-		//	return false;
-		//}
 		break;
 	case RendererType::VULKAN:
 		// TODO:: Implement Vulkan Renderer
-		//renderer = std::make_shared<VulkanRenderer>();
-		//renderer->SetRendererType(RendererType::VULKAN);
+		renderer = std::make_shared<VulkanRenderer>();
+		renderer->SetRendererType(RendererType::VULKAN);
+		renderer->CreateWindow(name_, width_, height_);
+		renderer->OnCreate();
 
 		break;
 	case RendererType::DIRECTX11:
@@ -202,7 +215,18 @@ void SceneManager::HandleEvents() {
 
 	SDL_Event sdlEvent;
 	while (SDL_PollEvent(&sdlEvent)) {
-		ImGui_ImplSDL2_ProcessEvent(&sdlEvent);
+		switch (rendererType)
+		{
+		case::RendererType::OPENGL:
+			ImGui_ImplSDL2_ProcessEvent(&sdlEvent);
+			break;
+		case::RendererType::VULKAN:
+
+			break;
+		default:
+			break;
+		}
+
 		if (sdlEvent.type == SDL_EventType::SDL_QUIT) {
 			isRunning = false;
 			return;
@@ -301,8 +325,54 @@ void SceneManager::HandleGUI()
 	switch (rendererType)
 	{
 	case RendererType::OPENGL:
+	{
 		ImGui_ImplOpenGL3_NewFrame();
+
+		ImGui_ImplSDL2_NewFrame();
+		ImGui::NewFrame();
+		if (show_demo_window) {
+			ImGui::ShowDemoWindow(&show_demo_window);
+		}
+
+		// Display Scene Manager Menu
+		if (showSceneMenu)
+		{
+			bool open = true;
+			ImGui::Begin("Scene", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+			ImGui::SetWindowSize(ImVec2(600.0f, 300.0f));
+			ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+
+			if (ImGui::CollapsingHeader("System"))
+			{
+				showSystemMenu();
+			}
+
+			if (ImGui::CollapsingHeader("Scene Manager"))
+			{
+				if (ImGui::TreeNode("Settings"))
+				{
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNode("Profilers"))
+				{
+					showProfilerMenu();
+				}
+			}
+
+			// Add Scene Menu  
+			currentScene->HandleGUI();
+
+			ImGui::End();
+
+		}
+
+		// Show Framerate
+		bool open = true;
+		ImGui::Begin("Frame rate", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
+		ImGui::Text("%.1f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
 		break;
+	}
 	case RendererType::VULKAN:
 		// TODO:: Implement Vulkan Renderer ImGui
 		break;
@@ -310,57 +380,15 @@ void SceneManager::HandleGUI()
 		break;
 	}
 
-	ImGui_ImplSDL2_NewFrame();
-	ImGui::NewFrame();
-	if (show_demo_window) {
-		ImGui::ShowDemoWindow(&show_demo_window);
-	}
 
-	// Display Scene Manager Menu
-	if (showSceneMenu)
-	{
-		bool open = true;
-		ImGui::Begin("Scene", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
-		ImGui::SetWindowSize(ImVec2(600.0f, 300.0f));
-		ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-
-		if (ImGui::CollapsingHeader("System"))
-		{
-			showSystemMenu();
-		}
-
-		if (ImGui::CollapsingHeader("Scene Manager"))
-		{
-			if (ImGui::TreeNode("Settings"))
-			{
-				ImGui::TreePop();
-			}
-			if (ImGui::TreeNode("Profilers"))
-			{
-				showProfilerMenu();
-			}
-		}
-
-		// Add Scene Menu  
-		currentScene->HandleGUI();
-
-		ImGui::End();
-
-	}
-
-	// Show Framerate
-	bool open = true;
-	ImGui::Begin("Frame rate", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
-	ImGui::Text("%.1f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	ImGui::End();
 
 	// ImGui Render
-	ImGui::Render();
 	switch (rendererType)
 	{
 	case RendererType::NONE:
 		break;
 	case RendererType::OPENGL:
+		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		break;
 	case RendererType::VULKAN:

@@ -16,7 +16,7 @@
 #include "Capsule.h"
 #include <QMath.h>
 
-XMLAssetManager::XMLAssetManager()
+XMLAssetManager::XMLAssetManager(Ref<Renderer> renderer_) : renderer(renderer_)
 {
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile("Scene0.xml");
@@ -33,23 +33,41 @@ XMLAssetManager::XMLAssetManager()
 		child;
 		child = child->NextSiblingElement())
 	{
-		AddTexture(child);
-		AddCubemap(child);
-		AddShader(child);
-		AddMaterial(child);
-		AddCamera(child);
-		AddLight(child);
-		
-		if (std::string(child->Name()) == "Mesh") {
-			AddComponent<MeshComponent>(child->Attribute("name"), nullptr, child->Attribute("filename"));
-			
-			AddSphereShape(child);
-			AddCylinderShape(child);
-			AddCapsuleShape(child);
-			AddBoxShape(child);
+		switch (renderer->GetRendererType())
+		{
+		case RendererType::OPENGL:
+			AddTexture(child);
+			AddCubemap(child);
+			AddShader(child);
+			AddMaterial(child);
+			AddCamera(child);
+			AddLight(child);
+
+			if (std::string(child->Name()) == "Mesh") {
+				AddComponent<MeshComponent>(child->Attribute("name"), nullptr, renderer->GetRendererType(), child->Attribute("filename"));
+
+				AddSphereShape(child);
+				AddCylinderShape(child);
+				AddCapsuleShape(child);
+				AddBoxShape(child);
+			}
+
+			AddSkybox(child, xmlAssets["Camera1"]);
+			break;
+		case RendererType::VULKAN:
+			//AddTexture(child);
+			//AddCubemap(child);
+			//AddShader(child);
+			//AddMaterial(child);
+			AddCamera(child);
+			AddLight(child);
+
+			break;
+		default:
+			break;
 		}
 
-		AddSkybox(child, xmlAssets["Camera1"]);
+
 	}
 
 	// Now we have all the shared assets ready, time to build the actors
@@ -58,28 +76,66 @@ XMLAssetManager::XMLAssetManager()
 		child = child->NextSiblingElement())
 	{
 		if (std::string(child->Name()) == "Actor") {
-			Ref<Component> parent = nullptr;
-			if (std::string(child->Attribute("parent")) == "none") {
-				parent = nullptr;
+
+			switch (renderer->GetRendererType())
+			{
+			case RendererType::OPENGL:
+			{
+				Ref<Component> parent = nullptr;
+				if (std::string(child->Attribute("parent")) == "none") {
+					parent = nullptr;
+				}
+				if (std::string(child->Attribute("parent")) == "ActorGameBoard") {
+					parent = GetComponent<Actor>("ActorGameBoard");
+				}
+
+				Ref<Actor> actor = std::make_shared<Actor>(parent, renderer->GetRendererType());
+				// Add shared assets to the actor
+				AddMeshToActor(child, actor);
+				AddShaderToActor(child, actor);
+				AddTextureToActor(child, actor);
+				AddShapeToActor(child, actor);
+				// The transform is unique for the actor. Needs the parent too
+				AddTransformToActor(child, actor, parent);
+				// Add physics to the actor AFTER the transform. We need them to match in position and orientation
+				AddPhysicsToActor(child, actor, parent);
+				AddMaterialToActor(child, actor, parent);
+
+				actor->OnCreate();
+				AddComponent(child->Attribute("actorname"), actor);
+				break;
 			}
-			if (std::string(child->Attribute("parent")) == "ActorGameBoard") {
-				parent = GetComponent<Actor>("ActorGameBoard");
+			case RendererType::VULKAN:
+			{
+				Ref<Component> parent = nullptr;
+				if (std::string(child->Attribute("parent")) == "none") {
+					parent = nullptr;
+				}
+				if (std::string(child->Attribute("parent")) == "ActorGameBoard") {
+					parent = GetComponent<Actor>("ActorGameBoard");
+				}
+
+				Ref<Actor> actor = std::make_shared<Actor>(parent, renderer->GetRendererType());
+				// Add shared assets to the actor
+				//AddMeshToActor(child, actor);
+				//AddShaderToActor(child, actor);
+				//AddTextureToActor(child, actor);
+				//AddShapeToActor(child, actor);
+				// The transform is unique for the actor. Needs the parent too
+				AddTransformToActor(child, actor, parent);
+				// Add physics to the actor AFTER the transform. We need them to match in position and orientation
+				//AddPhysicsToActor(child, actor, parent);
+				//AddMaterialToActor(child, actor, parent);
+
+				actor->OnCreate();
+				AddComponent(child->Attribute("actorname"), actor);
+				break;
+			}
+			default:
+				break;
 			}
 
-			Ref<Actor> actor = std::make_shared<Actor>(parent);
-			// Add shared assets to the actor
-			AddMeshToActor(child, actor);
-			AddShaderToActor(child, actor);
-			AddTextureToActor(child, actor);
-			AddShapeToActor(child, actor);
-			// The transform is unique for the actor. Needs the parent too
-			AddTransformToActor(child, actor, parent);
-			// Add physics to the actor AFTER the transform. We need them to match in position and orientation
-			AddPhysicsToActor(child, actor, parent);
-			AddMaterialToActor(child, actor, parent);
 
-			actor->OnCreate();
-			AddComponent(child->Attribute("actorname"), actor);
 		}
 	}
 }
@@ -99,7 +155,7 @@ void XMLAssetManager::AddSphereShape(const tinyxml2::XMLElement* child)
 		sphere.y = child->FirstChildElement("Shape")->FirstChildElement("Sphere")->FloatAttribute("centreY");
 		sphere.z = child->FirstChildElement("Shape")->FirstChildElement("Sphere")->FloatAttribute("centreZ");
 
-		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, sphere);
+		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer->GetRendererType(), sphere);
 	}
 }
 
@@ -118,7 +174,7 @@ void XMLAssetManager::AddCylinderShape(const tinyxml2::XMLElement* child)
 		cylinder.capPosB.y = child->FirstChildElement("Shape")->FirstChildElement("Cylinder")->FloatAttribute("capBY");
 		cylinder.capPosB.z = child->FirstChildElement("Shape")->FirstChildElement("Cylinder")->FloatAttribute("capBZ");
 
-		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, cylinder);
+		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer->GetRendererType(), cylinder);
 	}
 }
 
@@ -137,7 +193,7 @@ void XMLAssetManager::AddCapsuleShape(const tinyxml2::XMLElement* child)
 		capsule.capPosB.y = child->FirstChildElement("Shape")->FirstChildElement("Capsule")->FloatAttribute("capBY");
 		capsule.capPosB.z = child->FirstChildElement("Shape")->FirstChildElement("Capsule")->FloatAttribute("capBZ");
 
-		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, capsule);
+		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer->GetRendererType(), capsule);
 	}
 }
 
@@ -165,14 +221,14 @@ void XMLAssetManager::AddBoxShape(const tinyxml2::XMLElement* child)
 
 		box.orientation = Quaternion(angle, axis);
 
-		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, box);
+		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer->GetRendererType(), box);
 	}
 }
 
 void XMLAssetManager::AddTexture(const tinyxml2::XMLElement* child)
 {
 	if (std::string(child->Name()) == "Texture") {
-		Ref<TextureComponent> texture = std::make_shared<TextureComponent>(nullptr, child->Attribute("filename"));
+		Ref<TextureComponent> texture = std::make_shared<TextureComponent>(nullptr, renderer->GetRendererType(), child->Attribute("filename"));
 		//texture->OnCreate();
 
 		AddComponent<TextureComponent>(child->Attribute("name"), texture);
@@ -193,7 +249,7 @@ void XMLAssetManager::AddCubemap(const tinyxml2::XMLElement* child)
 void XMLAssetManager::AddShader(const tinyxml2::XMLElement* child)
 {
 	if (std::string(child->Name()) == "Shader") {
-		Ref<ShaderComponent> shader = std::make_shared<ShaderComponent>(nullptr, child->Attribute("vertFilename"), child->Attribute("fragFilename"));
+		Ref<ShaderComponent> shader = std::make_shared<ShaderComponent>(nullptr, renderer->GetRendererType(), child->Attribute("vertFilename"), child->Attribute("fragFilename"));
 		shader->OnCreate();
 		AddComponent(child->Attribute("name"), shader);
 	}
@@ -204,7 +260,7 @@ void XMLAssetManager::AddMaterial(const tinyxml2::XMLElement* child)
 	
 	if (std::string(child->Name()) == "Material")
 	{
-		Ref<MaterialComponent> material = std::make_shared<MaterialComponent>(nullptr, 
+		Ref<MaterialComponent> material = std::make_shared<MaterialComponent>(nullptr, renderer->GetRendererType(),
 			GetComponent<TextureComponent>(child->Attribute("BCMap")), 
 			child->FloatAttribute("roughness"), 
 			child->FloatAttribute("metallic"));
@@ -247,8 +303,8 @@ void XMLAssetManager::AddCamera(const tinyxml2::XMLElement* child)
 	}
 
 	if (std::string(child->Name()) == "Camera") {
-		Ref<CameraActor> camera = std::make_shared<CameraActor>(cameraParent);
-		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(nullptr, cameraPos, QMath::angleAxisRotation(angleDeg, axis));
+		Ref<CameraActor> camera = std::make_shared<CameraActor>(cameraParent, renderer->GetRendererType());
+		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(nullptr, renderer->GetRendererType(), cameraPos, QMath::angleAxisRotation(angleDeg, axis));
 
 		camera->AddComponent<TransformComponent>("Transform", transform);
 		camera->OnCreate();
@@ -292,8 +348,10 @@ void XMLAssetManager::AddLight(const tinyxml2::XMLElement* child)
 	}
 
 	if (std::string(child->Name()) == "Light") {
-		Ref<LightActor> light = std::make_shared<LightActor>(lightParent, lightstyle, lightPos, colour, intensity, falloff);
+		Ref<LightActor> light = std::make_shared<LightActor>(lightParent, renderer->GetRendererType(), lightstyle, lightPos, colour, intensity, falloff);
+
 		light->OnCreate();
+
 		AddComponent(child->Attribute("lightname"), light);
 	}
 }
@@ -302,7 +360,7 @@ void XMLAssetManager::AddSkybox(const tinyxml2::XMLElement* child, Ref<Component
 {
 	if (std::string(child->Name()) == "Skybox")
 	{
-		Ref<Skybox> skybox = std::make_shared<Skybox>(GetComponent<Component>(child->Attribute("parent")));
+		Ref<Skybox> skybox = std::make_shared<Skybox>(GetComponent<Component>(child->Attribute("parent")), renderer->GetRendererType());
 
 		AddComponent(child->Attribute("name"), skybox);
 	}
@@ -362,7 +420,7 @@ void XMLAssetManager::AddTransformToActor(const tinyxml2::XMLElement* child, Ref
 		scale.y = child->FirstChildElement("Transform")->FloatAttribute("scaley");
 		scale.z = child->FirstChildElement("Transform")->FloatAttribute("scalez");
 		
-		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(parent, pos, QMath::angleAxisRotation(angleDeg, axis), scale);
+		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(parent, renderer->GetRendererType(), pos, QMath::angleAxisRotation(angleDeg, axis), scale);
 		actor->AddComponent<TransformComponent>("Transform", transform);
 	}
 }

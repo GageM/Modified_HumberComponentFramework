@@ -1,8 +1,8 @@
 #include "CubemapComponent.h"
 #include <SDL_image.h>
 
-CubemapComponent::CubemapComponent(Ref<Component> parent_, const char* PXfile_, const char* PYfile_, const char* PZfile_,
-	const char* NXfile_, const char* NYfile_, const char* NZfile_) : Component(parent_), 
+CubemapComponent::CubemapComponent(Ref<Component> parent_, RendererType renderer_, const char* PXfile_, const char* PYfile_, const char* PZfile_,
+	const char* NXfile_, const char* NYfile_, const char* NZfile_) : Component(parent_, renderer_), 
 
 	textureID(0)
 {
@@ -22,54 +22,71 @@ bool CubemapComponent::OnCreate()
 {
 	if (isCreated) return true;
 
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-	SDL_Surface* textureSurface;
-	int mode;
-
-	// Load pos X image
-	if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_X, posXfilename) == false)
+	switch (renderer)
 	{
-		return false;
-	}
-
-	// Load pos Y image
-	if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, posYfilename) == false)
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
 	{
-		return false;
-	}
-	
-	// Load pos Z image
-	if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, posZfilename) == false)
-	{
-		return false;
-	}
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-	// Load neg X image
-	if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, negXfilename) == false)
-	{
-		return false;
-	}
+		SDL_Surface* textureSurface;
+		int mode;
 
-	// Load neg Y image
-	if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, negYfilename) == false)
-	{
-		return false;
-	}
+		// Load pos X image
+		if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_X, posXfilename) == false)
+		{
+			return false;
+		}
 
-	// Load neg Y image
-	if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, negZfilename) == false)
-	{
-		return false;
-	}
+		// Load pos Y image
+		if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, posYfilename) == false)
+		{
+			return false;
+		}
 
-	// Cubemapping Settins
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		// Load pos Z image
+		if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, posZfilename) == false)
+		{
+			return false;
+		}
+
+		// Load neg X image
+		if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, negXfilename) == false)
+		{
+			return false;
+		}
+
+		// Load neg Y image
+		if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, negYfilename) == false)
+		{
+			return false;
+		}
+
+		// Load neg Y image
+		if (LoadFaceTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, negZfilename) == false)
+		{
+			return false;
+		}
+
+		// Cubemapping Settins
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		break;
+	}
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
+	}	
 
 	isCreated = true;
 	return isCreated;
@@ -77,8 +94,26 @@ bool CubemapComponent::OnCreate()
 
 void CubemapComponent::OnDestroy()
 {
-	// Free up the memory on the GPU
-	glDeleteTextures(1, &textureID);
+	switch (renderer)
+	{
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+	{
+		// Free up the memory on the GPU
+		glDeleteTextures(1, &textureID);
+		break;
+	}
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
+	}
+
 	isCreated = false;
 }
 

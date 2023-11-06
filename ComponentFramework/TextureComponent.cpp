@@ -1,6 +1,6 @@
 #include "TextureComponent.h"
 #include <SDL_image.h>
-TextureComponent::TextureComponent(Ref<Component> parent_, const char* filename_):Component(parent_) {
+TextureComponent::TextureComponent(Ref<Component> parent_, RendererType renderer_, const char* filename_):Component(parent_, renderer_) {
 	textureID = 0;
 	filename = filename_;
 }
@@ -11,8 +11,15 @@ TextureComponent::~TextureComponent() {
 
 bool TextureComponent::OnCreate() {
 	if (isCreated) return true;
+
+	switch (renderer)
+	{
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+	{
 		// generate names
-		// just an array of one element
+// just an array of one element
 		glGenTextures(1, &textureID);
 		// Tells the GPU that the textureID is a GL_TEXTURE_2D
 		glBindTexture(GL_TEXTURE_2D, textureID);
@@ -27,7 +34,7 @@ bool TextureComponent::OnCreate() {
 		// grid of data, mode, width, height. Scott doesn't know wht you need to send in the mode twice
 		// blessed be SDL, the array size will be w * h * pixels per byte
 		glTexImage2D(GL_TEXTURE_2D, 0, mode, textureSurface->w, textureSurface->h, 0, mode, GL_UNSIGNED_BYTE, textureSurface->pixels);
-	
+
 		SDL_FreeSurface(textureSurface);
 		/// Wrapping and filtering options
 		// you can find them here: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glTexParameter.xhtml
@@ -37,13 +44,41 @@ bool TextureComponent::OnCreate() {
 		// This means, I'm done talking to you
 		// Make sure you unbind
 		glBindTexture(GL_TEXTURE_2D, 0); /// Unbind the texture
+		break;
+	}
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
+	}
+
 		isCreated = true;
 		return true;
 }
 
 void TextureComponent::OnDestroy() {	
-	// Free up the memory on the GPU
-	glDeleteTextures(1, &textureID);
+	switch (renderer)
+	{
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+		// Free up the memory on the GPU
+		glDeleteTextures(1, &textureID);
+		break;
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
+	}
+
 	isCreated = false;
 }
 void TextureComponent::Update(const float deltaTime) {}

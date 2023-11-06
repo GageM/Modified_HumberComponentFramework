@@ -2,7 +2,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
-MeshComponent::MeshComponent(Ref<Component> parent_, const char* filename_) : Component(parent_) {
+MeshComponent::MeshComponent(Ref<Component> parent_, RendererType renderer_, const char* filename_) : Component(parent_, renderer_) {
     filename = filename_;
 }
 MeshComponent::~MeshComponent() {
@@ -11,11 +11,30 @@ MeshComponent::~MeshComponent() {
 
 bool MeshComponent::OnCreate() {
     if (isCreated) return true;
-    // tinyObj throws an exception if it's having a bad day
+
+    switch (renderer)
+    {
+    case RendererType::NONE:
+        break;
+    case RendererType::OPENGL:
+    {
+        // tinyObj throws an exception if it's having a bad day
     // blame management system Scott calls it
     // we'll do something with this later
-    LoadModel(filename);
-    StoreMeshData(GL_TRIANGLES);
+        LoadModel(filename);
+        StoreMeshData(GL_TRIANGLES);
+        break;
+    }
+    case RendererType::VULKAN:
+        break;
+    case RendererType::DIRECTX11:
+        break;
+    case RendererType::DIRECTX12:
+        break;
+    default:
+        break;
+    }
+
 
     isCreated = true;
     return true;
@@ -125,22 +144,74 @@ void MeshComponent::StoreMeshData(GLenum drawmode_) {
 }
 
 void MeshComponent::Render() const {
-    glBindVertexArray(vao);
-    glDrawArrays(drawmode, 0, dataLength);
-    glBindVertexArray(0); // Unbind the VAO
+    switch (renderer)
+    {
+    case RendererType::NONE:
+        break;
+    case RendererType::OPENGL:
+    {
+        glBindVertexArray(vao);
+        glDrawArrays(drawmode, 0, dataLength);
+        glBindVertexArray(0); // Unbind the VAO
+        break;
+    }
+    case RendererType::VULKAN:
+        break;
+    case RendererType::DIRECTX11:
+        break;
+    case RendererType::DIRECTX12:
+        break;
+    default:
+        break;
+    }
 }
 
 void MeshComponent::Render(GLenum drawmode_) const {
-    glBindVertexArray(vao);
-    glDrawArrays(drawmode_, 0, dataLength);
-    glBindVertexArray(0); // Unbind the VAO
+    switch (renderer)
+    {
+    case RendererType::NONE:
+        break;
+    case RendererType::OPENGL:
+    {
+        glBindVertexArray(vao);
+        glDrawArrays(drawmode_, 0, dataLength);
+        glBindVertexArray(0); // Unbind the VAO
+        break;
+    }
+    case RendererType::VULKAN:
+        break;
+    case RendererType::DIRECTX11:
+        break;
+    case RendererType::DIRECTX12:
+        break;
+    default:
+        break;
+    }
 }
 
 void MeshComponent::OnDestroy() {
-    // kill all the memory in the VRAM
-    glDeleteBuffers(1, &vbo);
-    // the vao holds the vbo so do that last
-    glDeleteVertexArrays(1, &vao);
+    switch (renderer)
+    {
+    case RendererType::NONE:
+        break;
+    case RendererType::OPENGL:
+    {
+        // kill all the memory in the VRAM
+        glDeleteBuffers(1, &vbo);
+        // the vao holds the vbo so do that last
+        glDeleteVertexArrays(1, &vao);
+        break;
+    }
+    case RendererType::VULKAN:
+        break;
+    case RendererType::DIRECTX11:
+        break;
+    case RendererType::DIRECTX12:
+        break;
+    default:
+        break;
+    }
+
     isCreated = false;
 }
 

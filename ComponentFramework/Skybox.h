@@ -23,8 +23,8 @@ private:
 	bool useIBL = false;
 
 public:
-	Skybox(Ref<Component> parent_);
-	Skybox(Ref<Component> parent_, Ref<MeshComponent> mesh_, Ref<ShaderComponent> shader_, Ref<CubemapComponent> cubemap_);
+	Skybox(Ref<Component> parent_, RendererType renderer_);
+	Skybox(Ref<Component> parent_, RendererType renderer_, Ref<MeshComponent> mesh_, Ref<ShaderComponent> shader_, Ref<CubemapComponent> cubemap_);
 	~Skybox();
 
 	inline Ref<ShaderComponent> GetShader() { return shader; }

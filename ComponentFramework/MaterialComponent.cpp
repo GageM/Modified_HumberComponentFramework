@@ -4,7 +4,7 @@
 #include "CubemapComponent.h"
 #include "Debug.h"
 
-MaterialComponent::MaterialComponent(Ref<Component> parent_, Ref<TextureComponent> BCMap_, Ref<TextureComponent> RoughMap_, Ref<TextureComponent> MetMap_) : Component(parent_),
+MaterialComponent::MaterialComponent(Ref<Component> parent_, RendererType renderer_, Ref<TextureComponent> BCMap_, Ref<TextureComponent> RoughMap_, Ref<TextureComponent> MetMap_) : Component(parent_, renderer_),
 useBaseColorMap(true), useNormalMap(false),
 baseColorMap(BCMap_), roughnessMap(RoughMap_), metallicMap(MetMap_),
 baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(0.5f), metallic(0.0f)
@@ -16,7 +16,7 @@ baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(0.5f), metallic(0.0f)
 	else useMetallicMap = false;
 }
 
-MaterialComponent::MaterialComponent(Ref<Component> parent_, Ref<TextureComponent> BCMap_, float roughness_, float metallic_) : Component(parent_),
+MaterialComponent::MaterialComponent(Ref<Component> parent_, RendererType renderer_, Ref<TextureComponent> BCMap_, float roughness_, float metallic_) : Component(parent_, renderer_),
 useBaseColorMap(true), useRoughnessMap(false), useMetallicMap(false), useNormalMap(false),
 baseColorMap(BCMap_), roughnessMap(nullptr), metallicMap(nullptr),
 baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(roughness_), metallic(metallic_)
@@ -24,7 +24,7 @@ baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(roughness_), metallic(metalli
 
 }
 
-MaterialComponent::MaterialComponent(Ref<Component> parent_, Vec4 baseColor_, float roughness_, float metallic_) : Component(parent_),
+MaterialComponent::MaterialComponent(Ref<Component> parent_, RendererType renderer_, Vec4 baseColor_, float roughness_, float metallic_) : Component(parent_, renderer_),
 useBaseColorMap(false), useRoughnessMap(false), useMetallicMap(false), useNormalMap(false), 
 baseColorMap(nullptr), roughnessMap(nullptr), metallicMap(nullptr),
 baseColor(baseColor_), roughness(roughness_), metallic(metallic_)
@@ -55,53 +55,89 @@ void MaterialComponent::OnDestroy()
 
 void MaterialComponent::Render()const
 {
-	// This assumes that a PBR shader is used!
-
-	glUseProgram(shader->GetProgram());
-
-	// Pass bools for which material inputs to use
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "useBaseColorMap"), useBaseColorMap);
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "useRoughnessMap"), useRoughnessMap);
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "useMetallicMap"), useMetallicMap);
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "useNormalMap"), false); // TODO: Update after setting up shader for normal maps
-
-	// pass raw material input values
-	glUniform4fv(glGetUniformLocation(shader->GetProgram(), "baseColor_"), 1, baseColor);
-	glUniform1f(glGetUniformLocation(shader->GetProgram(), "roughness_"), roughness);
-	glUniform1f(glGetUniformLocation(shader->GetProgram(), "metallic_"), metallic);
-
-	// pass material textures
-	if (useBaseColorMap)
+	switch (renderer)
 	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, baseColorMap->getTextureID());
-	}
-
-	if (useRoughnessMap)
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
 	{
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, roughnessMap->getTextureID());
+		// This assumes that a PBR shader is used!
+
+		glUseProgram(shader->GetProgram());
+
+		// Pass bools for which material inputs to use
+		glUniform1i(glGetUniformLocation(shader->GetProgram(), "useBaseColorMap"), useBaseColorMap);
+		glUniform1i(glGetUniformLocation(shader->GetProgram(), "useRoughnessMap"), useRoughnessMap);
+		glUniform1i(glGetUniformLocation(shader->GetProgram(), "useMetallicMap"), useMetallicMap);
+		glUniform1i(glGetUniformLocation(shader->GetProgram(), "useNormalMap"), false); // TODO: Update after setting up shader for normal maps
+
+		// pass raw material input values
+		glUniform4fv(glGetUniformLocation(shader->GetProgram(), "baseColor_"), 1, baseColor);
+		glUniform1f(glGetUniformLocation(shader->GetProgram(), "roughness_"), roughness);
+		glUniform1f(glGetUniformLocation(shader->GetProgram(), "metallic_"), metallic);
+
+		// pass material textures
+		if (useBaseColorMap)
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, baseColorMap->getTextureID());
+		}
+
+		if (useRoughnessMap)
+		{
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, roughnessMap->getTextureID());
+		}
+
+		if (useMetallicMap)
+		{
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, metallicMap->getTextureID());
+		}
+
+		//glActivateTexture(GL_TEXTURE3);
+		//glBindTexture(GL_TEXTURE_2D, normalMap->getTextureID());
+
+		// pass the cubemap
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getTextureID());
+
+		break;
 	}
-
-	if (useMetallicMap)
-	{
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, metallicMap->getTextureID());
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
 	}
-
-	//glActivateTexture(GL_TEXTURE3);
-	//glBindTexture(GL_TEXTURE_2D, normalMap->getTextureID());
-
-	// pass the cubemap
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getTextureID());
-
+	
 }
 
 void MaterialComponent::PostRender() const
 {
-	//glUseProgram(0);
-	glActiveTexture(GL_TEXTURE0);
+	switch (renderer)
+	{
+	case RendererType::NONE:
+		break;
+	case RendererType::OPENGL:
+	{
+		//glUseProgram(0);
+		glActiveTexture(GL_TEXTURE0);
+		break;
+	}
+	case RendererType::VULKAN:
+		break;
+	case RendererType::DIRECTX11:
+		break;
+	case RendererType::DIRECTX12:
+		break;
+	default:
+		break;
+	}
+
 }
 
 void MaterialComponent::Update(const float deltaTime)

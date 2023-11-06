@@ -13,14 +13,18 @@
 #include "ShapeComponent.h"
 #include "MaterialComponent.h"
 
+#include "VulkanRenderer.h"
+#include "OpenGLRenderer.h"
+
 #include "ControllerManager.h"
 
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 
-Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(1.0f, 0.0f, 0.0f, 1.0f)),
+Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), assetManager(nullptr), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(1.0f, 0.0f, 0.0f, 1.0f)),
 	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f)
 {
+	assetManager = std::make_shared<XMLAssetManager>(renderer);
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
 }
 
@@ -41,27 +45,38 @@ bool Scene0::OnCreate()
 			"ActorSkull", "ActorCube", "ActorMario", "ActorDoomKeyCard"
 		};
 		for (const auto& name : actorNames) {
-			actors[name] = assetManager.GetComponent<Actor>(name.c_str());
+			actors[name] = assetManager->GetComponent<Actor>(name.c_str());
 		}
 
-		camera = assetManager.GetComponent<CameraActor>("Camera1");
+		camera = assetManager->GetComponent<CameraActor>("Camera1");
 
 		// Make sure these names match the stuff in your xml file:
 		std::vector<std::string> lightNames{
 			"Light1"
 		};
 		for (const auto& name : lightNames) {
-			lights[name] = assetManager.GetComponent<LightActor>(name.c_str());
+			lights[name] = assetManager->GetComponent<LightActor>(name.c_str());
 		}
 
-		skybox = std::make_shared<Skybox>(camera);
+		skybox = std::make_shared<Skybox>(camera, renderer->GetRendererType());
 		skybox->OnCreate();
 
-		debugShader = assetManager.GetComponent<ShaderComponent>("debugShader");
+		debugShader = assetManager->GetComponent<ShaderComponent>("debugShader");
 	}
 		break;
 	case RendererType::VULKAN:
+	{
+		camera = assetManager->GetComponent<CameraActor>("Camera1");
+
+		// Make sure these names match the stuff in your xml file:
+		std::vector<std::string> lightNames{
+			"Light1"
+		};
+		for (const auto& name : lightNames) {
+			lights[name] = assetManager->GetComponent<LightActor>(name.c_str());
+		}
 		break;
+	}
 	default:
 		break;
 	}
@@ -148,56 +163,66 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		break;
 		
 	case SDL_MOUSEBUTTONDOWN:
-		if (sdlEvent.button.button == SDL_BUTTON_LEFT && !showMenu) {
-			Vec4 mouseCoords(static_cast<float>(sdlEvent.button.x), static_cast<float>(sdlEvent.button.y), 0.0f, 1.0f);
-			// TODO for Assignment 2: 
-			// Get a ray pointing into the world, We have the x, y pixel coordinates
-			// Need to convert this into world space to build our ray
-			printf("Mouse Click: \n");
-
-			// Transform mouse pos into world pos
-			Matrix4 ndcToPixel = MMath::viewportNDC(1280, 720);
-			Vec4 mouseNDCCoords = MMath::inverse(ndcToPixel) * mouseCoords;
-			Matrix4 perspectiveToNDC = camera->GetProjectionMatrix();
-			Vec4 mousePrespectiveCoords = MMath::inverse(perspectiveToNDC)* mouseNDCCoords;
-			mousePrespectiveCoords /= mousePrespectiveCoords.w;
-			Matrix4 worldToPerspective = camera->GetViewMatrix();
-			Vec4 mouseWorldCoords = MMath::inverse(worldToPerspective) * mousePrespectiveCoords;
-
-			//Arbitrary max distance for selection
-			float distance = 1000.0f; 
-
-			// Create a ray from the camera
-			Vec3 rayStart = -cameraTransform->pos;
-			Vec3 rayDir = VMath::normalize(mouseWorldCoords - rayStart);
-
-			Ref<Ray> drawRay = std::make_shared<Ray>(rayStart, rayDir, distance);
-			rays.push_back(drawRay);
-
-			// Loop through all the actors and check if the ray has collided with them
-			// Pick the one with the smallest positive t value
-			for (auto it = actors.begin(); it != actors.end(); ++it) {
-				Ref<Actor> actor = std::dynamic_pointer_cast<Actor>(it->second);
-				Ref<TransformComponent> transformComponent = actor->GetComponent <TransformComponent>();
-				Ref<ShapeComponent> shapeComponent = actor->GetComponent <ShapeComponent>();
+		switch (renderer->GetRendererType())
+		{
+		case RendererType::OPENGL:
+		{
+			if (sdlEvent.button.button == SDL_BUTTON_LEFT && !showMenu) {
+				Vec4 mouseCoords(static_cast<float>(sdlEvent.button.x), static_cast<float>(sdlEvent.button.y), 0.0f, 1.0f);
 				// TODO for Assignment 2: 
-				// Transform the ray into the local space of the object and check if a collision occured
-				Matrix4 worldToLocalSpace = MMath::inverse(actor->GetModelMatrix());
-				Vec4 localSpaceRayStart = worldToLocalSpace * Vec4(rayStart, 1.0f);
-				Vec4 localSpaceRayDir = worldToLocalSpace * Vec4(rayDir, 0.0f);
-				Ray localSpaceRay(localSpaceRayStart, localSpaceRayDir, distance);
-				
-				rayInfo = std::make_shared<RayIntersectionInfo>(shapeComponent->shape->rayIntersectionInfo(localSpaceRay));
-				// Pick the closest object to the camera
-				if (rayInfo->isIntersected && rayInfo->t < distance)
-				{
-					distance = rayInfo->t;
-					std::cout << "Picked: " << it->first << ", Distance: " << distance << "\n";
-					selectedActorName = it->first;
-					selectedActor = actor;
-				}				
-			}			
+				// Get a ray pointing into the world, We have the x, y pixel coordinates
+				// Need to convert this into world space to build our ray
+				printf("Mouse Click: \n");
+
+				// Transform mouse pos into world pos
+				Matrix4 ndcToPixel = MMath::viewportNDC(1280, 720);
+				Vec4 mouseNDCCoords = MMath::inverse(ndcToPixel) * mouseCoords;
+				Matrix4 perspectiveToNDC = camera->GetProjectionMatrix();
+				Vec4 mousePrespectiveCoords = MMath::inverse(perspectiveToNDC) * mouseNDCCoords;
+				mousePrespectiveCoords /= mousePrespectiveCoords.w;
+				Matrix4 worldToPerspective = camera->GetViewMatrix();
+				Vec4 mouseWorldCoords = MMath::inverse(worldToPerspective) * mousePrespectiveCoords;
+
+				//Arbitrary max distance for selection
+				float distance = 1000.0f;
+
+				// Create a ray from the camera
+				Vec3 rayStart = -cameraTransform->pos;
+				Vec3 rayDir = VMath::normalize(mouseWorldCoords - rayStart);
+
+				Ref<Ray> drawRay = std::make_shared<Ray>(rayStart, rayDir, distance);
+				rays.push_back(drawRay);
+
+				// Loop through all the actors and check if the ray has collided with them
+				// Pick the one with the smallest positive t value
+				for (auto it = actors.begin(); it != actors.end(); ++it) {
+					Ref<Actor> actor = std::dynamic_pointer_cast<Actor>(it->second);
+					Ref<TransformComponent> transformComponent = actor->GetComponent <TransformComponent>();
+					Ref<ShapeComponent> shapeComponent = actor->GetComponent <ShapeComponent>();
+					// TODO for Assignment 2: 
+					// Transform the ray into the local space of the object and check if a collision occured
+					Matrix4 worldToLocalSpace = MMath::inverse(actor->GetModelMatrix());
+					Vec4 localSpaceRayStart = worldToLocalSpace * Vec4(rayStart, 1.0f);
+					Vec4 localSpaceRayDir = worldToLocalSpace * Vec4(rayDir, 0.0f);
+					Ray localSpaceRay(localSpaceRayStart, localSpaceRayDir, distance);
+
+					rayInfo = std::make_shared<RayIntersectionInfo>(shapeComponent->shape->rayIntersectionInfo(localSpaceRay));
+					// Pick the closest object to the camera
+					if (rayInfo->isIntersected && rayInfo->t < distance)
+					{
+						distance = rayInfo->t;
+						std::cout << "Picked: " << it->first << ", Distance: " << distance << "\n";
+						selectedActorName = it->first;
+						selectedActor = actor;
+					}
+				}
+			}
+			break;
 		}
+		default:
+			break;
+		}
+
 		break;
 
 	case SDL_CONTROLLERBUTTONDOWN:
@@ -252,6 +277,7 @@ void Scene0::Render() const
 	switch (renderer->GetRendererType()) {
 
 	case RendererType::OPENGL:
+	{
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -263,11 +289,11 @@ void Scene0::Render() const
 			Ref<LightActor> light = it.second;
 			glBindBuffer(GL_UNIFORM_BUFFER, light->GetLightID());
 		}
-		//glBindBuffer(GL_UNIFORM_BUFFER, lights["Light1"]->GetLightID());
+
 		// Let it go
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		if(renderCubemap) skybox->Render();
+		if (renderCubemap) skybox->Render();
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
@@ -275,7 +301,7 @@ void Scene0::Render() const
 		// Draw unselected actors		
 		for (auto it = actors.begin(); it != actors.end(); ++it) {
 			Ref<Actor> actor = std::dynamic_pointer_cast<Actor>(it->second);
-			
+
 			if (actor != selectedActor)
 			{
 				// Draw actor mesh
@@ -300,11 +326,11 @@ void Scene0::Render() const
 					actor->GetComponent<ShapeComponent>()->Render();
 				}
 			}
-		}		
+		}
 
 		if (selectedActor)
 		{
-			
+
 			// Draw Outline Around Selected actor
 			{
 				glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -332,14 +358,14 @@ void Scene0::Render() const
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glEnable(GL_DEPTH_TEST);
 			}
-			
+
 
 			// Draw selected actor
 			{
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glStencilMask(0xFF);
 
-				
+
 				// Draw actor mesh
 				glUseProgram(selectedActor->GetComponent<MaterialComponent>()->GetShader()->GetProgram());
 				glUniformMatrix4fv(selectedActor->GetComponent<MaterialComponent>()->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
@@ -350,7 +376,7 @@ void Scene0::Render() const
 				if (renderMeshes) {
 					selectedActor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 				}
-				
+
 
 				//glStencilMask(0xFF);
 				glUseProgram(debugShader->GetProgram());
@@ -376,11 +402,23 @@ void Scene0::Render() const
 		}
 
 		break;
-
+	}
 	case RendererType::VULKAN:
-
+	{
+		Ref<VulkanRenderer> vRenderer = std::dynamic_pointer_cast<VulkanRenderer>(renderer);
+		vRenderer->SetCameraUBO(camera->GetProjectionMatrix(), camera->GetViewMatrix());
+		int counter = 0;
+		for (const auto& it : lights)
+		{
+			Ref<LightActor> light = it.second;
+			vRenderer->SetGLightsUBO(counter, light->position, light->colour, light->colour, light->colour);
+			counter++;
+		}
+		counter = 0;
+		vRenderer->SetMeshPushConstants(MMath::rotate(180.0f, Vec3(0.0f, 1.0f, 0.0f)));
+		vRenderer->Render();
 		break;
-
+	}
 	default:
 		break;
 
@@ -393,23 +431,30 @@ void Scene0::HandleGUI()
 	// Hide menu when interacting with scene
 	if (showMenu)
 	{
-		if (ImGui::CollapsingHeader("Scene"))
+		switch (renderer->GetRendererType())
 		{
-			showSceneSettings();
-			showHeirarchy();
-
-			if (ImGui::TreeNode("Add Actor"))
+		case RendererType::OPENGL:
+			if (ImGui::CollapsingHeader("Scene"))
 			{
-				showAddActorMenu();
-				ImGui::TreePop();
-			}
+				showSceneSettings();
+				showHeirarchy();
 
-			// If there is an actor selected show the dropdown
-			if (selectedActor && ImGui::TreeNode(selectedActorName.c_str()))
-			{
-				showSelectionSettings();
-				ImGui::TreePop();
+				if (ImGui::TreeNode("Add Actor"))
+				{
+					showAddActorMenu();
+					ImGui::TreePop();
+				}
+
+				// If there is an actor selected show the dropdown
+				if (selectedActor && ImGui::TreeNode(selectedActorName.c_str()))
+				{
+					showSelectionSettings();
+					ImGui::TreePop();
+				}
 			}
+			break;
+		default:
+			break;
 		}
 	}
 }
@@ -513,7 +558,7 @@ void Scene0::showComponentMenu()
 	// TODO:: Allow adding components to actor
 	if (ImGui::TreeNode("Add Component"))
 	{
-		for (const auto& component : assetManager.xmlAssets)
+		for (const auto& component : assetManager->xmlAssets)
 		{
 			ImGui::Text("%s", component.first.c_str());
 		}
