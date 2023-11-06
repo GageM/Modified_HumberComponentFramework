@@ -1,5 +1,4 @@
-#ifndef VULKANRENDERER_H 
-#define VULKANRENDERER_H
+#pragma once
 
 #include <SDL.h>
 #include <SDL_vulkan.h>
@@ -296,5 +295,4 @@ private:
 
    
 };
-#endif 
 

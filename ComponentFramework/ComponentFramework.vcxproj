@@ -94,7 +94,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\GameDev\Vulkan\lib32;C:\GameDev\OpenGL\lib;C:\GameDev\SDL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;SDL2main.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;SDL2main.lib;glew32.lib;glew32s.lib;opengl32.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -110,7 +110,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\GameDev\Vulkan\lib32;C:\GameDev\OpenGL\lib\x64;C:\GameDev\SDL\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;SDL2main.lib;glew32.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;SDL2main.lib;glew32.lib;glew32s.lib;opengl32.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
