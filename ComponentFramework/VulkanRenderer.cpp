@@ -144,9 +144,10 @@ void VulkanRenderer::initVulkan() {
     CreateTextureImage();
     createTextureImageView();
     createTextureSampler();
-    LoadModelIndexed("./meshes/Mario.obj");
+    LoadModelIndexed("meshes/Mario.obj");
     createVertexBuffer();
     createIndexBuffer();
+    // TODO::UBO: Call create UBO
     createCameraUBO();
     createGLightsUBO();
     createDescriptorPool();
@@ -509,6 +510,7 @@ void VulkanRenderer::createRenderPass() {
 }
 
 void VulkanRenderer::createDescriptorSetLayout() {
+    // TODO::UBO: UBO Descriptor Layout Binding
     VkDescriptorSetLayoutBinding cameraLayoutBinding{};
     cameraLayoutBinding.binding = 0;
     cameraLayoutBinding.descriptorCount = 1;
@@ -1021,6 +1023,7 @@ void VulkanRenderer::createIndexBuffer() {
     vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
+// TODO::UBO: createUBO implementation
 void VulkanRenderer::createCameraUBO() {
     VkDeviceSize bufferSize = sizeof(CameraUBO);
 
@@ -1047,6 +1050,7 @@ void VulkanRenderer::createDescriptorPool() {
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
 
+    // TODO::UBO: Add to descriptor pool
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[1].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
 
@@ -1077,6 +1081,7 @@ void VulkanRenderer::createDescriptorSets() {
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
 
+    // TODO::UBO: Create buffer descriptors
     for (size_t i = 0; i < swapChainImages.size(); i++) {
         VkDescriptorBufferInfo cameraBufferInfo{};
         cameraBufferInfo.buffer = cameraBuffers[i].bufferID;
@@ -1288,6 +1293,7 @@ void VulkanRenderer::createSyncObjects() {
     }
 }
 
+// TODO::UBO: SetUBO implementation
 void VulkanRenderer::SetCameraUBO(const Matrix4& projection, const Matrix4& view) {
     cameraUBO.proj = projection;
     cameraUBO.view = view;
@@ -1308,6 +1314,7 @@ void VulkanRenderer::SetMeshPushConstants(const Matrix4& modelMatrix)
     meshPushConstants.modelMatrix = modelMatrix;
 }
 
+// TODO::UBO: updateUBO implementation
 void VulkanRenderer::updateCameraUBO(uint32_t currentImage) {
     void* data;
     vkMapMemory(device, cameraBuffers[currentImage].bufferMemoryID, 0, sizeof(cameraUBO), 0, &data);
