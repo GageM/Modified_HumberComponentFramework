@@ -141,10 +141,10 @@ void VulkanRenderer::initVulkan() {
     createCommandPool();
     createDepthResources();
     createFramebuffers();
-    CreateTextureImage();
+    CreateTextureImage("textures/mario_fire.png");
     createTextureImageView();
     createTextureSampler();
-    LoadModelIndexed("meshes/Mario.obj");
+    LoadModelIndexed("meshes/mario.obj");
     createVertexBuffer();
     createIndexBuffer();
     // TODO::UBO: Call create UBO
@@ -751,9 +751,11 @@ bool VulkanRenderer::hasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-void VulkanRenderer::CreateTextureImage() {
-    const char* filename = "./textures/mario_fire.png";
+void VulkanRenderer::CreateTextureImage(const char* filename_) {
+    const char* filename = filename_;
     SDL_Surface* image = IMG_Load(filename);
+
+    // Size of the image (width * height * 4 channels)
     VkDeviceSize imageSize = image->w * image->h * 4;
 
     VkBuffer stagingBuffer;

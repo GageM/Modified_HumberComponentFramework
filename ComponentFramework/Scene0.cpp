@@ -416,7 +416,7 @@ void Scene0::Render() const
 		}
 		vRenderer->SetGLightsUBO(0, Vec3(100.0f, 10.0f, 100.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		counter = 0;
-		vRenderer->SetMeshPushConstants(Matrix4());
+		vRenderer->SetMeshPushConstants(MMath::translate(Vec3(0.0f, 0.0f, -10.0f)));
 		vRenderer->Render();
 		break;
 	}

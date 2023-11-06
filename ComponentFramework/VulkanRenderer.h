@@ -146,7 +146,7 @@ public:
     void SetGLightsUBO(const int& index, const Vec4& position, const Vec4& diffuse, const Vec4& specular, const Vec4& ambient);
     void SetMeshPushConstants(const Matrix4& modelMatrix);
     SDL_Window* GetWindow() { return window; }
-    void CreateTextureImage();
+    void CreateTextureImage(const char* filename_);
     void CreateGraphicsPipeline(const char* vertSPV, const char* fragSPV);
     void LoadModelIndexed(const char* filename);
 
