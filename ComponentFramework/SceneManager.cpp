@@ -51,6 +51,8 @@ SceneManager::~SceneManager() {
 		break;
 	case RendererType::OPENGL:
 		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplSDL2_Shutdown();
+		ImGui::DestroyContext();
 		break;
 	case RendererType::VULKAN:
 		break;
@@ -62,8 +64,7 @@ SceneManager::~SceneManager() {
 		break;
 	}
 
-	ImGui_ImplSDL2_Shutdown();
-	ImGui::DestroyContext();
+
 
 	Debug::Info("Deleting the SceneManager", __FILE__, __LINE__);
 }

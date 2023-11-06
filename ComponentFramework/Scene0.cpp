@@ -410,12 +410,13 @@ void Scene0::Render() const
 		int counter = 0;
 		for (const auto& it : lights)
 		{
-			Ref<LightActor> light = it.second;
-			vRenderer->SetGLightsUBO(counter, light->position, light->colour, light->colour, light->colour);
-			counter++;
+			//Ref<LightActor> light = it.second;
+			//vRenderer->SetGLightsUBO(counter, light->position, light->colour, light->colour, light->colour);
+			//counter++;
 		}
+		vRenderer->SetGLightsUBO(0, Vec3(0.0f, 10.0f, -10.0f), Vec4(0.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		counter = 0;
-		vRenderer->SetMeshPushConstants(MMath::rotate(180.0f, Vec3(0.0f, 1.0f, 0.0f)));
+		vRenderer->SetMeshPushConstants(Matrix4());
 		vRenderer->Render();
 		break;
 	}
