@@ -18,7 +18,7 @@ private:
 	const GLuint bindingPoint = 0; // This must be unique to the camera = 0. And never change it! This will be where the VRAM needs to know where this is (and the shader too). btw lights will be = 1
 
 	// This is needed for frustrum culling
-	Frustrum frustrum;
+	Ref<Frustrum> frustrum;
 
 public:
 	CameraActor(Ref<Component> parent_, RendererType renderer_);
@@ -39,5 +39,7 @@ public:
 	void UpdateProjectionMatrix(const float fovy, const float aspectRatio, const float near, const float far);
 	void UpdateViewMatrix();
 	GLuint GetMatricesID() const { return uboMatricesID; }
+
+	bool CheckFrustrum(const Vec3& point);
 };
 

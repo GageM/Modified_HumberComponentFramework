@@ -1,47 +1,59 @@
 #include "Frustrum.h"
 #include <Vector.h>
+#include <VMath.h>
+#include <MMath.h>
+#include <PMath.h>
 
-Frustrum::Frustrum(Ref<TransformComponent> transform, const float fovy, const float aspectRatio, const float near, const float far)
+
+Frustrum::Frustrum(Matrix4 projection, Matrix4 view)
 {
-	Set(transform, fovy, aspectRatio, near, far);
+	Set(projection, view);
 }
 
-void Frustrum::Set(Ref<TransformComponent> transform, const float fovy, const float aspectRatio, const float near, const float far)
+void Frustrum::Set(Matrix4 projection, Matrix4 view)
 {
-	const float halfVSide = far * tanf(fovy * 0.5f);
-	const float halfHSide = halfVSide * aspectRatio;
-	const Vec3 frontMultFar = far * transform->forward();
-	
-	nearFace = Plane(transform->forward(), VMath::dot(transform->forward(), transform->pos + transform->forward() * near));
-	farFace = Plane(-transform->forward(), VMath::dot(-transform->forward(), transform->pos + transform->forward() * far));
+	Matrix4 m = view * projection;
 
-	// Get Center Point of the Far Face
-	Vec3 fc = transform->pos + transform->forward() * far;
+	// Left Plane
+	LP = Plane(m[12] + m[0], m[13] + m[1], m[14] + m[2], m[15] + m[3]);
+	// Right Plane
+	RP = Plane(m[12] - m[0], m[13] - m[1], m[14] - m[2], m[15] - m[3]);
+	// Top Plane
+	TP = Plane(m[12] - m[4], m[13] - m[5], m[14] - m[6], m[15] - m[7]);
+	// Bottom Plane
+	BP = Plane(m[12] + m[4], m[13] + m[5], m[14] + m[6], m[15] + m[7]);
+	// Near Plane
+	NP = Plane(m[12] + m[8], m[13] + m[9], m[14] + m[10], m[15] + m[11]);
+	// Far Plane
+	FP = Plane(m[12] - m[8], m[13] - m[9], m[14] - m[10], m[15] - m[11]);
 
-	/// Get The Right & Top Frustrum Faces
+	Normalize();
+}
 
-	// Top Right Point on the Far Face
-	Vec3 ftr = fc + (transform->up() * halfVSide) + (transform->right() * halfHSide);
+void Frustrum::Normalize()
+{
+	PMath::normalize(LP);
+	PMath::normalize(RP);
+	PMath::normalize(TP);
+	PMath::normalize(BP);
+	PMath::normalize(NP);
+	PMath::normalize(FP);
+}
 
-	// Right Face
-	Vec3 faceNormal = VMath::normalize(VMath::cross(frontMultFar - transform->right() * halfHSide, transform->up()));
-	rightFace = Plane(faceNormal, VMath::dot(faceNormal, ftr));
+float Frustrum::DistanceFunction(const Plane& plane, const Vec3& point)
+{
+	return plane.x * point.x + plane.y * point.y + plane.z * point.z + plane.d;
+}
 
-	// Top Face
-	faceNormal = VMath::normalize(VMath::cross(transform->right(), frontMultFar - transform->up() * halfVSide));
-	topFace = Plane(faceNormal, VMath::dot(faceNormal, ftr));
+bool Frustrum::InFrustrum(const Vec3& point)
+{
+	// Check if the point is in the positive normal direction of each frustrum plane
+	if ((DistanceFunction(LP, point)) < 0.0f)	return false;
+	if ((DistanceFunction(RP, point)) < 0.0f)	return false;
+	if ((DistanceFunction(TP, point)) < 0.0f)	return false;
+	if ((DistanceFunction(BP, point)) < 0.0f)	return false;
+	//if ((DistanceFunction(NP, point)) < 0.0f)	return false;
+	//if ((DistanceFunction(FP, point)) < 0.0f)	return false;
 
-	/// Get The Left & Bottom Frustrum Faces
-
-	// Bottom Left Point on the Far Face
-	Vec3 fbl = fc - (transform->up() * halfVSide) - (transform->right() * halfHSide);
-
-	// Left Face
-	faceNormal = VMath::normalize(VMath::cross(transform->up(), frontMultFar + transform->right() * halfHSide));
-	leftFace = Plane(faceNormal, VMath::dot(faceNormal, fbl));
-
-	// Bottom Face
-	faceNormal = VMath::normalize(VMath::cross(frontMultFar + transform->up() * halfVSide, transform->right()));
-	bottomFace = Plane(faceNormal, VMath::dot(faceNormal, fbl));
-
+	return true;
 }

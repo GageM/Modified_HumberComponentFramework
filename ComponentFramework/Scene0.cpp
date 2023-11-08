@@ -13,6 +13,8 @@
 #include "ShapeComponent.h"
 #include "MaterialComponent.h"
 
+#include "DrawDebug.h"
+
 #include "VulkanRenderer.h"
 #include "OpenGLRenderer.h"
 
@@ -22,7 +24,7 @@
 #include "imgui_impl_opengl3.h"
 
 Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), assetManager(nullptr), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(1.0f, 0.0f, 0.0f, 1.0f)),
-	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f)
+	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f), culledActors(0)
 {
 	assetManager = std::make_shared<XMLAssetManager>(renderer);
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
@@ -107,12 +109,12 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		if (!showMenu)
 		{
 			if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_LEFT && !showMenu) {
-				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(-2.0f, Vec3(0.0f, 1.0f, 0.0f)));
+				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(-15.0f, Vec3(0.0f, 1.0f, 0.0f)));
 				camera->UpdateViewMatrix();
 
 			}
 			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_RIGHT && !showMenu) {
-				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(2.0f, Vec3(0.0f, 1.0f, 0.0f)));
+				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(15.0f, Vec3(0.0f, 1.0f, 0.0f)));
 				camera->UpdateViewMatrix();
 			}
 			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_UP && !showMenu) {
@@ -298,32 +300,42 @@ void Scene0::Render() const
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 
+
+
 		// Draw unselected actors		
 		for (auto it = actors.begin(); it != actors.end(); ++it) {
 			Ref<Actor> actor = std::dynamic_pointer_cast<Actor>(it->second);
 
 			if (actor != selectedActor)
 			{
-				// Draw actor mesh
-				glUseProgram(actor->GetComponent<MaterialComponent>()->GetShader()->GetProgram());
-				glUniformMatrix4fv(actor->GetComponent<MaterialComponent>()->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
+				// Check if the actor is in the frustrum || if frustrum culling is disabled
+				if (camera->CheckFrustrum(actor->GetComponent<TransformComponent>()->pos) || !enableFrustrumCulling)
+				{
+					// Draw actor mesh
+					glUseProgram(actor->GetComponent<MaterialComponent>()->GetShader()->GetProgram());
+					glUniformMatrix4fv(actor->GetComponent<MaterialComponent>()->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
 
-				actor->GetComponent<MaterialComponent>()->SetCubemap(skybox->GetCubemap());
+					actor->GetComponent<MaterialComponent>()->SetCubemap(skybox->GetCubemap());
 
-				actor->GetComponent<MaterialComponent>()->Render();
-				if (renderMeshes) {
-					actor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
+					actor->GetComponent<MaterialComponent>()->Render();
+					if (renderMeshes) {
+						actor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
+					}
+
+					actor->GetComponent<MaterialComponent>()->PostRender();
+
+					// Draw actor collider
+					glUseProgram(debugShader->GetProgram());
+					if (renderCollisionShapes) {
+						// Drawing the primitive geometry associated with the mesh to help debug ray intersects, culling, and collision detection
+						glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
+						glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
+						actor->GetComponent<ShapeComponent>()->Render();
+					}
 				}
+				else
+				{
 
-				actor->GetComponent<MaterialComponent>()->PostRender();
-
-				// Draw actor collider
-				glUseProgram(debugShader->GetProgram());
-				if (renderCollisionShapes) {
-					// Drawing the primitive geometry associated with the mesh to help debug ray intersects, culling, and collision detection
-					glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
-					glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
-					actor->GetComponent<ShapeComponent>()->Render();
 				}
 			}
 		}
@@ -477,6 +489,11 @@ void Scene0::showSceneSettings()
 		ImGui::Checkbox("Render Colliders", &renderCollisionShapes);
 		ImGui::Checkbox("Render Raycasts", &renderRaycasts);
 		ImGui::Checkbox("Render Cubemap", &renderCubemap);
+		ImGui::Checkbox("Enable Frustrum Culling", &enableFrustrumCulling);
+		if (enableFrustrumCulling)
+		{
+			ImGui::Text("Culled Actors: %d", culledActors);
+		}
 		ImGui::TreePop();
 	}
 

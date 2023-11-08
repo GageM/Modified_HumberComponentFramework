@@ -46,6 +46,8 @@ public:
 	bool renderCollisionShapes = false;
 	bool renderRaycasts = false;
 	bool renderCubemap = true;
+	bool enableFrustrumCulling = false; // Still in develelopment!
+	int culledActors;
 
 
 	explicit Scene0(Ref<Renderer> renderer_);

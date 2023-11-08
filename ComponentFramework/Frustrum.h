@@ -1,6 +1,7 @@
 #pragma once
 #include <Plane.h>
-#include "TransformComponent.h"
+#include <Matrix.h>
+#include <vector>
 
 using namespace MATH;
 
@@ -9,18 +10,18 @@ class Frustrum
 public:
 	Frustrum() {}
 
-	Frustrum(Ref<TransformComponent> transform, const float fovy, const float aspectRatio, const float near, const float far);
+	Frustrum(Matrix4 projection, Matrix4 view);
 	
-	void Set(Ref<TransformComponent> transform, const float fovy, const float aspectRatio, const float near, const float far);
+	void Set(Matrix4 projection, Matrix4 view);
 
-	Plane topFace;
-	Plane bottomFace;
+	void Normalize();
 
-	Plane rightFace;
-	Plane leftFace;
+	float DistanceFunction(const Plane& plane, const Vec3& point);
 
-	Plane nearFace;
-	Plane farFace;
+	bool InFrustrum(const Vec3& point);
+
+	// 0:Left, 1:Right, 2:Top, 3:Bottom, 4:Near, 5:Far
+	Plane LP, RP, TP, BP, NP, FP;
 
 private:
 };
