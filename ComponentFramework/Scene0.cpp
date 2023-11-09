@@ -23,7 +23,7 @@
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 
-Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), assetManager(nullptr), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(1.0f, 0.0f, 0.0f, 1.0f)),
+Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), assetManager(nullptr), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(0.0f, 0.0f, 1.0f, 1.0f)),
 	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f), culledActors(0)
 {
 	assetManager = std::make_shared<XMLAssetManager>(renderer);
@@ -411,6 +411,22 @@ void Scene0::Render() const
 				glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
 				ray->DrawRay();
 			}
+		}
+
+		// Draw debug primitives
+		{
+			//glUseProgram(debugShader->GetProgram());
+			//
+			//glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, Matrix4());
+			//glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
+			//
+			//Vec3 p(0.0f, 0.0f, -10.0f);
+			//Quaternion q = Quaternion();
+
+			//DrawDebug::DrawCircle(Vec3(-2.0f, 0.0f, -10.0f), q, 1.0f, 10);
+			//DrawDebug::DrawRectangle(p, q, Vec2(1.0f, 1.0f));			
+			//DrawDebug::DrawBox(Vec3(2.0f, 0.0f, -10.0f), q, Vec3(1.0f, 1.0f, 1.0f));
+		
 		}
 
 		break;

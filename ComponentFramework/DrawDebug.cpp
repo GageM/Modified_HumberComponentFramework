@@ -11,7 +11,7 @@ void DrawDebug::DrawLine(const Vec3& start, const Vec3& end)
 	GLuint vao = 0;
 	GLuint vbo = 0;
 	size_t dataLength = 0;
-	GLenum drawmode = GL_POINTS;
+	GLenum drawmode = GL_LINES;
 
     vertices.push_back(start);
     normals.push_back(Vec3(1.0f, 0.0f, 0.0f));
@@ -20,6 +20,10 @@ void DrawDebug::DrawLine(const Vec3& start, const Vec3& end)
     normals.push_back(Vec3(1.0f, 0.0f, 0.0f));
 
     StoreMeshData(drawmode, vertices, normals, vao, vbo, dataLength);
+
+    /// give back the memory used in these vectors. The data is safely stored in the GPU now
+    vertices.clear();
+    normals.clear();
 
     glBindVertexArray(vao);
     glDrawArrays(drawmode, 0, dataLength);
@@ -39,15 +43,18 @@ void DrawDebug::DrawCircle(const Vec3& pos, const Quaternion& orientation, const
     stepAngle *= DEGREES_TO_RADIANS;
 
     // Create a start and end position for each segment
-    Vec3 lineStart, lineEnd;
+    Vec3 lineStart = Vec3();
+    Vec3 lineEnd = Vec3();
 
-    for (int i = 0; i < segments; i++)
+    for (int i = 0; i <= segments; i++)
     {
         lineStart.x = cos(i * stepAngle);
         lineStart.y = sin(i * stepAngle);
+        lineStart.z = 0.0f;
 
         lineEnd.x = cos((i + 1) * stepAngle);
         lineEnd.y = sin((i + 1) * stepAngle);
+        lineStart.z = 0.0f;
 
         lineStart *= r;
         lineEnd *= r;
@@ -59,6 +66,9 @@ void DrawDebug::DrawCircle(const Vec3& pos, const Quaternion& orientation, const
         lineEnd += pos;
 
         DrawLine(lineStart, lineEnd);
+
+        lineStart = Vec3();
+        lineEnd = Vec3();
     }
 }
 
@@ -71,34 +81,40 @@ void DrawDebug::DrawArc(const Vec3& pos, const Quaternion& orientation, const fl
         arcSpan += 360.0f;
     }
 
-    float angleStep = (arcSpan / segments) * DEGREES_TO_RADIANS;
+    float stepAngle = (arcSpan / segments) * DEGREES_TO_RADIANS;
     float stepOffset = startAngle * DEGREES_TO_RADIANS;
 
-    float stepStart = 0.0f;
-    float stepEnd = 0.0f;
+    // Create a start and end position for each segment
     Vec3 lineStart = Vec3();
     Vec3 lineEnd = Vec3();
 
-    for (int i = 0; i < segments; i++)
+    for (int i = 0; i <= segments; i++)
     {
-        stepStart = i * angleStep + stepOffset;
-        stepEnd = (i + 1) * angleStep + stepOffset;
+        float stepStart = i * stepAngle + stepOffset;
+        float stepEnd = (i + 1) * stepAngle + stepOffset;
 
         lineStart.x = cos(stepStart);
         lineStart.y = sin(stepStart);
-        lineStart *= radius;
+        lineStart.z = 0.0f;
 
         lineEnd.x = cos(stepEnd);
-        lineEnd.y = cos(stepEnd);
+        lineEnd.y = sin(stepEnd);
+        lineStart.z = 0.0f;
+
+        lineStart *= radius;
         lineEnd *= radius;
 
-        // Orientation?
         lineStart = orientation * lineStart;
         lineEnd = orientation * lineEnd;
 
-        DrawLine(lineStart, lineEnd);
-    }
+        lineStart += pos;
+        lineEnd += pos;
 
+        DrawLine(lineStart, lineEnd);
+
+        lineStart = Vec3();
+        lineEnd = Vec3();
+    }
 }
 
 void DrawDebug::DrawTriangle(const Vec3& v1, const Vec3& v2, const Vec3& v3)
@@ -115,34 +131,30 @@ void DrawDebug::DrawRectangle(const Vec3& pos, const Quaternion& orientation, co
     offsetX = Vec3::right() * halfExtents.x;
     offsetY = Vec3::up() * halfExtents.y;
 
-    Vec3 topRight, bottomRight, bottomLeft, topLeft;
+    Vec3 offsetA, offsetB, offsetC, offsetD;
 
-    topRight = pos + offsetX + offsetY;
-    bottomRight = pos + offsetX - offsetY; 
-    bottomLeft = pos - offsetX - offsetY; 
-    topLeft = pos - offsetX + offsetY; 
+    offsetA = orientation * (offsetX + offsetY);
+    offsetB = orientation * (-offsetX + offsetY); 
+    offsetC = orientation * (-offsetX - offsetY); 
+    offsetD = orientation * (offsetX - offsetY); 
 
-    topRight = orientation * topRight;
-    bottomRight = orientation * bottomRight;
-    bottomLeft = orientation * bottomLeft;
-    topLeft = orientation * topLeft;
-
-    DrawLine(topRight, bottomRight);
-    DrawLine(bottomRight, bottomLeft);
-    DrawLine(bottomLeft, topLeft);
-    DrawLine(topLeft, topRight);
+    DrawLine(pos + offsetA, pos + offsetB);
+    DrawLine(pos + offsetB, pos + offsetC);
+    DrawLine(pos + offsetC, pos + offsetD);
+    DrawLine(pos + offsetD, pos + offsetA);
 }
 
 // 3D Primitives
 
 void DrawDebug::DrawSphere(const Vec3& pos, const Quaternion& orientation, const float& r, const int& segments)
 {
-    float meridianStep = 180.0f / segments;
+    int doubleSegments = segments * 2;
 
-    // Vertical Rings
+    float verticalStep = 180.0f / segments;
+
     for (int i = 0; i < segments; i++)
     {
-        DrawCircle(pos, orientation * QMath::angleAxisRotation(meridianStep * i, Vec3(0.0f, 1.0f, 0.0f)), r, segments * 2);
+        DrawCircle(pos, orientation * QMath::angleAxisRotation(verticalStep * i, Vec3(0.0f, 1.0f, 0.0f)), r, doubleSegments);
     }
 
     // Horizontal Rings
@@ -157,7 +169,7 @@ void DrawDebug::DrawSphere(const Vec3& pos, const Quaternion& orientation, const
         verticalOffset = orientation * Vec3::up() * cos(stepAngle) * r;
         stepRadius = sin(stepAngle) * r;
 
-        DrawCircle(pos + verticalOffset, orientation * QMath::angleAxisRotation(90.0f, Vec3(1.0f, 0.0f, 0.0f)), stepRadius, segments * 2);
+        //DrawCircle(pos + verticalOffset, orientation * QMath::angleAxisRotation(90.0f, Vec3(1.0f, 0.0f, 0.0f)), stepRadius, segments * 2);
     }
 }
 
@@ -165,9 +177,9 @@ void DrawDebug::DrawBox(const Vec3& pos, const Quaternion& orientation, const Ve
 {
     Vec3 offsetX, offsetY, offsetZ;
 
-    offsetX = Vec3::right() * halfExtents.x;
-    offsetY = Vec3::up() * halfExtents.y;
-    offsetZ = Vec3::forward() * halfExtents.z;
+    offsetX = orientation * Vec3::right() * halfExtents.x;
+    offsetY = orientation * Vec3::up() * halfExtents.y;
+    offsetZ = orientation * Vec3::forward() * halfExtents.z;
 
     Vec3 topLeft = -offsetX + offsetY;
     Vec3 topRight = offsetX + offsetY;
@@ -179,17 +191,17 @@ void DrawDebug::DrawBox(const Vec3& pos, const Quaternion& orientation, const Ve
     DrawRectangle(pos + offsetZ, orientation, Vec2(halfExtents.x, halfExtents.y));
 
     // Connect the corners of the front & back faces
-    DrawLine(topLeft - offsetZ, topLeft + offsetZ);
-    DrawLine(topRight - offsetZ, topRight + offsetZ);
-    DrawLine(bottomRight - offsetZ, bottomRight + offsetZ);
-    DrawLine(bottomLeft - offsetZ, bottomLeft + offsetZ);
+    DrawLine(pos + topLeft - offsetZ, pos + topLeft + offsetZ);
+    DrawLine(pos + topRight - offsetZ, pos + topRight + offsetZ);
+    DrawLine(pos + bottomRight - offsetZ, pos + bottomRight + offsetZ);
+    DrawLine(pos + bottomLeft - offsetZ, pos + bottomLeft + offsetZ);
 }
 
 void DrawDebug::DrawCylinder(const Vec3& capA, const Vec3& capB, const Quaternion& orientation, const float& r, const int& segments)
 {
     // Draw Caps
-    DrawCircle(capA, orientation, r, segments);
-    DrawCircle(capB, orientation, r, segments);
+    DrawCircle(capA, orientation * QMath::angleAxisRotation(90.0f, Vec3(1.0f, 0.0f, 0.0f)), r, segments);
+    DrawCircle(capB, orientation * QMath::angleAxisRotation(90.0f, Vec3(1.0f, 0.0f, 0.0f)), r, segments);
 
     // Connect Caps
     float stepAngle = 360 / segments;
