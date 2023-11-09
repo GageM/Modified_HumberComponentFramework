@@ -130,8 +130,7 @@ RayIntersectionInfo GEOMETRY::Cylinder::checkEndCaps(const Ray& ray) const
 	}
 	// Check Cap B
 	else
-	{
-		
+	{	
 		Vec3 capBNormal = VMath::normalize(-AB);
 		Plane capBPlane(capBNormal, VMath::dot(capBNormal, capPosB));
 

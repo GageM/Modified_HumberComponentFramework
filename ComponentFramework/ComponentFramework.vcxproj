@@ -171,6 +171,8 @@
     <ClCompile Include="LightActor.cpp" />
     <ClCompile Include="MaterialComponent.cpp" />
     <ClCompile Include="DrawDebug.cpp" />
+    <ClCompile Include="Physics.cpp" />
+    <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="TextureComponent.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
@@ -215,6 +217,8 @@
     <ClInclude Include="LightActor.h" />
     <ClInclude Include="MaterialComponent.h" />
     <ClInclude Include="DrawDebug.h" />
+    <ClInclude Include="Physics.h" />
+    <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="TextureComponent.h" />

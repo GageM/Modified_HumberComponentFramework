@@ -12,6 +12,8 @@
 #include "MeshComponent.h"
 #include "ShapeComponent.h"
 #include "MaterialComponent.h"
+#include "PhysicsComponent.h"
+#include "Physics.h"
 
 #include "DrawDebug.h"
 
@@ -24,7 +26,7 @@
 #include "imgui_impl_opengl3.h"
 
 Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), assetManager(nullptr), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(0.0f, 0.0f, 1.0f, 1.0f)),
-	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f), culledActors(0)
+	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f), culledActors(0), isClicking(false), gravity(Vec3(0.0f, -9.81f, 0.0f))
 {
 	assetManager = std::make_shared<XMLAssetManager>(renderer);
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
@@ -165,64 +167,85 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		break;
 		
 	case SDL_MOUSEBUTTONDOWN:
-		switch (renderer->GetRendererType())
+		// On left click
+		if (sdlEvent.button.button == SDL_BUTTON_LEFT)
 		{
-		case RendererType::OPENGL:
-		{
-			if (sdlEvent.button.button == SDL_BUTTON_LEFT && !showMenu) {
-				Vec4 mouseCoords(static_cast<float>(sdlEvent.button.x), static_cast<float>(sdlEvent.button.y), 0.0f, 1.0f);
-				// TODO for Assignment 2: 
-				// Get a ray pointing into the world, We have the x, y pixel coordinates
-				// Need to convert this into world space to build our ray
-				printf("Mouse Click: \n");
-
-				// Transform mouse pos into world pos
-				Matrix4 ndcToPixel = MMath::viewportNDC(1280, 720);
-				Vec4 mouseNDCCoords = MMath::inverse(ndcToPixel) * mouseCoords;
-				Matrix4 perspectiveToNDC = camera->GetProjectionMatrix();
-				Vec4 mousePrespectiveCoords = MMath::inverse(perspectiveToNDC) * mouseNDCCoords;
-				mousePrespectiveCoords /= mousePrespectiveCoords.w;
-				Matrix4 worldToPerspective = camera->GetViewMatrix();
-				Vec4 mouseWorldCoords = MMath::inverse(worldToPerspective) * mousePrespectiveCoords;
-
-				//Arbitrary max distance for selection
-				float distance = 1000.0f;
-
-				// Create a ray from the camera
-				Vec3 rayStart = -cameraTransform->pos;
-				Vec3 rayDir = VMath::normalize(mouseWorldCoords - rayStart);
-
-				Ref<Ray> drawRay = std::make_shared<Ray>(rayStart, rayDir, distance);
-				rays.push_back(drawRay);
-
-				// Loop through all the actors and check if the ray has collided with them
-				// Pick the one with the smallest positive t value
-				for (auto it = actors.begin(); it != actors.end(); ++it) {
-					Ref<Actor> actor = std::dynamic_pointer_cast<Actor>(it->second);
-					Ref<TransformComponent> transformComponent = actor->GetComponent <TransformComponent>();
-					Ref<ShapeComponent> shapeComponent = actor->GetComponent <ShapeComponent>();
+			switch (renderer->GetRendererType())
+			{
+			case RendererType::OPENGL:
+			{
+				if (sdlEvent.button.button == SDL_BUTTON_LEFT && !showMenu) {
+					Vec4 mouseCoords(static_cast<float>(sdlEvent.button.x), static_cast<float>(sdlEvent.button.y), 0.0f, 1.0f);
 					// TODO for Assignment 2: 
-					// Transform the ray into the local space of the object and check if a collision occured
-					Matrix4 worldToLocalSpace = MMath::inverse(actor->GetModelMatrix());
-					Vec4 localSpaceRayStart = worldToLocalSpace * Vec4(rayStart, 1.0f);
-					Vec4 localSpaceRayDir = worldToLocalSpace * Vec4(rayDir, 0.0f);
-					Ray localSpaceRay(localSpaceRayStart, localSpaceRayDir, distance);
+					// Get a ray pointing into the world, We have the x, y pixel coordinates
+					// Need to convert this into world space to build our ray
+					printf("Mouse Click: \n");
 
-					rayInfo = std::make_shared<RayIntersectionInfo>(shapeComponent->shape->rayIntersectionInfo(localSpaceRay));
-					// Pick the closest object to the camera
-					if (rayInfo->isIntersected && rayInfo->t < distance)
-					{
-						distance = rayInfo->t;
-						std::cout << "Picked: " << it->first << ", Distance: " << distance << "\n";
-						selectedActorName = it->first;
-						selectedActor = actor;
+					// Transform mouse pos into world pos
+					Matrix4 ndcToPixel = MMath::viewportNDC(1280, 720);
+					Vec4 mouseNDCCoords = MMath::inverse(ndcToPixel) * mouseCoords;
+					Matrix4 perspectiveToNDC = camera->GetProjectionMatrix();
+					Vec4 mousePrespectiveCoords = MMath::inverse(perspectiveToNDC) * mouseNDCCoords;
+					mousePrespectiveCoords /= mousePrespectiveCoords.w;
+					Matrix4 worldToPerspective = camera->GetViewMatrix();
+					Vec4 mouseWorldCoords = MMath::inverse(worldToPerspective) * mousePrespectiveCoords;
+
+					//Arbitrary max distance for selection
+					float distance = 1000.0f;
+
+					// Create a ray from the camera
+					Vec3 rayStart = -cameraTransform->pos;
+					Vec3 rayDir = VMath::normalize(mouseWorldCoords - rayStart);
+
+					Ref<Ray> drawRay = std::make_shared<Ray>(rayStart, rayDir, distance);
+					rays.push_back(drawRay);
+
+					// Loop through all the actors and check if the ray has collided with them
+					// Pick the one with the smallest positive t value
+					for (auto it = actors.begin(); it != actors.end(); ++it) {
+						Ref<Actor> actor = std::dynamic_pointer_cast<Actor>(it->second);
+						Ref<TransformComponent> transformComponent = actor->GetComponent <TransformComponent>();
+						Ref<ShapeComponent> shapeComponent = actor->GetComponent <ShapeComponent>();
+						// TODO for Assignment 2: 
+						// Transform the ray into the local space of the object and check if a collision occured
+						Matrix4 worldToLocalSpace = MMath::inverse(actor->GetModelMatrix());
+						Vec4 localSpaceRayStart = worldToLocalSpace * Vec4(rayStart, 1.0f);
+						Vec4 localSpaceRayDir = worldToLocalSpace * Vec4(rayDir, 0.0f);
+						Ray localSpaceRay(localSpaceRayStart, localSpaceRayDir, distance);
+
+						rayInfo = std::make_shared<RayIntersectionInfo>(shapeComponent->shape->rayIntersectionInfo(localSpaceRay));
+						// Pick the closest object to the camera
+						if (rayInfo->isIntersected && rayInfo->t < distance)
+						{
+							distance = rayInfo->t;
+							std::cout << "Picked: " << it->first << ", Distance: " << distance << "\n";
+							selectedActorName = it->first;
+							selectedActor = actor;
+						}
 					}
 				}
+				break;
 			}
-			break;
+			default:
+				break;
+			}
 		}
-		default:
-			break;
+
+		// On right click
+		else if (sdlEvent.button.button == SDL_BUTTON_RIGHT)
+		{
+			isClicking = true;
+		}
+		break;
+
+	case SDL_MOUSEBUTTONUP:
+		if (sdlEvent.button.button == SDL_BUTTON_LEFT)
+		{
+
+		}
+		if (sdlEvent.button.button == SDL_BUTTON_RIGHT)
+		{
+			isClicking = false;
 		}
 
 		break;
@@ -261,6 +284,7 @@ void Scene0::Update(const float deltaTime)
 {
 	std::mutex mtx;
 	mtx.lock();
+	// Clear drawn rays after they age out
 	for (unsigned int i = 0; i < rays.size(); i++)
 	{
 		rays[i]->age += deltaTime;
@@ -269,6 +293,25 @@ void Scene0::Update(const float deltaTime)
 			rays.erase(rays.begin() + i);
 		}
 	}
+
+	
+	if (isClicking && selectedActor)
+	{
+		Ref<PhysicsComponent> body = selectedActor->GetComponent<PhysicsComponent>();
+		if (body)
+		{
+			float dragCoeff = 0.25f;
+			Vec3 dragForce = body->vel * (-dragCoeff);
+			Vec3 netForce = gravity + dragForce;
+			
+			Physics::ApplyForce(body, netForce);
+			Physics::UpdatePos(body, deltaTime);
+			Physics::UpdateVel(body, deltaTime);
+			Physics::UpdateTransform(selectedActor);
+		}
+	}
+
+
 	mtx.unlock();
 }
 
@@ -422,7 +465,7 @@ void Scene0::Render() const
 			
 			//Vec3 p(0.0f, 0.0f, -10.0f);
 			//Quaternion q = QMath::angleAxisRotation(45.0f, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion();
-
+			
 			//DrawDebug::DrawCircle(Vec3(-2.0f, 0.0f, -10.0f), q, 1.0f, 10);
 			//DrawDebug::DrawRectangle(p, q, Vec2(1.0f, 1.0f));			
 			//DrawDebug::DrawBox(Vec3(2.0f, 0.0f, -10.0f), q, Vec3(1.0f, 1.0f, 1.0f));
@@ -518,6 +561,12 @@ void Scene0::showSceneSettings()
 	if (ImGui::TreeNode("Lights"))
 	{
 		showLightsMenu();
+		ImGui::TreePop();
+	}
+
+	if (ImGui::TreeNode("Physics"))
+	{
+		showPhysicsMenu();
 		ImGui::TreePop();
 	}
 }
@@ -664,5 +713,16 @@ void Scene0::showLightsMenu()
 
 			ImGui::TreePop();
 		}
+	}
+}
+
+void Scene0::showPhysicsMenu()
+{
+	if (ImGui::TreeNode("Gravity"))
+	{
+		ImGui::DragFloat("X", &gravity.x, 0.1f, -100.0f, 100.0f);
+		ImGui::DragFloat("Y", &gravity.y, 0.1f, -100.0f, 100.0f);
+		ImGui::DragFloat("Z", &gravity.z, 0.1f, -100.0f, 100.0f);
+		ImGui::TreePop();
 	}
 }

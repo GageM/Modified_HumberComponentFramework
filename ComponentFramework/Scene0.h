@@ -28,6 +28,10 @@ private:
 	Vec4 selectionColor;
 	float outlineScale;
 
+	bool isClicking;
+
+	Vec3 gravity;
+
 	// For Adjusting Selected Actor
 	Ref<Actor> selectedActor;
 	std::string selectedActorName;
@@ -40,6 +44,7 @@ private:
 	void showAddActorMenu();
 	void showMaterialMenu();
 	void showLightsMenu();
+	void showPhysicsMenu();
 
 public:
 	bool renderMeshes = true;
@@ -62,7 +67,7 @@ public:
 	virtual void HandleGUI();
 
 	// Keep track of Actors from XML asset manager
-	std::unordered_map< std::string, Ref<Component>> actors;
+	std::unordered_map< std::string, Ref<Actor>> actors;
 	// We only have one camera and light, so they don't need to be in the map
 	Ref<CameraActor> camera;
 

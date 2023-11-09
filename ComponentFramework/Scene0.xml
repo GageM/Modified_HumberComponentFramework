@@ -99,7 +99,7 @@
 		<Shader name ="Shader"/>
 		<Texture name ="BoardTexture"/>
     <Material name ="BoardMat"/>
-		<Physics />
+		<Physics name ="BoardPhysics" mass ="1.0"/>
 	  </Actor>
 
 	  <Actor actorname="ActorChecker1" parent="ActorGameBoard">
@@ -111,7 +111,7 @@
 		  <Shader name ="Shader"/>
 		  <Texture name ="RedCheckerTexture"/>
       <Material name ="RedCheckerMat"/>
-		  <Physics />
+		  <Physics name ="Checker1Physics" mass ="1.0"/>
 	  </Actor>
 
 	  <Actor actorname="ActorChecker2" parent="none">
@@ -123,7 +123,7 @@
 		  <Shader name ="Shader"/>
 		  <Texture name ="RedCheckerTexture"/>
       <Material name ="RedCheckerMat"/>
-		  <Physics />
+		  <Physics name ="Checker2Physics" mass ="1.0"/>
 	  </Actor>
 
 	  <Actor actorname="ActorSkull" parent="none">
@@ -135,7 +135,7 @@
 		  <Shader name ="Shader"/>
 		  <Texture name ="WhiteCheckerTexture"/>
       <Material name ="WhiteCheckerMat"/>
-		  <Physics />
+		  <Physics name ="SkullPhysics" mass ="1.0"/>
 	  </Actor>
 
 	  <Actor actorname="ActorCube" parent="none">
@@ -147,7 +147,7 @@
 		  <Shader name ="Shader"/>
 		  <Texture name ="RedCheckerTexture"/>
       <Material name ="RedCheckerMat"/>
-		  <Physics />
+		  <Physics name="CubePhysics" mass ="1.0"/>
 	  </Actor>
 
 	  <Actor actorname="ActorMario" parent="none">
@@ -159,7 +159,7 @@
 		  <Shader name ="Shader"/>
 		  <Texture name ="MarioTexture"/>
       <Material name ="MarioMat"/>
-		  <Physics />
+		  <Physics name ="MarioPhysics" mass ="1.0"/>
 	  </Actor>
 
     <Actor actorname="ActorDoomKeyCard" parent="none">
@@ -171,7 +171,7 @@
       <Shader name ="Shader"/>
       <Texture name ="DoomKeyCard_BaseColor"/>
       <Material name ="DoomKeyMat"/>
-      <Physics />
+      <Physics name ="DoomKeyPhysics" mass ="1.0"/>
     </Actor>
 
 	  <!-- Set up camera and light actors-->

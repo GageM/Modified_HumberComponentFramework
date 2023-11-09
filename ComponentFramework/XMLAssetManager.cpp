@@ -8,6 +8,7 @@
 #include "TextureComponent.h"
 #include "CubemapComponent.h"
 #include "MaterialComponent.h"
+#include "PhysicsComponent.h"
 #include "Skybox.h"
 #include "CameraActor.h"
 #include "LightActor.h"
@@ -427,9 +428,21 @@ void XMLAssetManager::AddTransformToActor(const tinyxml2::XMLElement* child, Ref
 
 void XMLAssetManager::AddPhysicsToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent)
 {
-	// TODO for assignment 3
-	// Add a default physics component to the actor, but don't forget to match transform component's position & orientation
-	// You're gonna have to assume the transform component has already been built (fingers crossed!)
+	if (child->FirstChildElement("Physics"))
+	{
+		// TODO for assignment 3
+		// Add a default physics component to the actor, but don't forget to match transform component's position & orientation
+		// You're gonna have to assume the transform component has already been built (fingers crossed!)
+		Ref<TransformComponent> transform = actor->GetComponent<TransformComponent>();
+
+		// Check if the actor has a transform component
+		if (!transform)	return;
+
+		Ref<PhysicsComponent> physics = nullptr;
+		physics = std::make_shared<PhysicsComponent>(parent, renderer->GetRendererType(), transform, child->FirstChildElement("Physics")->FloatAttribute("mass"));
+		actor->AddComponent<PhysicsComponent>("Physics", physics);
+	}
+
 }
 
 void XMLAssetManager::AddMaterialToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent)
