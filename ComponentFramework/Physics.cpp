@@ -1,23 +1,24 @@
 #include "Physics.h"
 #include "TransformComponent.h"
+#include <MMath.h>
 
 // Physics Equations
-void Physics::ApplyForce(Ref<PhysicsComponent> body, const Vec3& force)
+void PHYSICS::ApplyForce(Ref<PhysicsComponent> body, const Vec3& force)
 {
 	body->accel = force / body->mass;
 }
 
-void Physics::UpdatePos(Ref<PhysicsComponent> body, float deltaTime)
+void PHYSICS::UpdatePos(Ref<PhysicsComponent> body, const float deltaTime)
 {
 	body->pos += body->vel * deltaTime;
 }
 
-void Physics::UpdateVel(Ref<PhysicsComponent> body, float deltaTime)
+void PHYSICS::UpdateVel(Ref<PhysicsComponent> body, const float deltaTime)
 {
 	body->vel += body->accel * deltaTime;
 }
 
-void Physics::UpdateOrientation(Ref<PhysicsComponent> body, float deltaTime)
+void PHYSICS::UpdateOrientation(Ref<PhysicsComponent> body, const float deltaTime)
 {
 	Quaternion rotation;
 
@@ -38,7 +39,7 @@ void Physics::UpdateOrientation(Ref<PhysicsComponent> body, float deltaTime)
 	body->orientation = rotation * body->orientation;
 }
 
-void Physics::UpdateTransform(Ref<Actor> actor)
+void PHYSICS::UpdateTransform(Ref<Actor> actor)
 {
 	Ref<TransformComponent> transform = actor->GetComponent<TransformComponent>();
 	Ref<PhysicsComponent> physics = actor->GetComponent<PhysicsComponent>();
@@ -54,30 +55,48 @@ void Physics::UpdateTransform(Ref<Actor> actor)
 }
 
 // Physics Constraints
-void Physics::XAxisConstraint()
+void PHYSICS::XAxisConstraint()
 {
 }
 
-void Physics::YAxisConstraint()
+void PHYSICS::YAxisConstraint()
 {
 }
 
-void Physics::ZAxisConstraint()
+void PHYSICS::ZAxisConstraint()
 {
 }
 
-void Physics::XYPlaneConstraint()
+void PHYSICS::XYPlaneConstraint()
 {
 }
 
-void Physics::XZPlaneConstraint()
+void PHYSICS::XZPlaneConstraint()
 {
 }
 
-void Physics::YZPlaneConstraint()
+void PHYSICS::YZPlaneConstraint()
 {
 }
 
-void Physics::CameraPlaneConstraint()
+void PHYSICS::MouseConstraint(Ref<PhysicsComponent> body, const float deltaTime, const Vec3& mousePos)
 {
+	Vec3 r = mousePos - body->pos;
+
+	Matrix3 Meff = Matrix3(
+		1 + (r.z * r.z) + r.y * r.y, -r.x * r.y, -r.x * r.z,
+		-r.y * r.x, 1 + (r.x * r.x) + (r.z * r.z), -r.y * r.z,
+		-r.x * r.z, -r.y * r.z, 1 + (r.x * r.x) + (r.y * r.y)
+	);
+
+	Vec3 JV = body->vel + VMath::cross(body->angularVel, r);
+
+	// calculate deltaV as lambda to save a variable
+	Vec3 deltaV = MMath::inverse(Meff) * -JV;
+
+	Vec3 deltaAV = VMath::cross(r, deltaV);
+
+	body->vel += deltaV;
+
+	body->angularVel += deltaAV;
 }

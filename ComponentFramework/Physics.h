@@ -8,16 +8,16 @@
 
 using namespace MATH;
 
-namespace Physics
+namespace PHYSICS
 {
 	// Base physics equations
 	void ApplyForce(Ref<PhysicsComponent> body, const Vec3& force);
 
-	void UpdatePos(Ref<PhysicsComponent> body, float deltaTime);
+	void UpdatePos(Ref<PhysicsComponent> body, const float deltaTime);
 
-	void UpdateVel(Ref<PhysicsComponent> body, float deltaTime);
+	void UpdateVel(Ref<PhysicsComponent> body, const float deltaTime);
 
-	void UpdateOrientation(Ref<PhysicsComponent> body, float deltaTime);
+	void UpdateOrientation(Ref<PhysicsComponent> body, const float deltaTime);
 
 	void UpdateTransform(Ref<Actor> actor);
 
@@ -34,6 +34,6 @@ namespace Physics
 
 	void YZPlaneConstraint();
 
-	void CameraPlaneConstraint();
+	void MouseConstraint(Ref<PhysicsComponent> body, const float deltaTime, const Vec3& mousePos);
 }
 

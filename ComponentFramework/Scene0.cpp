@@ -300,14 +300,19 @@ void Scene0::Update(const float deltaTime)
 		Ref<PhysicsComponent> body = selectedActor->GetComponent<PhysicsComponent>();
 		if (body)
 		{
+
+
 			float dragCoeff = 0.25f;
 			Vec3 dragForce = body->vel * (-dragCoeff);
 			Vec3 netForce = gravity + dragForce;
 			
-			Physics::ApplyForce(body, netForce);
-			Physics::UpdatePos(body, deltaTime);
-			Physics::UpdateVel(body, deltaTime);
-			Physics::UpdateTransform(selectedActor);
+			PHYSICS::ApplyForce(body, netForce);
+			PHYSICS::UpdateVel(body, deltaTime);
+			PHYSICS::MouseConstraint(body, deltaTime, Vec3(1.0f, 1.0f, 1.0f));
+
+			PHYSICS::UpdatePos(body, deltaTime);
+			PHYSICS::UpdateOrientation(body, deltaTime);
+			PHYSICS::UpdateTransform(selectedActor);
 		}
 	}
 
