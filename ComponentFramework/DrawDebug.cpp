@@ -1,12 +1,12 @@
 #include "DrawDebug.h"
 #include <QMath.h>
+#include <memory>
 
 // 1D Primitives
 
 void DrawDebug::DrawLine(const Vec3& start, const Vec3& end)
 {
 	std::vector<Vec3> vertices;
-	std::vector<Vec3> normals;
 
 	GLuint vao = 0;
 	GLuint vbo = 0;
@@ -14,16 +14,13 @@ void DrawDebug::DrawLine(const Vec3& start, const Vec3& end)
 	GLenum drawmode = GL_LINES;
 
     vertices.push_back(start);
-    normals.push_back(Vec3(1.0f, 0.0f, 0.0f));
 
     vertices.push_back(end);
-    normals.push_back(Vec3(1.0f, 0.0f, 0.0f));
 
-    StoreMeshData(drawmode, vertices, normals, vao, vbo, dataLength);
+    StoreMeshData(drawmode, vertices, vao, vbo, dataLength);
 
     /// give back the memory used in these vectors. The data is safely stored in the GPU now
     vertices.clear();
-    normals.clear();
 
     glBindVertexArray(vao);
     glDrawArrays(drawmode, 0, dataLength);
@@ -59,8 +56,8 @@ void DrawDebug::DrawCircle(const Vec3& pos, const Quaternion& orientation, const
         lineStart *= r;
         lineEnd *= r;
 
-        lineStart = orientation * lineStart;
-        lineEnd = orientation * lineEnd;
+        lineStart = QMath::rotate(lineStart, orientation);
+        lineEnd = QMath::rotate(lineEnd, orientation);
 
         lineStart += pos;
         lineEnd += pos;
@@ -104,8 +101,8 @@ void DrawDebug::DrawArc(const Vec3& pos, const Quaternion& orientation, const fl
         lineStart *= radius;
         lineEnd *= radius;
 
-        lineStart = orientation * lineStart;
-        lineEnd = orientation * lineEnd;
+        lineStart = QMath::rotate(lineStart, orientation);
+        lineEnd = QMath::rotate(lineEnd, orientation);
 
         lineStart += pos;
         lineEnd += pos;
@@ -133,10 +130,10 @@ void DrawDebug::DrawRectangle(const Vec3& pos, const Quaternion& orientation, co
 
     Vec3 offsetA, offsetB, offsetC, offsetD;
 
-    offsetA = orientation * (offsetX + offsetY);
-    offsetB = orientation * (-offsetX + offsetY); 
-    offsetC = orientation * (-offsetX - offsetY); 
-    offsetD = orientation * (offsetX - offsetY); 
+    offsetA = QMath::rotate( (offsetX + offsetY), orientation);
+    offsetB = QMath::rotate((-offsetX + offsetY), orientation); 
+    offsetC = QMath::rotate((-offsetX - offsetY), orientation); 
+    offsetD = QMath::rotate( (offsetX - offsetY), orientation); 
 
     DrawLine(pos + offsetA, pos + offsetB);
     DrawLine(pos + offsetB, pos + offsetC);
@@ -148,13 +145,11 @@ void DrawDebug::DrawRectangle(const Vec3& pos, const Quaternion& orientation, co
 
 void DrawDebug::DrawSphere(const Vec3& pos, const Quaternion& orientation, const float& r, const int& segments)
 {
-    int doubleSegments = segments * 2;
-
     float verticalStep = 180.0f / segments;
 
     for (int i = 0; i < segments; i++)
     {
-        DrawCircle(pos, orientation * QMath::angleAxisRotation(verticalStep * i, Vec3(0.0f, 1.0f, 0.0f)), r, doubleSegments);
+        DrawCircle(pos, orientation * QMath::angleAxisRotation(verticalStep * i, Vec3(0.0f, 1.0f, 0.0f)) * Quaternion(), r, segments);
     }
 
     // Horizontal Rings
@@ -169,7 +164,7 @@ void DrawDebug::DrawSphere(const Vec3& pos, const Quaternion& orientation, const
         verticalOffset = orientation * Vec3::up() * cos(stepAngle) * r;
         stepRadius = sin(stepAngle) * r;
 
-        //DrawCircle(pos + verticalOffset, orientation * QMath::angleAxisRotation(90.0f, Vec3(1.0f, 0.0f, 0.0f)), stepRadius, segments * 2);
+        //DrawCircle(pos + verticalOffset, orientation * QMath::angleAxisRotation(90.0f, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(), stepRadius, segments);
     }
 }
 
@@ -177,24 +172,24 @@ void DrawDebug::DrawBox(const Vec3& pos, const Quaternion& orientation, const Ve
 {
     Vec3 offsetX, offsetY, offsetZ;
 
-    offsetX = orientation * Vec3::right() * halfExtents.x;
-    offsetY = orientation * Vec3::up() * halfExtents.y;
-    offsetZ = orientation * Vec3::forward() * halfExtents.z;
+    offsetX = QMath::rotate(Vec3::right() * halfExtents.x, orientation);
+    offsetY = QMath::rotate(Vec3::up() * halfExtents.y, orientation);
+    offsetZ = QMath::rotate(Vec3::forward() * halfExtents.z, orientation);
 
-    Vec3 topLeft = -offsetX + offsetY;
-    Vec3 topRight = offsetX + offsetY;
-    Vec3 bottomRight = offsetX - offsetY;
-    Vec3 bottomLeft = -offsetX - offsetY;
+    Vec3 offsetA = -offsetX + offsetY;
+    Vec3 offsetB = offsetX + offsetY;
+    Vec3 offsetC = offsetX - offsetY;
+    Vec3 offsetD = -offsetX - offsetY;
 
     // Draw the front and back of the box
     DrawRectangle(pos - offsetZ, orientation, Vec2(halfExtents.x, halfExtents.y));
     DrawRectangle(pos + offsetZ, orientation, Vec2(halfExtents.x, halfExtents.y));
 
     // Connect the corners of the front & back faces
-    DrawLine(pos + topLeft - offsetZ, pos + topLeft + offsetZ);
-    DrawLine(pos + topRight - offsetZ, pos + topRight + offsetZ);
-    DrawLine(pos + bottomRight - offsetZ, pos + bottomRight + offsetZ);
-    DrawLine(pos + bottomLeft - offsetZ, pos + bottomLeft + offsetZ);
+    DrawLine(pos + offsetA - offsetZ, pos + offsetA + offsetZ);
+    DrawLine(pos + offsetB - offsetZ, pos + offsetB + offsetZ);
+    DrawLine(pos + offsetC - offsetZ, pos + offsetC + offsetZ);
+    DrawLine(pos + offsetD - offsetZ, pos + offsetD + offsetZ);
 }
 
 void DrawDebug::DrawCylinder(const Vec3& capA, const Vec3& capB, const Quaternion& orientation, const float& r, const int& segments)
@@ -217,7 +212,7 @@ void DrawDebug::DrawCylinder(const Vec3& capA, const Vec3& capB, const Quaternio
 
         lineStart *= r;
 
-        lineStart = orientation * lineStart;
+        lineStart = QMath::rotate(lineStart, orientation);
 
         lineEnd = lineStart;
 
@@ -252,17 +247,15 @@ void DrawDebug::DrawCapsule(const Vec3& capA, const Vec3& capB, const Quaternion
 
 // Helper Functions
 
-void DrawDebug::StoreMeshData(GLenum drawmode, std::vector<Vec3>& vertices, std::vector<Vec3>& normals, GLuint& vao, GLuint& vbo, size_t& dataLength)
+void DrawDebug::StoreMeshData(GLenum drawmode, std::vector<Vec3>& vertices, GLuint& vao, GLuint& vbo, size_t& dataLength)
 {
     /// These just make the code easier for me to read
     // working out the size of these buffers
     // for example each float is 4 bytes, so a Vec3 is 4*3 = 12 bytes
 #define VERTEX_LENGTH 	(vertices.size() * (sizeof(MATH::Vec3)))
-#define NORMAL_LENGTH 	(normals.size() * (sizeof(MATH::Vec3)))
 
     // these are the channels
     const int verticiesLayoutLocation = 0;
-    const int normalsLayoutLocation = 1;
 
     /// create and bind the VAO
     glGenVertexArrays(1, &vao);
@@ -273,14 +266,11 @@ void DrawDebug::StoreMeshData(GLenum drawmode, std::vector<Vec3>& vertices, std:
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     // Generate memory for the VRAM of the GPU buffer
     // one giant array
-    glBufferData(GL_ARRAY_BUFFER, VERTEX_LENGTH + NORMAL_LENGTH, nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, VERTEX_LENGTH, nullptr, GL_STATIC_DRAW);
 
     /// assigns the addr of "points" to be the beginning of the array buffer "sizeof(points)" in length
     // vertex stuff will start at zero and go VERTEX_LENGTH
     glBufferSubData(GL_ARRAY_BUFFER, 0, VERTEX_LENGTH, &vertices[0]);
-    /// assigns the addr of "normals" to be "sizeof(points)" offset from the beginning and "sizeof(normals)" in length  
-    // start where the vertex list ended
-    glBufferSubData(GL_ARRAY_BUFFER, VERTEX_LENGTH, NORMAL_LENGTH, &normals[0]);
 
     // the attributes are the per-vertex stuff like vertices, normals, UVs
     glEnableVertexAttribArray(verticiesLayoutLocation);
@@ -292,16 +282,12 @@ void DrawDebug::StoreMeshData(GLenum drawmode, std::vector<Vec3>& vertices, std:
     // and we start at the beginning
     // need a very brutal reinterpret_cast means Dammit!
     glVertexAttribPointer(verticiesLayoutLocation, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
-    glEnableVertexAttribArray(normalsLayoutLocation);
-    glVertexAttribPointer(normalsLayoutLocation, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(VERTEX_LENGTH));
 
     dataLength = vertices.size();
 
     /// give back the memory used in these vectors. The data is safely stored in the GPU now
     vertices.clear();
-    normals.clear();
 
     /// Don't need these defines sticking around anymore
 #undef VERTEX_LENGTH
-#undef NORMAL_LENGTH
 }

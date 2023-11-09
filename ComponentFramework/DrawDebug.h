@@ -26,7 +26,7 @@ public:
 
 	static void DrawRectangle(const Vec3& pos, const Quaternion& orientation, const Vec2& halfExtents);
 
-	// 3D Primitives
+	// 3D Primitives // TODO:: Fix memory usage issue
 	
 	static void DrawSphere(const Vec3& pos, const Quaternion& orientation, const float& r, const int& segments);
 
@@ -38,6 +38,6 @@ public:
 
 private:
 
-	static void StoreMeshData(GLenum drawmode, std::vector<Vec3>& vertices, std::vector<Vec3>& normals, GLuint& vao, GLuint& vbo, size_t& dataLength);
+	static void StoreMeshData(GLenum drawmode, std::vector<Vec3>& vertices, GLuint& vao, GLuint& vbo, size_t& dataLength);
 };
 
