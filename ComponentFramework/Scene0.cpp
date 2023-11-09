@@ -415,19 +415,19 @@ void Scene0::Render() const
 
 		// Draw debug primitives
 		{
-			glUseProgram(debugShader->GetProgram());
+			//glUseProgram(debugShader->GetProgram());
 			
-			glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, Matrix4());
-			glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
+			//glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, Matrix4());
+			//glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
 			
-			Vec3 p(0.0f, 0.0f, -10.0f);
-			Quaternion q = QMath::angleAxisRotation(45.0f, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion();
+			//Vec3 p(0.0f, 0.0f, -10.0f);
+			//Quaternion q = QMath::angleAxisRotation(45.0f, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion();
 
 			//DrawDebug::DrawCircle(Vec3(-2.0f, 0.0f, -10.0f), q, 1.0f, 10);
 			//DrawDebug::DrawRectangle(p, q, Vec2(1.0f, 1.0f));			
 			//DrawDebug::DrawBox(Vec3(2.0f, 0.0f, -10.0f), q, Vec3(1.0f, 1.0f, 1.0f));
 			//DrawDebug::DrawSphere(Vec3(4.0f, 0.0f, -10.0f), q, 1.0f, 12);
-			DrawDebug::DrawCylinder(Vec3(0.0f, -1.0f, -10.0f), Vec3(0.0f, 1.0f, -10.0f), q, 0.5f, 12);
+			//DrawDebug::DrawCylinder(Vec3(0.0f, -1.0f, -10.0f), Vec3(0.0f, 1.0f, -10.0f), q, 0.5f, 12);
 		
 		}
 
