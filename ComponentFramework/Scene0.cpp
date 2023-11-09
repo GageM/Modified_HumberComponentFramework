@@ -110,58 +110,63 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 	case SDL_KEYDOWN:
 		if (!showMenu)
 		{
-			if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_LEFT && !showMenu) {
+			if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_LEFT) {
 				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(-15.0f, Vec3(0.0f, 1.0f, 0.0f)));
 				camera->UpdateViewMatrix();
 
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_RIGHT && !showMenu) {
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
 				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(15.0f, Vec3(0.0f, 1.0f, 0.0f)));
 				camera->UpdateViewMatrix();
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_UP && !showMenu) {
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_UP) {
 				//cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(-2.0f, Vec3(1.0f, 0.0f, 0.0f)));
 				//camera->UpdateViewMatrix();
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_DOWN && !showMenu) {
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_DOWN) {
 				//cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(2.0f, Vec3(1.0f, 0.0f, 0.0f)));
 				//camera->UpdateViewMatrix();
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_Q && !showMenu)
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_Q)
 			{
 				cameraTransform->SetTransform(cameraTransform->pos + Vec3(0.0f, 1.0f, 0.0f), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
 				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_E && !showMenu)
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_E)
 			{
 				cameraTransform->SetTransform(cameraTransform->pos + Vec3(0.0f, -1.0f, 0.0f), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
 				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_D && !showMenu) {
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_D) {
 				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(-1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
 				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_A && !showMenu) {
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_A) {
 				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
 				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
 
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_W && !showMenu) {
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_W) {
 				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(0.0f, 0.0f, 1.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
 				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
 
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_S && !showMenu) {
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_S) {
 				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(0.0f, 0.0f, -1.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
 				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
 
 			}
+
+			// Grab selected object
+			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_G) {}
+
+
 		}
 
 		break;
@@ -308,7 +313,7 @@ void Scene0::Update(const float deltaTime)
 			
 			PHYSICS::ApplyForce(body, netForce);
 			PHYSICS::UpdateVel(body, deltaTime);
-			PHYSICS::MouseConstraint(body, deltaTime, Vec3(1.0f, 1.0f, 1.0f));
+			//PHYSICS::MouseConstraint(body, deltaTime, Vec3(1.0f, 1.0f, 1.0f));
 
 			PHYSICS::UpdatePos(body, deltaTime);
 			PHYSICS::UpdateOrientation(body, deltaTime);
