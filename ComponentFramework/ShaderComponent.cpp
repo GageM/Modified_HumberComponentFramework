@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string.h>
 
-ShaderComponent::ShaderComponent(Ref<Component> parent_, RendererType renderer_, const char* vsFilename_, const char* fsFilename_):
+ShaderComponent::ShaderComponent(Ref<Component> parent_, Ref<Renderer> renderer_, const char* vsFilename_, const char* fsFilename_):
 	Component(parent_, renderer_),
 	shaderID(0),vertShaderID(0),fragShaderID(0) {
 	vsFilename = vsFilename_;
@@ -18,7 +18,7 @@ bool ShaderComponent::OnCreate() {
 
 	if (isCreated) return true;
 
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -50,7 +50,7 @@ bool ShaderComponent::OnCreate() {
 }
 
 void ShaderComponent::OnDestroy() {
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;

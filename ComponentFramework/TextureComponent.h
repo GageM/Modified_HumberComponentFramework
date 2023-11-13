@@ -9,7 +9,7 @@ class TextureComponent: public Component {
 	const char* filename;
 
 	public:
-		TextureComponent(Ref<Component> parent_, RendererType renderer_, const char* filename_);
+		TextureComponent(Ref<Component> parent_, Ref<Renderer> renderer_, const char* filename_);
 		virtual ~TextureComponent();
 		virtual bool OnCreate();
 		virtual void OnDestroy();

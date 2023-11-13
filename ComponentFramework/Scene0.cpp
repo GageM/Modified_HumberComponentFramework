@@ -63,7 +63,7 @@ bool Scene0::OnCreate()
 			lights[name] = assetManager->GetComponent<LightActor>(name.c_str());
 		}
 
-		skybox = std::make_shared<Skybox>(camera, renderer->GetRendererType());
+		skybox = std::make_shared<Skybox>(camera, renderer);
 		skybox->OnCreate();
 
 		debugShader = assetManager->GetComponent<ShaderComponent>("debugShader");
@@ -81,7 +81,7 @@ bool Scene0::OnCreate()
 			lights[name] = assetManager->GetComponent<LightActor>(name.c_str());
 		}
 
-		marioTransform = std::make_shared<TransformComponent>(nullptr, renderer->GetRendererType(), Vec3(0.0f, 0.0f, -10.0f), Quaternion());
+		marioTransform = std::make_shared<TransformComponent>(nullptr, renderer, Vec3(0.0f, 0.0f, -10.0f), Quaternion());
 		break;
 	}
 	default:

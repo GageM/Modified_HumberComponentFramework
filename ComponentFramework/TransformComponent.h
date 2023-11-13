@@ -17,8 +17,8 @@ struct TransformComponent : public Component {
 	Quaternion orientation;
 	Euler rotation;
 	Vec3 scale;
-	TransformComponent(Ref<Component> parent_, RendererType renderer_);
-	TransformComponent(Ref<Component> parent_, RendererType renderer_, Vec3 pos_, Quaternion orientation_, Vec3 scale_ = Vec3(1.0f, 1.0f, 1.0f)); // that last argument (has to be the last set) allows to initialize without a 4th argument
+	TransformComponent(Ref<Component> parent_, Ref<Renderer> renderer_);
+	TransformComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Vec3 pos_, Quaternion orientation_, Vec3 scale_ = Vec3(1.0f, 1.0f, 1.0f)); // that last argument (has to be the last set) allows to initialize without a 4th argument
 	~TransformComponent();
 	bool OnCreate();
 	void OnDestroy();

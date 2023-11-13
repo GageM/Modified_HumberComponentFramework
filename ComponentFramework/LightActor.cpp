@@ -2,12 +2,12 @@
 #include "LightActor.h"
 #include "UBO_Padding.h"
 
-LightActor::LightActor(Ref<Component> parent_, RendererType renderer_, LightStyle lightStyle_, Vec3 position_, Vec4 colour_, float intensity_, Vec3 fallOff_) 
+LightActor::LightActor(Ref<Component> parent_, Ref<Renderer> renderer_, LightStyle lightStyle_, Vec3 position_, Vec4 colour_, float intensity_, Vec3 fallOff_)
 	: Actor(parent_, renderer_), lightStyle(lightStyle_), position(position_), colour(colour_), intensity(intensity_), fallOff(fallOff_)
 {
 }
 
-LightActor::LightActor(Ref<Component> parent_, RendererType renderer_):Actor(parent_, renderer_)
+LightActor::LightActor(Ref<Component> parent_, Ref<Renderer> renderer_):Actor(parent_, renderer_)
 {
 	position.set(0.0f, 0.0f, 0.0f);
 	colour.set(1.0f, 1.0f, 1.0f, 0.0f);
@@ -25,7 +25,7 @@ bool LightActor::OnCreate()
 {
 	if (isCreated) return isCreated;
 
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -73,7 +73,7 @@ bool LightActor::OnCreate()
 }
 
 void LightActor::OnDestroy(){
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -96,7 +96,7 @@ void LightActor::OnDestroy(){
 
 void LightActor::UpdateLightData()
 {
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;

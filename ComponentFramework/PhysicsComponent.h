@@ -19,8 +19,8 @@ public:
 	Vec3 angularVel;
 	Vec3 angularAccel;
 
-	PhysicsComponent(Ref<Component> parent_, RendererType renderer_);
-	PhysicsComponent(Ref<Component> parent_, RendererType renderer_, Ref<TransformComponent> transform, float mass_ = 1.0f);
+	PhysicsComponent(Ref<Component> parent_, Ref<Renderer> renderer_);
+	PhysicsComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Ref<TransformComponent> transform, float mass_ = 1.0f);
 	~PhysicsComponent();
 
 

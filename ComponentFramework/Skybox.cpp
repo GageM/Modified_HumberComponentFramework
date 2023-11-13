@@ -11,12 +11,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include"stb_image.h"
 
-Skybox::Skybox(Ref<Component> parent_, RendererType renderer_) : Actor(parent_, renderer_), mesh(nullptr), shader(nullptr), cubemap(nullptr)
+Skybox::Skybox(Ref<Component> parent_, Ref<Renderer> renderer_) : Actor(parent_, renderer_), mesh(nullptr), shader(nullptr), cubemap(nullptr)
 {
 
 }
 
-Skybox::Skybox(Ref<Component> parent_, RendererType renderer_, Ref<MeshComponent> mesh_, Ref<ShaderComponent> shader_, Ref<CubemapComponent> cubemap_) : Actor(parent_, renderer_), 
+Skybox::Skybox(Ref<Component> parent_, Ref<Renderer> renderer_, Ref<MeshComponent> mesh_, Ref<ShaderComponent> shader_, Ref<CubemapComponent> cubemap_) : Actor(parent_, renderer_),
 mesh(mesh_), shader(shader_), cubemap(cubemap_)
 {
 
@@ -45,7 +45,7 @@ bool Skybox::OnCreate()
 		"textures/CN_Tower/negx.jpg", "textures/CN_Tower/negy.jpg", "textures/CN_Tower/negz.jpg");
 	cubemap->OnCreate();
 
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -84,7 +84,7 @@ void Skybox::Update(const float deltaTime_)
 
 void Skybox::Render()const
 {
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;

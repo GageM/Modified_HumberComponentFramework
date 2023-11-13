@@ -2,7 +2,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
-MeshComponent::MeshComponent(Ref<Component> parent_, RendererType renderer_, const char* filename_) : Component(parent_, renderer_) {
+MeshComponent::MeshComponent(Ref<Component> parent_, Ref<Renderer> renderer_, const char* filename_) : Component(parent_, renderer_) {
     filename = filename_;
 }
 MeshComponent::~MeshComponent() {
@@ -12,21 +12,25 @@ MeshComponent::~MeshComponent() {
 bool MeshComponent::OnCreate() {
     if (isCreated) return true;
 
-    switch (renderer)
+    // tinyObj throws an exception if it's having a bad day
+    // blame management system Scott calls it
+    // we'll do something with this later
+    LoadModel(filename);
+
+    switch (renderer->GetRendererType())
     {
     case RendererType::NONE:
         break;
     case RendererType::OPENGL:
     {
-        // tinyObj throws an exception if it's having a bad day
-    // blame management system Scott calls it
-    // we'll do something with this later
-        LoadModel(filename);
         StoreMeshData(GL_TRIANGLES);
         break;
     }
     case RendererType::VULKAN:
+    {
+        StoreMeshDataVulkan();
         break;
+    }
     case RendererType::DIRECTX11:
         break;
     case RendererType::DIRECTX12:
@@ -143,10 +147,12 @@ void MeshComponent::StoreMeshData(GLenum drawmode_) {
 
 }
 
-
+void MeshComponent::StoreMeshDataVulkan()
+{
+}
 
 void MeshComponent::Render() const {
-    switch (renderer)
+    switch (renderer->GetRendererType())
     {
     case RendererType::NONE:
         break;
@@ -169,7 +175,7 @@ void MeshComponent::Render() const {
 }
 
 void MeshComponent::Render(GLenum drawmode_) const {
-    switch (renderer)
+    switch (renderer->GetRendererType())
     {
     case RendererType::NONE:
         break;
@@ -192,7 +198,7 @@ void MeshComponent::Render(GLenum drawmode_) const {
 }
 
 void MeshComponent::OnDestroy() {
-    switch (renderer)
+    switch (renderer->GetRendererType())
     {
     case RendererType::NONE:
         break;

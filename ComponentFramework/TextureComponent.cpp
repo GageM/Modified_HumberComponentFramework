@@ -1,6 +1,6 @@
 #include "TextureComponent.h"
 #include <SDL_image.h>
-TextureComponent::TextureComponent(Ref<Component> parent_, RendererType renderer_, const char* filename_):Component(parent_, renderer_) {
+TextureComponent::TextureComponent(Ref<Component> parent_, Ref<Renderer> renderer_, const char* filename_):Component(parent_, renderer_) {
 	textureID = 0;
 	filename = filename_;
 }
@@ -12,7 +12,7 @@ TextureComponent::~TextureComponent() {
 bool TextureComponent::OnCreate() {
 	if (isCreated) return true;
 
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -61,7 +61,7 @@ bool TextureComponent::OnCreate() {
 }
 
 void TextureComponent::OnDestroy() {	
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;

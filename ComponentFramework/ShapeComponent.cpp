@@ -3,7 +3,7 @@ using namespace GEOMETRY;
 using namespace MATH;
 
 // Sphere ShapeComponent Constructor: pass by value
-ShapeComponent::ShapeComponent(Ref<Component> parent_, RendererType renderer_, Sphere sphere_) :Component(parent_, renderer_)
+ShapeComponent::ShapeComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Sphere sphere_) :Component(parent_, renderer_)
 {
 	shapeType = ShapeType::sphere;
 	// We are sure at this point that shape should be a sphere
@@ -26,7 +26,7 @@ ShapeComponent::ShapeComponent(Component* parent_, Sphere* sphere_) :Component(p
 // The other constructors that take in Cylinder, Capsule, or Box 
 
 // Cylinder ShapeComponent Constructor: pass by value
-ShapeComponent::ShapeComponent(Ref<Component> parent_, RendererType renderer_, Cylinder cylinder_) :Component(parent_, renderer_)
+ShapeComponent::ShapeComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Cylinder cylinder_) :Component(parent_, renderer_)
 {
 	shapeType = ShapeType::cylinder;
 	// We are sure at this point that shape should be a cylinder
@@ -46,7 +46,7 @@ ShapeComponent::ShapeComponent(Component* parent_, Cylinder* cylinder_) :Compone
 */
 
 // Capsule ShapeComponent Constructor: pass by value
-ShapeComponent::ShapeComponent(Ref<Component> parent_, RendererType renderer_, Capsule capsule_) :Component(parent_, renderer_)
+ShapeComponent::ShapeComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Capsule capsule_) :Component(parent_, renderer_)
 {
 	shapeType = ShapeType::capsule;
 	// We are sure at this point that shape should be a cylinder
@@ -67,7 +67,7 @@ ShapeComponent::ShapeComponent(Component* parent_, Capsule* capsule_) :Component
 */
 
 // Capsule ShapeComponent Constructor: pass by value
-ShapeComponent::ShapeComponent(Ref<Component> parent_, RendererType renderer_, Box box_) :Component(parent_, renderer_)
+ShapeComponent::ShapeComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Box box_) :Component(parent_, renderer_)
 {
 	shapeType = ShapeType::box;
 	// We are sure at this point that shape should be a box

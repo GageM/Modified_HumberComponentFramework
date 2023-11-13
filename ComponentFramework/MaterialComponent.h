@@ -13,9 +13,9 @@ class CubemapComponent;
 class MaterialComponent : public Component
 {
 public:
-	MaterialComponent(Ref<Component> parent_, RendererType renderer_, Ref<TextureComponent> BCMap_, Ref<TextureComponent> RoughMap_ = nullptr, Ref<TextureComponent> MetMap_ = nullptr);
-	MaterialComponent(Ref<Component> parent_, RendererType renderer_, Ref<TextureComponent> BCMap_, float roughness_ = 0.5f, float metallic_ = 0.0f);
-	MaterialComponent(Ref<Component> parent_, RendererType renderer_, Vec4 baseColor_ = Vec4(0.7f, 0.7f, 0.7f, 1.0f), float roughness_ = 0.5f, float metallic_ = 0.0f);
+	MaterialComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Ref<TextureComponent> BCMap_, Ref<TextureComponent> RoughMap_ = nullptr, Ref<TextureComponent> MetMap_ = nullptr);
+	MaterialComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Ref<TextureComponent> BCMap_, float roughness_ = 0.5f, float metallic_ = 0.0f);
+	MaterialComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Vec4 baseColor_ = Vec4(0.7f, 0.7f, 0.7f, 1.0f), float roughness_ = 0.5f, float metallic_ = 0.0f);
 	~MaterialComponent();
 
 	bool OnCreate();

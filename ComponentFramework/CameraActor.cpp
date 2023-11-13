@@ -5,7 +5,7 @@
 #include "Debug.h"
 #include "UBO_Padding.h"
 using namespace MATH;
-CameraActor::CameraActor(Ref<Component> parent_, RendererType renderer_):Actor(parent_, renderer_), frustrum(nullptr) {
+CameraActor::CameraActor(Ref<Component> parent_, Ref<Renderer> renderer_):Actor(parent_, renderer_), frustrum(nullptr) {
 // lets set up the projection and view
 	projectionMatrix = Matrix4();
 	viewMatrix = Matrix4();
@@ -27,7 +27,7 @@ bool CameraActor::OnCreate()
 	// This will save us sweating when the code gets even more complicated
 	if (isCreated) return isCreated; // or return true
 
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -78,7 +78,7 @@ void CameraActor::UpdateProjectionMatrix(const float fovy, const float aspectRat
 	projectionMatrix = MMath::perspective(fovy, aspectRatio, near, far);
 
 
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -131,7 +131,7 @@ void CameraActor::UpdateViewMatrix()
 		viewMatrix = MMath::toMatrix4(orientation) * MMath::translate(position);
 		// forget using the scale matrix above. What does that even mean for a camera?
 	}
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -163,7 +163,7 @@ bool CameraActor::CheckFrustrum(const Vec3& point)
 
 void CameraActor::OnDestroy()
 {
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;

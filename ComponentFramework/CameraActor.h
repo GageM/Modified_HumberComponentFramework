@@ -21,7 +21,7 @@ private:
 	Ref<Frustrum> frustrum;
 
 public:
-	CameraActor(Ref<Component> parent_, RendererType renderer_);
+	CameraActor(Ref<Component> parent_, Ref<Renderer> renderer_);
 	virtual ~CameraActor();
 
 	// we will override the base class one (new in C++ 11)

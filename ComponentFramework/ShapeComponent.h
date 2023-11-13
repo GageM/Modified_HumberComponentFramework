@@ -29,11 +29,11 @@ class ShapeComponent: public Component{
 	ShapeComponent& operator = (ShapeComponent&&) = delete;
 
 public:
-	ShapeComponent(Ref<Component>, RendererType renderer_, GEOMETRY::Sphere);
-	// TODO for Assignment 1:
-	ShapeComponent(Ref<Component>, RendererType renderer_, GEOMETRY::Cylinder);
-	ShapeComponent(Ref<Component>, RendererType renderer_, GEOMETRY::Capsule);  
-	ShapeComponent(Ref<Component>, RendererType renderer_, GEOMETRY::Box); 
+	ShapeComponent(Ref<Component>, Ref<Renderer> renderer_, GEOMETRY::Sphere);
+	// TODO for Assignment 1:	  
+	ShapeComponent(Ref<Component>, Ref<Renderer> renderer_, GEOMETRY::Cylinder);
+	ShapeComponent(Ref<Component>, Ref<Renderer> renderer_, GEOMETRY::Capsule);  
+	ShapeComponent(Ref<Component>, Ref<Renderer> renderer_, GEOMETRY::Box); 
 
 	//ShapeComponent(Component*, GEOMETRY::Sphere*);
 	//ShapeComponent(Component*, GEOMETRY::Cylinder*);

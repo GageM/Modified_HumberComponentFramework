@@ -1,7 +1,7 @@
 #include "CubemapComponent.h"
 #include <SDL_image.h>
 
-CubemapComponent::CubemapComponent(Ref<Component> parent_, RendererType renderer_, const char* PXfile_, const char* PYfile_, const char* PZfile_,
+CubemapComponent::CubemapComponent(Ref<Component> parent_, Ref<Renderer> renderer_, const char* PXfile_, const char* PYfile_, const char* PZfile_,
 	const char* NXfile_, const char* NYfile_, const char* NZfile_) : Component(parent_, renderer_), 
 
 	textureID(0)
@@ -22,7 +22,7 @@ bool CubemapComponent::OnCreate()
 {
 	if (isCreated) return true;
 
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -94,7 +94,7 @@ bool CubemapComponent::OnCreate()
 
 void CubemapComponent::OnDestroy()
 {
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;

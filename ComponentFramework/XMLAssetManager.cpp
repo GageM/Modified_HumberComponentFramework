@@ -45,7 +45,7 @@ XMLAssetManager::XMLAssetManager(Ref<Renderer> renderer_) : renderer(renderer_)
 			AddLight(child);
 
 			if (std::string(child->Name()) == "Mesh") {
-				AddComponent<MeshComponent>(child->Attribute("name"), nullptr, renderer->GetRendererType(), child->Attribute("filename"));
+				AddComponent<MeshComponent>(child->Attribute("name"), nullptr, renderer, child->Attribute("filename"));
 
 				AddSphereShape(child);
 				AddCylinderShape(child);
@@ -90,7 +90,7 @@ XMLAssetManager::XMLAssetManager(Ref<Renderer> renderer_) : renderer(renderer_)
 					parent = GetComponent<Actor>("ActorGameBoard");
 				}
 
-				Ref<Actor> actor = std::make_shared<Actor>(parent, renderer->GetRendererType());
+				Ref<Actor> actor = std::make_shared<Actor>(parent, renderer);
 				// Add shared assets to the actor
 				AddMeshToActor(child, actor);
 				AddShaderToActor(child, actor);
@@ -116,7 +116,7 @@ XMLAssetManager::XMLAssetManager(Ref<Renderer> renderer_) : renderer(renderer_)
 					parent = GetComponent<Actor>("ActorGameBoard");
 				}
 
-				Ref<Actor> actor = std::make_shared<Actor>(parent, renderer->GetRendererType());
+				Ref<Actor> actor = std::make_shared<Actor>(parent, renderer);
 				// Add shared assets to the actor
 				//AddMeshToActor(child, actor);
 				//AddShaderToActor(child, actor);
@@ -156,7 +156,7 @@ void XMLAssetManager::AddSphereShape(const tinyxml2::XMLElement* child)
 		sphere.y = child->FirstChildElement("Shape")->FirstChildElement("Sphere")->FloatAttribute("centreY");
 		sphere.z = child->FirstChildElement("Shape")->FirstChildElement("Sphere")->FloatAttribute("centreZ");
 
-		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer->GetRendererType(), sphere);
+		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer, sphere);
 	}
 }
 
@@ -175,7 +175,7 @@ void XMLAssetManager::AddCylinderShape(const tinyxml2::XMLElement* child)
 		cylinder.capPosB.y = child->FirstChildElement("Shape")->FirstChildElement("Cylinder")->FloatAttribute("capBY");
 		cylinder.capPosB.z = child->FirstChildElement("Shape")->FirstChildElement("Cylinder")->FloatAttribute("capBZ");
 
-		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer->GetRendererType(), cylinder);
+		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer, cylinder);
 	}
 }
 
@@ -194,7 +194,7 @@ void XMLAssetManager::AddCapsuleShape(const tinyxml2::XMLElement* child)
 		capsule.capPosB.y = child->FirstChildElement("Shape")->FirstChildElement("Capsule")->FloatAttribute("capBY");
 		capsule.capPosB.z = child->FirstChildElement("Shape")->FirstChildElement("Capsule")->FloatAttribute("capBZ");
 
-		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer->GetRendererType(), capsule);
+		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer, capsule);
 	}
 }
 
@@ -222,14 +222,14 @@ void XMLAssetManager::AddBoxShape(const tinyxml2::XMLElement* child)
 
 		box.orientation = Quaternion(angle, axis);
 
-		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer->GetRendererType(), box);
+		AddComponent<ShapeComponent>(child->FirstChildElement("Shape")->Attribute("name"), nullptr, renderer, box);
 	}
 }
 
 void XMLAssetManager::AddTexture(const tinyxml2::XMLElement* child)
 {
 	if (std::string(child->Name()) == "Texture") {
-		Ref<TextureComponent> texture = std::make_shared<TextureComponent>(nullptr, renderer->GetRendererType(), child->Attribute("filename"));
+		Ref<TextureComponent> texture = std::make_shared<TextureComponent>(nullptr, renderer, child->Attribute("filename"));
 		//texture->OnCreate();
 
 		AddComponent<TextureComponent>(child->Attribute("name"), texture);
@@ -250,7 +250,7 @@ void XMLAssetManager::AddCubemap(const tinyxml2::XMLElement* child)
 void XMLAssetManager::AddShader(const tinyxml2::XMLElement* child)
 {
 	if (std::string(child->Name()) == "Shader") {
-		Ref<ShaderComponent> shader = std::make_shared<ShaderComponent>(nullptr, renderer->GetRendererType(), child->Attribute("vertFilename"), child->Attribute("fragFilename"));
+		Ref<ShaderComponent> shader = std::make_shared<ShaderComponent>(nullptr, renderer, child->Attribute("vertFilename"), child->Attribute("fragFilename"));
 		shader->OnCreate();
 		AddComponent(child->Attribute("name"), shader);
 	}
@@ -261,7 +261,7 @@ void XMLAssetManager::AddMaterial(const tinyxml2::XMLElement* child)
 	
 	if (std::string(child->Name()) == "Material")
 	{
-		Ref<MaterialComponent> material = std::make_shared<MaterialComponent>(nullptr, renderer->GetRendererType(),
+		Ref<MaterialComponent> material = std::make_shared<MaterialComponent>(nullptr, renderer,
 			GetComponent<TextureComponent>(child->Attribute("BCMap")), 
 			child->FloatAttribute("roughness"), 
 			child->FloatAttribute("metallic"));
@@ -304,8 +304,8 @@ void XMLAssetManager::AddCamera(const tinyxml2::XMLElement* child)
 	}
 
 	if (std::string(child->Name()) == "Camera") {
-		Ref<CameraActor> camera = std::make_shared<CameraActor>(cameraParent, renderer->GetRendererType());
-		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(nullptr, renderer->GetRendererType(), cameraPos, QMath::angleAxisRotation(angleDeg, axis));
+		Ref<CameraActor> camera = std::make_shared<CameraActor>(cameraParent, renderer);
+		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(nullptr, renderer, cameraPos, QMath::angleAxisRotation(angleDeg, axis));
 
 		camera->AddComponent<TransformComponent>("Transform", transform);
 		camera->OnCreate();
@@ -349,7 +349,7 @@ void XMLAssetManager::AddLight(const tinyxml2::XMLElement* child)
 	}
 
 	if (std::string(child->Name()) == "Light") {
-		Ref<LightActor> light = std::make_shared<LightActor>(lightParent, renderer->GetRendererType(), lightstyle, lightPos, colour, intensity, falloff);
+		Ref<LightActor> light = std::make_shared<LightActor>(lightParent, renderer, lightstyle, lightPos, colour, intensity, falloff);
 
 		light->OnCreate();
 
@@ -361,7 +361,7 @@ void XMLAssetManager::AddSkybox(const tinyxml2::XMLElement* child, Ref<Component
 {
 	if (std::string(child->Name()) == "Skybox")
 	{
-		Ref<Skybox> skybox = std::make_shared<Skybox>(GetComponent<Component>(child->Attribute("parent")), renderer->GetRendererType());
+		Ref<Skybox> skybox = std::make_shared<Skybox>(GetComponent<Component>(child->Attribute("parent")), renderer);
 
 		AddComponent(child->Attribute("name"), skybox);
 	}
@@ -421,7 +421,7 @@ void XMLAssetManager::AddTransformToActor(const tinyxml2::XMLElement* child, Ref
 		scale.y = child->FirstChildElement("Transform")->FloatAttribute("scaley");
 		scale.z = child->FirstChildElement("Transform")->FloatAttribute("scalez");
 		
-		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(parent, renderer->GetRendererType(), pos, QMath::angleAxisRotation(angleDeg, axis), scale);
+		Ref<TransformComponent> transform = std::make_shared<TransformComponent>(parent, renderer, pos, QMath::angleAxisRotation(angleDeg, axis), scale);
 		actor->AddComponent<TransformComponent>("Transform", transform);
 	}
 }
@@ -439,7 +439,7 @@ void XMLAssetManager::AddPhysicsToActor(const tinyxml2::XMLElement* child, Ref<A
 		if (!transform)	return;
 
 		Ref<PhysicsComponent> physics = nullptr;
-		physics = std::make_shared<PhysicsComponent>(parent, renderer->GetRendererType(), transform, child->FirstChildElement("Physics")->FloatAttribute("mass"));
+		physics = std::make_shared<PhysicsComponent>(parent, renderer, transform, child->FirstChildElement("Physics")->FloatAttribute("mass"));
 		actor->AddComponent<PhysicsComponent>("Physics", physics);
 	}
 

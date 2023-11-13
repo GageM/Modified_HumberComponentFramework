@@ -6,10 +6,10 @@
 //dont have to say it again, but why not
 using namespace MATH;
 
-TransformComponent::TransformComponent(Ref<Component> parent_, RendererType renderer_):Component(parent_, renderer_)
+TransformComponent::TransformComponent(Ref<Component> parent_, Ref<Renderer> renderer_):Component(parent_, renderer_)
 {
 }
-TransformComponent::TransformComponent(Ref<Component> parent_, RendererType renderer_, Vec3 pos_, Quaternion orientation_, Vec3 scale_)
+TransformComponent::TransformComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Vec3 pos_, Quaternion orientation_, Vec3 scale_)
 	: Component(parent_, renderer_), pos(pos_), orientation(orientation_), scale(scale_)
 {
 	UpdateRotation();

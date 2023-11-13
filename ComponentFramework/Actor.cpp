@@ -1,7 +1,7 @@
 #include "Actor.h"
 #include "TransformComponent.h"
 #include "Debug.h"
-Actor::Actor(Ref<Component> parent_, RendererType renderer_):Component(parent_, renderer_) {}
+Actor::Actor(Ref<Component> parent_, Ref<Renderer> renderer_):Component(parent_, renderer_) {}
 
 // destructor usually deallocates memory
 Actor::~Actor() {

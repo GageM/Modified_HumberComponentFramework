@@ -5,6 +5,7 @@
 #include "Component.h"
 #include <glew.h>
 #include <vulkan/vulkan.h>
+#include "VulkanRenderer.h"
 #include <vector>
 #include <Vector.h>
 using namespace MATH;
@@ -32,13 +33,11 @@ private:
 	GLuint vao, vbo;
 
 	// Stores data for Vulkan
-	void StoreMeshDataVulkan()
-	{
+	void StoreMeshDataVulkan();
 
-	}
 public:
 
-	MeshComponent(Ref<Component> parent_, RendererType renderer_, const char* filename_);
+	MeshComponent(Ref<Component> parent_, Ref<Renderer> renderer_, const char* filename_);
 	~MeshComponent();
 	bool OnCreate();
 	void OnDestroy();

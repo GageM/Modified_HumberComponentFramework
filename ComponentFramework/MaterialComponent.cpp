@@ -4,7 +4,7 @@
 #include "CubemapComponent.h"
 #include "Debug.h"
 
-MaterialComponent::MaterialComponent(Ref<Component> parent_, RendererType renderer_, Ref<TextureComponent> BCMap_, Ref<TextureComponent> RoughMap_, Ref<TextureComponent> MetMap_) : Component(parent_, renderer_),
+MaterialComponent::MaterialComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Ref<TextureComponent> BCMap_, Ref<TextureComponent> RoughMap_, Ref<TextureComponent> MetMap_) : Component(parent_, renderer_),
 useBaseColorMap(true), useNormalMap(false),
 baseColorMap(BCMap_), roughnessMap(RoughMap_), metallicMap(MetMap_),
 baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(0.5f), metallic(0.0f)
@@ -16,7 +16,7 @@ baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(0.5f), metallic(0.0f)
 	else useMetallicMap = false;
 }
 
-MaterialComponent::MaterialComponent(Ref<Component> parent_, RendererType renderer_, Ref<TextureComponent> BCMap_, float roughness_, float metallic_) : Component(parent_, renderer_),
+MaterialComponent::MaterialComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Ref<TextureComponent> BCMap_, float roughness_, float metallic_) : Component(parent_, renderer_),
 useBaseColorMap(true), useRoughnessMap(false), useMetallicMap(false), useNormalMap(false),
 baseColorMap(BCMap_), roughnessMap(nullptr), metallicMap(nullptr),
 baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(roughness_), metallic(metallic_)
@@ -24,7 +24,7 @@ baseColor(Vec4(0.7f, 0.7f, 0.7f, 1.0f)), roughness(roughness_), metallic(metalli
 
 }
 
-MaterialComponent::MaterialComponent(Ref<Component> parent_, RendererType renderer_, Vec4 baseColor_, float roughness_, float metallic_) : Component(parent_, renderer_),
+MaterialComponent::MaterialComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Vec4 baseColor_, float roughness_, float metallic_) : Component(parent_, renderer_),
 useBaseColorMap(false), useRoughnessMap(false), useMetallicMap(false), useNormalMap(false), 
 baseColorMap(nullptr), roughnessMap(nullptr), metallicMap(nullptr),
 baseColor(baseColor_), roughness(roughness_), metallic(metallic_)
@@ -55,7 +55,7 @@ void MaterialComponent::OnDestroy()
 
 void MaterialComponent::Render()const
 {
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
@@ -118,7 +118,7 @@ void MaterialComponent::Render()const
 
 void MaterialComponent::PostRender() const
 {
-	switch (renderer)
+	switch (renderer->GetRendererType())
 	{
 	case RendererType::NONE:
 		break;
