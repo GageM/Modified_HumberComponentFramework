@@ -23,7 +23,7 @@ SceneManager::SceneManager():
 	fps(60), isRunning(false), fullScreen(false), show_demo_window(false),
 	handleEventsProfiler(nullptr), updateProfiler(nullptr), renderProfiler(nullptr),
 	controller(nullptr),
-	rendererType(RendererType::OPENGL)
+	rendererType(RendererType::VULKAN)
 {
 	Debug::Info("Starting the SceneManager", __FILE__, __LINE__);
 }

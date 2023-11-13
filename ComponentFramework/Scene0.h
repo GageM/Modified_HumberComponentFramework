@@ -32,6 +32,13 @@ private:
 
 	Vec3 gravity;
 
+	// These will store the mouse position in 2D & 3D space
+	Vec4 mouseScreenPos;
+	Vec4 mouseWorldPos;
+
+	// The point represented by the mouse world position + ( the normal of the camera * the distance from the camera to the selected object )
+	Vec4 mouseSelectionPos;
+
 	// For Adjusting Selected Actor
 	Ref<Actor> selectedActor;
 	std::string selectedActorName;
@@ -45,6 +52,9 @@ private:
 	void showMaterialMenu();
 	void showLightsMenu();
 	void showPhysicsMenu();
+
+	// For Vulkan: Variables needed before integration with main program
+	Ref<TransformComponent> marioTransform;
 
 public:
 	bool renderMeshes = true;

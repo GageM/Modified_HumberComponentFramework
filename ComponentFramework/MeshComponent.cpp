@@ -143,6 +143,8 @@ void MeshComponent::StoreMeshData(GLenum drawmode_) {
 
 }
 
+
+
 void MeshComponent::Render() const {
     switch (renderer)
     {

@@ -81,6 +81,7 @@ void PHYSICS::YZPlaneConstraint()
 
 void PHYSICS::MouseConstraint(Ref<PhysicsComponent> body, const float deltaTime, const Vec3& mousePos)
 {
+	// r is the direction vector from the body position to the mouse position
 	Vec3 r = mousePos - body->pos;
 
 	Matrix3 Meff = Matrix3(
@@ -91,7 +92,7 @@ void PHYSICS::MouseConstraint(Ref<PhysicsComponent> body, const float deltaTime,
 
 	Vec3 JV = body->vel + VMath::cross(body->angularVel, r);
 
-	// calculate deltaV as lambda to save a variable
+	// calculate deltaV as the lagrangian to save a variable
 	Vec3 deltaV = MMath::inverse(Meff) * -JV;
 
 	Vec3 deltaAV = VMath::cross(r, deltaV);

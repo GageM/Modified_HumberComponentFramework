@@ -4,6 +4,7 @@
 #pragma once
 #include "Component.h"
 #include <glew.h>
+#include <vulkan/vulkan.h>
 #include <vector>
 #include <Vector.h>
 using namespace MATH;
@@ -25,8 +26,16 @@ private:
 
 	/// Private helper methods
 	void LoadModel(const char* filename);
+
+	// Stores data for OpenGL
 	void StoreMeshData(GLenum drawmode_);
 	GLuint vao, vbo;
+
+	// Stores data for Vulkan
+	void StoreMeshDataVulkan()
+	{
+
+	}
 public:
 
 	MeshComponent(Ref<Component> parent_, RendererType renderer_, const char* filename_);

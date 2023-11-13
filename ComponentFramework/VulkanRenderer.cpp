@@ -47,7 +47,11 @@ void VulkanRenderer::Render() {
     }
 
     // TODO::PUSH_CONSTANTS: Update push constants
-
+    // Don't record the command buffer if it hasn't been reset 
+    if (vkResetCommandBuffer(commandBuffers[imageIndex], 0) == VK_SUCCESS)
+    {
+        recordCommandBuffer(imageIndex);
+    }
 
     updateCameraUBO(imageIndex);
     updateGLightsUBO(imageIndex);
@@ -144,6 +148,8 @@ void VulkanRenderer::initVulkan() {
     CreateTextureImage("textures/mario_fire.png");
     createTextureImageView();
     createTextureSampler();
+
+    // TODO::Meshes: Move this to MeshComponent
     LoadModelIndexed("meshes/mario.obj");
     createVertexBuffer();
     createIndexBuffer();
@@ -704,12 +710,15 @@ void VulkanRenderer::createFramebuffers() {
     }
 }
 
-void VulkanRenderer::createCommandPool() {
+void VulkanRenderer::createCommandPool()
+{
     QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+    // TODO:: PUSH CONSTANTS: flag command pool as resetable to allow for updating push constants
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics command pool!");
@@ -1226,50 +1235,55 @@ void VulkanRenderer::createCommandBuffers() {
     }
 
     for (size_t i = 0; i < commandBuffers.size(); i++) {
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        recordCommandBuffer(i);
+    }
+}
 
-        if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
-            throw std::runtime_error("failed to begin recording command buffer!");
-        }
+void VulkanRenderer::recordCommandBuffer(uint32_t currentImage)
+{
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-        VkRenderPassBeginInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = renderPass;
-        renderPassInfo.framebuffer = swapChainFramebuffers[i];
-        renderPassInfo.renderArea.offset = { 0, 0 };
-        renderPassInfo.renderArea.extent = swapChainExtent;
+    if (vkBeginCommandBuffer(commandBuffers[currentImage], &beginInfo) != VK_SUCCESS) {
+        throw std::runtime_error("failed to begin recording command buffer!");
+    }
 
-        std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
-        clearValues[1].depthStencil = { 1.0f, 0 };
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = renderPass;
+    renderPassInfo.framebuffer = swapChainFramebuffers[currentImage];
+    renderPassInfo.renderArea.offset = { 0, 0 };
+    renderPassInfo.renderArea.extent = swapChainExtent;
 
-        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-        renderPassInfo.pClearValues = clearValues.data();
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+    clearValues[1].depthStencil = { 1.0f, 0 };
 
-        vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdBeginRenderPass(commandBuffers[currentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        VkBuffer vertexBuffers[] = { vertexBuffer.bufferID };
-        VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+    vkCmdBindPipeline(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer.bufferID, 0, VK_INDEX_TYPE_UINT32);
+    VkBuffer vertexBuffers[] = { vertexBuffer.bufferID };
+    VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(commandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
 
-        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
+    vkCmdBindIndexBuffer(commandBuffers[currentImage], indexBuffer.bufferID, 0, VK_INDEX_TYPE_UINT32);
 
-        // TODO::PUSH_CONSTANTS: Call updatePushConstants
-        SetMeshPushConstants(MMath::rotate(180.0f, Vec3(0.0f, 1.0f, 0.0f)));
-        updatePushConstants(i);
+    vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentImage], 0, nullptr);
 
-        vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+    // TODO::PUSH_CONSTANTS: Call updatePushConstants
+    //SetMeshPushConstants(MMath::translate(Vec3(0.0f, 0.0f, -10.0f)) * MMath::rotate(180.0f, Vec3(0.0f, 1.0f, 0.0f)));
+    updatePushConstants(currentImage);
 
-        vkCmdEndRenderPass(commandBuffers[i]);
+    vkCmdDrawIndexed(commandBuffers[currentImage], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
-        if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to record command buffer!");
-        }
+    vkCmdEndRenderPass(commandBuffers[currentImage]);
+
+    if (vkEndCommandBuffer(commandBuffers[currentImage]) != VK_SUCCESS) {
+        throw std::runtime_error("failed to record command buffer!");
     }
 }
 

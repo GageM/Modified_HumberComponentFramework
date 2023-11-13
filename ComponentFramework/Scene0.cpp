@@ -26,7 +26,8 @@
 #include "imgui_impl_opengl3.h"
 
 Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), assetManager(nullptr), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(0.0f, 0.0f, 1.0f, 1.0f)),
-	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f), culledActors(0), isClicking(false), gravity(Vec3(0.0f, -9.81f, 0.0f))
+	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f), culledActors(0), isClicking(false), gravity(Vec3(0.0f, -9.81f, 0.0f)),
+	mouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), mouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), marioTransform(nullptr)
 {
 	assetManager = std::make_shared<XMLAssetManager>(renderer);
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
@@ -79,6 +80,8 @@ bool Scene0::OnCreate()
 		for (const auto& name : lightNames) {
 			lights[name] = assetManager->GetComponent<LightActor>(name.c_str());
 		}
+
+		marioTransform = std::make_shared<TransformComponent>(nullptr, renderer->GetRendererType(), Vec3(0.0f, 0.0f, -10.0f), Quaternion());
 		break;
 	}
 	default:
@@ -98,6 +101,8 @@ void Scene0::OnDestroy()
 	}
 
 	if(skybox) skybox = nullptr;
+
+	if (marioTransform) marioTransform = nullptr;
 }
 
 void Scene0::HandleEvents(const SDL_Event& sdlEvent)
@@ -170,6 +175,21 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		}
 
 		break;
+
+	case SDL_MOUSEMOTION:
+	{
+		mouseScreenPos = Vec4(static_cast<float>(sdlEvent.button.x), static_cast<float>(sdlEvent.button.y), 0.0f, 1.0f);
+
+		// Transform mouse pos into world pos
+		Matrix4 ndcToPixel = MMath::viewportNDC(1280, 720);
+		Vec4 mouseNDCCoords = MMath::inverse(ndcToPixel) * mouseScreenPos;
+		Matrix4 perspectiveToNDC = camera->GetProjectionMatrix();
+		Vec4 mousePrespectiveCoords = MMath::inverse(perspectiveToNDC) * mouseNDCCoords;
+		mousePrespectiveCoords /= mousePrespectiveCoords.w;
+		Matrix4 worldToPerspective = camera->GetViewMatrix();
+		mouseWorldPos = MMath::inverse(worldToPerspective) * mousePrespectiveCoords;
+		break;
+	}
 		
 	case SDL_MOUSEBUTTONDOWN:
 		// On left click
@@ -180,27 +200,17 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 			case RendererType::OPENGL:
 			{
 				if (sdlEvent.button.button == SDL_BUTTON_LEFT && !showMenu) {
-					Vec4 mouseCoords(static_cast<float>(sdlEvent.button.x), static_cast<float>(sdlEvent.button.y), 0.0f, 1.0f);
 					// TODO for Assignment 2: 
 					// Get a ray pointing into the world, We have the x, y pixel coordinates
 					// Need to convert this into world space to build our ray
 					printf("Mouse Click: \n");
-
-					// Transform mouse pos into world pos
-					Matrix4 ndcToPixel = MMath::viewportNDC(1280, 720);
-					Vec4 mouseNDCCoords = MMath::inverse(ndcToPixel) * mouseCoords;
-					Matrix4 perspectiveToNDC = camera->GetProjectionMatrix();
-					Vec4 mousePrespectiveCoords = MMath::inverse(perspectiveToNDC) * mouseNDCCoords;
-					mousePrespectiveCoords /= mousePrespectiveCoords.w;
-					Matrix4 worldToPerspective = camera->GetViewMatrix();
-					Vec4 mouseWorldCoords = MMath::inverse(worldToPerspective) * mousePrespectiveCoords;
 
 					//Arbitrary max distance for selection
 					float distance = 1000.0f;
 
 					// Create a ray from the camera
 					Vec3 rayStart = -cameraTransform->pos;
-					Vec3 rayDir = VMath::normalize(mouseWorldCoords - rayStart);
+					Vec3 rayDir = VMath::normalize(mouseWorldPos - rayStart);
 
 					Ref<Ray> drawRay = std::make_shared<Ray>(rayStart, rayDir, distance);
 					rays.push_back(drawRay);
@@ -305,6 +315,12 @@ void Scene0::Update(const float deltaTime)
 		Ref<PhysicsComponent> body = selectedActor->GetComponent<PhysicsComponent>();
 		if (body)
 		{
+			// Get the direction vector from the camera to the selected object
+			Vec3 dir = selectedActor->GetComponent<TransformComponent>()->pos - mouseWorldPos;
+			float distance = VMath::mag(dir);
+
+
+			mouseSelectionPos = mouseWorldPos;
 
 
 			float dragCoeff = 0.25f;
@@ -313,14 +329,21 @@ void Scene0::Update(const float deltaTime)
 			
 			PHYSICS::ApplyForce(body, netForce);
 			PHYSICS::UpdateVel(body, deltaTime);
-			//PHYSICS::MouseConstraint(body, deltaTime, Vec3(1.0f, 1.0f, 1.0f));
+			//PHYSICS::MouseConstraint(body, deltaTime, Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z));
+
 
 			PHYSICS::UpdatePos(body, deltaTime);
 			PHYSICS::UpdateOrientation(body, deltaTime);
 			PHYSICS::UpdateTransform(selectedActor);
+
+			//selectedActor->GetComponent<TransformComponent>()->pos = Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z);
 		}
 	}
 
+	if (renderer->GetRendererType() == RendererType::VULKAN)
+	{
+		marioTransform->orientation = QMath::angleAxisRotation(90.0f * deltaTime, Vec3::up()) * marioTransform->orientation;
+	}
 
 	mtx.unlock();
 }
@@ -499,7 +522,9 @@ void Scene0::Render() const
 		}
 		vRenderer->SetGLightsUBO(0, Vec3(100.0f, 10.0f, 100.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		counter = 0;
-		vRenderer->SetMeshPushConstants(MMath::translate(Vec3(0.0f, 0.0f, -10.0f)));
+
+		vRenderer->SetMeshPushConstants(marioTransform->GetTransformMatrix());
+
 		vRenderer->Render();
 		break;
 	}
