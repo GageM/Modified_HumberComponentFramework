@@ -153,6 +153,7 @@ void VulkanRenderer::initVulkan() {
     LoadModelIndexed("meshes/mario.obj");
     createVertexBuffer();
     createIndexBuffer();
+
     // TODO::UBO: Call create UBO
     createCameraUBO();
     createGLightsUBO();
@@ -991,47 +992,45 @@ void VulkanRenderer::LoadModelIndexed(const char* filename) {
 void VulkanRenderer::createVertexBuffer() {
     VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    Buffer stagingBuffer;
                                                                                                                        
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        stagingBuffer, stagingBufferMemory);
+        stagingBuffer.bufferID, stagingBuffer.bufferMemoryID);
 
     void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory(device, stagingBuffer.bufferMemoryID, 0, bufferSize, 0, &data);
     memcpy(data, vertices.data(), (size_t)bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
+    vkUnmapMemory(device, stagingBuffer.bufferMemoryID);
 
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         vertexBuffer.bufferID,vertexBuffer.bufferMemoryID);
 
-    copyBuffer(stagingBuffer, vertexBuffer.bufferID, bufferSize);
+    copyBuffer(stagingBuffer.bufferID, vertexBuffer.bufferID, bufferSize);
 
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(device, stagingBuffer.bufferID, nullptr);
+    vkFreeMemory(device, stagingBuffer.bufferMemoryID, nullptr);
 }
 
 void VulkanRenderer::createIndexBuffer() {
     VkDeviceSize bufferSize = sizeof(uint32_t) * indices.size();
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    Buffer stagingBuffer;
+    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer.bufferID, stagingBuffer.bufferMemoryID);
 
     void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory(device, stagingBuffer.bufferMemoryID, 0, bufferSize, 0, &data);
     memcpy(data, indices.data(), (size_t)bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
+    vkUnmapMemory(device, stagingBuffer.bufferMemoryID);
 
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer.bufferID, indexBuffer.bufferMemoryID);
 
-    copyBuffer(stagingBuffer, indexBuffer.bufferID, bufferSize);
+    copyBuffer(stagingBuffer.bufferID, indexBuffer.bufferID, bufferSize);
 
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(device, stagingBuffer.bufferID, nullptr);
+    vkFreeMemory(device, stagingBuffer.bufferMemoryID, nullptr);
 }
 
 // TODO::UBO: createUBO implementation
@@ -1266,20 +1265,25 @@ void VulkanRenderer::recordCommandBuffer(uint32_t currentImage)
 
     vkCmdBindPipeline(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-    VkBuffer vertexBuffers[] = { vertexBuffer.bufferID };
-    VkDeviceSize offsets[] = { 0 };
-    vkCmdBindVertexBuffers(commandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
-
-    vkCmdBindIndexBuffer(commandBuffers[currentImage], indexBuffer.bufferID, 0, VK_INDEX_TYPE_UINT32);
-
+    // Bind our descriptor sets (our UBOs)
     vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentImage], 0, nullptr);
 
-    // TODO::PUSH_CONSTANTS: Call updatePushConstants
-    //SetMeshPushConstants(MMath::translate(Vec3(0.0f, 0.0f, -10.0f)) * MMath::rotate(180.0f, Vec3(0.0f, 1.0f, 0.0f)));
-    updatePushConstants(currentImage);
+    // Here is where we render our meshes
+    {
+        // TODO::PUSH_CONSTANTS: Send the push constants to the command buffer (model matrix)
+        vkCmdPushConstants(commandBuffers[currentImage], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(meshPushConstants), &meshPushConstants);
 
-    vkCmdDrawIndexed(commandBuffers[currentImage], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        // Bind mesh vertex buffer
+        VkBuffer vertexBuffers[] = { vertexBuffer.bufferID };
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(commandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
 
+        // Bind mesh index buffer to draw mesh with optimized vert count
+        vkCmdBindIndexBuffer(commandBuffers[currentImage], indexBuffer.bufferID, 0, VK_INDEX_TYPE_UINT32);
+
+        // Render the mesh
+        vkCmdDrawIndexed(commandBuffers[currentImage], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+    }
     vkCmdEndRenderPass(commandBuffers[currentImage]);
 
     if (vkEndCommandBuffer(commandBuffers[currentImage]) != VK_SUCCESS) {
@@ -1343,11 +1347,6 @@ void VulkanRenderer::updateGLightsUBO(uint32_t currentImage) {
     vkMapMemory(device, gLightsBuffers[currentImage].bufferMemoryID, 0, sizeof(gLightsUBO), 0, &data);
     memcpy(data, &gLightsUBO, sizeof(gLightsUBO));
     vkUnmapMemory(device, gLightsBuffers[currentImage].bufferMemoryID);
-}
-
-// TODO::PUSH_CONSTANTS: updatePushConstants implementation
-void VulkanRenderer::updatePushConstants(uint32_t currentImage) {
-    vkCmdPushConstants(commandBuffers[currentImage], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(meshPushConstants), &meshPushConstants);
 }
 
 VkShaderModule VulkanRenderer::createShaderModule(const std::vector<char>& code) {

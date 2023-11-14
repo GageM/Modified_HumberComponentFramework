@@ -183,7 +183,6 @@ private:
     
     Buffer vertexBuffer;
     Buffer indexBuffer;
-   
 
     std::vector<Buffer>cameraBuffers;
     std::vector<Buffer>gLightsBuffers;
@@ -210,9 +209,7 @@ private:
     void createImageViews();
     void recreateSwapChain();
     void updateCameraUBO(uint32_t currentImage);
-    void updateGLightsUBO(uint32_t currentImage);
-    // TODO::PUSH_CONSTANTS: updatePushConstants declaration
-    void updatePushConstants(uint32_t currentImage);
+    void updateGLightsUBO(uint32_t currentImage);;
     VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
     void createRenderPass();
     void createDescriptorSetLayout();
@@ -226,10 +223,12 @@ private:
     void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
         VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
    
+
     void createVertexBuffer();
         /// A helper function for createVertexBuffer()
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     void createIndexBuffer();
+
     void createCameraUBO();
     void createGLightsUBO();
     void createDescriptorPool();

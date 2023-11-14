@@ -45,7 +45,7 @@ void main() {
 
 		fragColor += (diff * (glights.diffuse[i] * kt));
 		fragColor += (spec * glights.specular[i]);	
-		fragColor += (ambMultiplier * glights.ambient[i]);
+		fragColor += (ambMultiplier * glights.ambient[i] * kt);
 	}
 } 
 
