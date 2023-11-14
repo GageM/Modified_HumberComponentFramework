@@ -128,6 +128,19 @@ struct MeshPushConstants {
     Matrix4 modelMatrix;
 };
 
+struct Buffer {
+    VkBuffer bufferID;
+    VkDeviceMemory bufferMemoryID;
+};
+
+struct Mesh {
+    Buffer vertexBuffer;
+    Buffer indexBuffer;
+
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
+};
+
 class VulkanRenderer : public Renderer {
 public:
     /// C11 precautions 
@@ -152,8 +165,6 @@ public:
 
 private:
     const size_t MAX_FRAMES_IN_FLIGHT = 2;
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
     SDL_Event sdlEvent;
     uint32_t windowWidth;
     uint32_t windowHeight;
@@ -176,13 +187,9 @@ private:
 
     VkCommandPool commandPool;
 
-    struct Buffer {
-        VkBuffer bufferID;
-        VkDeviceMemory bufferMemoryID;
-    };
+
     
-    Buffer vertexBuffer;
-    Buffer indexBuffer;
+    std::vector<Mesh> meshes;
 
     std::vector<Buffer>cameraBuffers;
     std::vector<Buffer>gLightsBuffers;
@@ -224,10 +231,10 @@ private:
         VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
    
 
-    void createVertexBuffer();
+    void createVertexBuffer(Mesh& mesh);
         /// A helper function for createVertexBuffer()
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-    void createIndexBuffer();
+    void createIndexBuffer(Mesh& mesh);
 
     void createCameraUBO();
     void createGLightsUBO();

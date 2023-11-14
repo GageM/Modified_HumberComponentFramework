@@ -151,8 +151,16 @@ void VulkanRenderer::initVulkan() {
 
     // TODO::Meshes: Move this to MeshComponent
     LoadModelIndexed("meshes/mario.obj");
-    createVertexBuffer();
-    createIndexBuffer();
+    createVertexBuffer(meshes[meshes.size() - 1]);
+    createIndexBuffer(meshes[meshes.size() - 1]);
+
+    LoadModelIndexed("meshes/cube.obj");
+    createVertexBuffer(meshes[meshes.size() - 1]);
+    createIndexBuffer(meshes[meshes.size() - 1]);
+
+    LoadModelIndexed("meshes/DoomKeyCard.obj");
+    createVertexBuffer(meshes[meshes.size() - 1]);
+    createIndexBuffer(meshes[meshes.size() - 1]);
 
     // TODO::UBO: Call create UBO
     createCameraUBO();
@@ -207,11 +215,18 @@ void VulkanRenderer::cleanup() {
 
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
-    vkDestroyBuffer(device, indexBuffer.bufferID, nullptr);
-    vkFreeMemory(device, indexBuffer.bufferMemoryID, nullptr);
+    // Clear all mesh data
+    for (Mesh& mesh : meshes)
+    {
+        vkDestroyBuffer(device, mesh.indexBuffer.bufferID, nullptr);
+        vkFreeMemory(device, mesh.indexBuffer.bufferMemoryID, nullptr);
 
-    vkDestroyBuffer(device, vertexBuffer.bufferID, nullptr);
-    vkFreeMemory(device, vertexBuffer.bufferMemoryID, nullptr);
+        vkDestroyBuffer(device, mesh.vertexBuffer.bufferID, nullptr);
+        vkFreeMemory(device, mesh.vertexBuffer.bufferMemoryID, nullptr);
+
+        //mesh.vertices.clear();
+        //mesh.indices.clear();
+    }
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
@@ -954,6 +969,8 @@ void VulkanRenderer::LoadModelIndexed(const char* filename) {
         throw std::runtime_error(warn + err);
     }
 
+    Mesh mesh;
+
     std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
     for (const auto& shape : shapes) {
@@ -980,17 +997,19 @@ void VulkanRenderer::LoadModelIndexed(const char* filename) {
            
 
             if (uniqueVertices.count(vertex) == 0) {
-                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-                vertices.push_back(vertex);
+                uniqueVertices[vertex] = static_cast<uint32_t>(mesh.vertices.size());
+                mesh.vertices.push_back(vertex);
             }
 
-            indices.push_back(uniqueVertices[vertex]);
+            mesh.indices.push_back(uniqueVertices[vertex]);
         }
     }
+
+    meshes.push_back(mesh);
 }
 
-void VulkanRenderer::createVertexBuffer() {
-    VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+void VulkanRenderer::createVertexBuffer(Mesh& mesh) {
+    VkDeviceSize bufferSize = sizeof(Vertex) * mesh.vertices.size();
 
     Buffer stagingBuffer;
                                                                                                                        
@@ -1000,34 +1019,34 @@ void VulkanRenderer::createVertexBuffer() {
 
     void* data;
     vkMapMemory(device, stagingBuffer.bufferMemoryID, 0, bufferSize, 0, &data);
-    memcpy(data, vertices.data(), (size_t)bufferSize);
+    memcpy(data, mesh.vertices.data(), (size_t)bufferSize);
     vkUnmapMemory(device, stagingBuffer.bufferMemoryID);
 
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        vertexBuffer.bufferID,vertexBuffer.bufferMemoryID);
+        mesh.vertexBuffer.bufferID,mesh.vertexBuffer.bufferMemoryID);
 
-    copyBuffer(stagingBuffer.bufferID, vertexBuffer.bufferID, bufferSize);
+    copyBuffer(stagingBuffer.bufferID, mesh.vertexBuffer.bufferID, bufferSize);
 
     vkDestroyBuffer(device, stagingBuffer.bufferID, nullptr);
     vkFreeMemory(device, stagingBuffer.bufferMemoryID, nullptr);
 }
 
-void VulkanRenderer::createIndexBuffer() {
-    VkDeviceSize bufferSize = sizeof(uint32_t) * indices.size();
+void VulkanRenderer::createIndexBuffer(Mesh& mesh) {
+    VkDeviceSize bufferSize = sizeof(uint32_t) * mesh.indices.size();
 
     Buffer stagingBuffer;
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer.bufferID, stagingBuffer.bufferMemoryID);
 
     void* data;
     vkMapMemory(device, stagingBuffer.bufferMemoryID, 0, bufferSize, 0, &data);
-    memcpy(data, indices.data(), (size_t)bufferSize);
+    memcpy(data, mesh.indices.data(), (size_t)bufferSize);
     vkUnmapMemory(device, stagingBuffer.bufferMemoryID);
 
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer.bufferID, indexBuffer.bufferMemoryID);
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mesh.indexBuffer.bufferID, mesh.indexBuffer.bufferMemoryID);
 
-    copyBuffer(stagingBuffer.bufferID, indexBuffer.bufferID, bufferSize);
+    copyBuffer(stagingBuffer.bufferID, mesh.indexBuffer.bufferID, bufferSize);
 
     vkDestroyBuffer(device, stagingBuffer.bufferID, nullptr);
     vkFreeMemory(device, stagingBuffer.bufferMemoryID, nullptr);
@@ -1269,20 +1288,26 @@ void VulkanRenderer::recordCommandBuffer(uint32_t currentImage)
     vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentImage], 0, nullptr);
 
     // Here is where we render our meshes
+    if(meshes.size() > 0)
     {
-        // TODO::PUSH_CONSTANTS: Send the push constants to the command buffer (model matrix)
-        vkCmdPushConstants(commandBuffers[currentImage], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(meshPushConstants), &meshPushConstants);
+        for (int i = 0; i < meshes.size(); i++)
+        {
+            meshPushConstants.modelMatrix = MMath::translate(Vec3(3.0f, 0.0f, 0.0f)) * meshPushConstants.modelMatrix;
 
-        // Bind mesh vertex buffer
-        VkBuffer vertexBuffers[] = { vertexBuffer.bufferID };
-        VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(commandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
+            // TODO::PUSH_CONSTANTS: Send the push constants to the command buffer (model matrix)
+            vkCmdPushConstants(commandBuffers[currentImage], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(meshPushConstants), &meshPushConstants);
 
-        // Bind mesh index buffer to draw mesh with optimized vert count
-        vkCmdBindIndexBuffer(commandBuffers[currentImage], indexBuffer.bufferID, 0, VK_INDEX_TYPE_UINT32);
+            // Bind mesh vertex buffer
+            VkBuffer vertexBuffers[] = { meshes[i].vertexBuffer.bufferID};
+            VkDeviceSize offsets[] = { 0 };
+            vkCmdBindVertexBuffers(commandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
 
-        // Render the mesh
-        vkCmdDrawIndexed(commandBuffers[currentImage], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+            // Bind mesh index buffer to draw mesh with optimized vert count
+            vkCmdBindIndexBuffer(commandBuffers[currentImage], meshes[i].indexBuffer.bufferID, 0, VK_INDEX_TYPE_UINT32);
+
+            // Render the mesh
+            vkCmdDrawIndexed(commandBuffers[currentImage], static_cast<uint32_t>(meshes[i].indices.size()), 1, 0, 0, 0);
+        }
     }
     vkCmdEndRenderPass(commandBuffers[currentImage]);
 
