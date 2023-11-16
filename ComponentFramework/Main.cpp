@@ -32,7 +32,7 @@ int main(int argc, char* args[]) {
 	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); //using this to check on program exit the memory leak involving ofstream is gone, i think calling _crtDumpMemoryLeaks before exit its finding a memory leak that is actually cleaned up on exit
 
 	/// Comment out the line below if you really want to make a 64-bit build
-	static_assert(sizeof(void*) == 4, "Are you ready for 64-bit build?");
+	//static_assert(sizeof(void*) == 4, "Are you ready for 64-bit build?");
 
 	Debug::DebugInit("GameEngineLog.txt");
 	// Let's fix up this raw pointer:
