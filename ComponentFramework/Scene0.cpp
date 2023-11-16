@@ -27,7 +27,8 @@
 
 Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), assetManager(nullptr), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(0.0f, 0.0f, 1.0f, 1.0f)),
 	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f), culledActors(0), isClicking(false), gravity(Vec3(0.0f, -9.81f, 0.0f)),
-	mouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), mouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), marioTransform(nullptr)
+	mouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), mouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), marioTransform(nullptr), 
+	deltaMouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), deltaMouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), constraint(MovementConstraint::None)
 {
 	assetManager = std::make_shared<XMLAssetManager>(renderer);
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
@@ -112,94 +113,156 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 
 	Ref<TransformComponent> cameraTransform = camera->GetComponent <TransformComponent>();
 	switch (sdlEvent.type) {
+
+	// Keyboard Button Pressed
 	case SDL_KEYDOWN:
+	{
 		if (!showMenu)
 		{
-			if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_LEFT) {
+			switch (sdlEvent.key.keysym.scancode)
+			{
+
+				// Rotate Camera Buttons
+			case SDL_SCANCODE_LEFT:
+			{
 				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(-15.0f, Vec3(0.0f, 1.0f, 0.0f)));
 				camera->UpdateViewMatrix();
-
+				break;
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_RIGHT) {
+			case SDL_SCANCODE_RIGHT:
+			{
 				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(15.0f, Vec3(0.0f, 1.0f, 0.0f)));
 				camera->UpdateViewMatrix();
+				break;
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_UP) {
-				//cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(-2.0f, Vec3(1.0f, 0.0f, 0.0f)));
-				//camera->UpdateViewMatrix();
+			case SDL_SCANCODE_UP:
+			{
+				break;
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_DOWN) {
-				//cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(2.0f, Vec3(1.0f, 0.0f, 0.0f)));
-				//camera->UpdateViewMatrix();
+			case SDL_SCANCODE_DOWN:
+			{
+				break;
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_Q)
+
+			// Raise/Lower Camera Y position
+			case SDL_SCANCODE_Q:
 			{
 				cameraTransform->SetTransform(cameraTransform->pos + Vec3(0.0f, 1.0f, 0.0f), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
-				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
+				break;
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_E)
+			case SDL_SCANCODE_E:
 			{
 				cameraTransform->SetTransform(cameraTransform->pos + Vec3(0.0f, -1.0f, 0.0f), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
-				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
+				break;
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_D) {
-				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(-1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
-				camera->UpdateViewMatrix();
-				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
-			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_A) {
-				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
-				camera->UpdateViewMatrix();
-				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
 
-			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_W) {
+			// Move Camera on XZ Plane
+			case SDL_SCANCODE_W:
+			{
 				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(0.0f, 0.0f, 1.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
-				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
-
+				break;
 			}
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_S) {
+			case SDL_SCANCODE_A:
+			{
+				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
+				camera->UpdateViewMatrix();
+				break;
+			}
+			case SDL_SCANCODE_S:
+			{
 				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(0.0f, 0.0f, -1.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
 				camera->UpdateViewMatrix();
-				//camera->GetComponent<TransformComponent>()->pos.print("Camera Position: ");
-
+				break;
+			}
+			case SDL_SCANCODE_D:
+			{
+				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(-1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
+				camera->UpdateViewMatrix();
+				break;
 			}
 
-			// Grab selected object
-			else if (sdlEvent.key.keysym.scancode == SDL_SCANCODE_G) {}
+			// Object Manipulation
+			case SDL_SCANCODE_G:
+			{
+				isGrabbing = !isGrabbing;
+				if (!isGrabbing) constraint = MovementConstraint::None;
+				break;
+			}
 
+			// Movement Constraints
+			case SDL_SCANCODE_X:
+			{
+				if (isGrabbing || isRotating || isScaling) constraint = MovementConstraint::XAxis;
+				break;
+			}
+			case SDL_SCANCODE_Y:
+			{
+				if (isGrabbing || isRotating || isScaling) constraint = MovementConstraint::YAxis;
+				break;
+			}
+			case SDL_SCANCODE_Z:
+			{
+				if (isGrabbing || isRotating || isScaling) constraint = MovementConstraint::ZAxis;
+				break;
+			}
 
+			// Confirm Object Manipulation
+			case SDL_SCANCODE_RETURN:
+			{
+				isGrabbing = isRotating = isScaling = false;
+				constraint = MovementConstraint::None;
+				break;
+			}
+
+			default:
+				break;
+			}
 		}
 
 		break;
+	}
 
+	// Mouse Movement
 	case SDL_MOUSEMOTION:
 	{
+		// Capture last mouse position;
+		deltaMouseScreenPos = mouseScreenPos;
+		deltaMouseWorldPos = mouseWorldPos;
+
 		mouseScreenPos = Vec4(static_cast<float>(sdlEvent.button.x), static_cast<float>(sdlEvent.button.y), 0.0f, 1.0f);
 
 		// Transform mouse pos into world pos
 		Matrix4 ndcToPixel = MMath::viewportNDC(1280, 720);
-		Vec4 mouseNDCCoords = MMath::inverse(ndcToPixel) * mouseScreenPos;
+		mouseNDCCoords = MMath::inverse(ndcToPixel) * mouseScreenPos;
 		Matrix4 perspectiveToNDC = camera->GetProjectionMatrix();
-		Vec4 mousePrespectiveCoords = MMath::inverse(perspectiveToNDC) * mouseNDCCoords;
-		mousePrespectiveCoords /= mousePrespectiveCoords.w;
+		mousePerspectiveCoords = MMath::inverse(perspectiveToNDC) * mouseNDCCoords;
+		mousePerspectiveCoords /= mousePerspectiveCoords.w;
 		Matrix4 worldToPerspective = camera->GetViewMatrix();
-		mouseWorldPos = MMath::inverse(worldToPerspective) * mousePrespectiveCoords;
+		mouseWorldPos = MMath::inverse(worldToPerspective) * mousePerspectiveCoords;
+
+		// Get the change in mouse position
+		deltaMouseScreenPos = mouseScreenPos - deltaMouseScreenPos;
+		deltaMouseWorldPos = mouseWorldPos - deltaMouseWorldPos;
+
 		break;
 	}
 		
+	// Mouse Button Pressed
 	case SDL_MOUSEBUTTONDOWN:
-		// On left click
-		if (sdlEvent.button.button == SDL_BUTTON_LEFT)
+	{
+		switch (sdlEvent.button.button)
 		{
+			// Left Mouse Button
+		case SDL_BUTTON_LEFT:
+			// Check renderer
 			switch (renderer->GetRendererType())
 			{
 			case RendererType::OPENGL:
 			{
-				if (sdlEvent.button.button == SDL_BUTTON_LEFT && !showMenu) {
+				if (!showMenu) {
 					// TODO for Assignment 2: 
 					// Get a ray pointing into the world, We have the x, y pixel coordinates
 					// Need to convert this into world space to build our ray
@@ -244,28 +307,47 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 			default:
 				break;
 			}
-		}
+			break;
 
-		// On right click
-		else if (sdlEvent.button.button == SDL_BUTTON_RIGHT)
-		{
+			// Right Mouse Button
+		case SDL_BUTTON_RIGHT:
+			if (!isClicking && selectedActor)
+			{
+				// Get orthographic distance to the object from the camera
+				Vec4 objectOrthoPos = camera->GetViewMatrix() * selectedActor->GetModelMatrix() * selectedActor->GetComponent<TransformComponent>()->pos;
+
+				selectionDistance = abs(objectOrthoPos.z);
+			}
+
 			isClicking = true;
+			break;
+		default:
+			break;
 		}
-		break;
 
+		break;
+	}
+
+	// Mouse Button Released
 	case SDL_MOUSEBUTTONUP:
-		if (sdlEvent.button.button == SDL_BUTTON_LEFT)
+	{
+		switch (sdlEvent.button.button)
 		{
-
-		}
-		if (sdlEvent.button.button == SDL_BUTTON_RIGHT)
-		{
-			isClicking = false;
+		case SDL_BUTTON_LEFT:
+			break;
+		case SDL_BUTTON_RIGHT:
+			if (!showMenu) isClicking = false;
+			break;
+		default:
+			break;
 		}
 
 		break;
+	}
 
+	// Controller Button Pressed
 	case SDL_CONTROLLERBUTTONDOWN:
+	{
 		switch (sdlEvent.cbutton.button)
 		{
 		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A:
@@ -283,15 +365,43 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y:
 			printf("Y Button Pressed\n");
 			break;
-
-		default: 
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+			printf("Right Shoulder Pressed\n");
+			break;
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+			printf("Left Shoulder Pressed\n");
+			break;
+		default:
 			break;
 		}
 
 		break;
+	}
+
+	// Controller Stick Movement
+	case SDL_CONTROLLERAXISMOTION:
+	{
+		switch (sdlEvent.caxis.axis)
+		{
+		case SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX:
+			break;
+		case SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY:
+			break;
+		case SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX:
+			break;
+		case SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTY:
+			break;
+		default:
+			break;
+		}
+
+		break;
+	}
+
 	default:
 		break;
 	}
+
 	mtx.unlock();
 }
 
@@ -299,6 +409,9 @@ void Scene0::Update(const float deltaTime)
 {
 	std::mutex mtx;
 	mtx.lock();
+
+
+
 	// Clear drawn rays after they age out
 	for (unsigned int i = 0; i < rays.size(); i++)
 	{
@@ -308,38 +421,58 @@ void Scene0::Update(const float deltaTime)
 			rays.erase(rays.begin() + i);
 		}
 	}
-
 	
-	if (isClicking && selectedActor)
+
+
+	if (selectedActor)
 	{
-		Ref<PhysicsComponent> body = selectedActor->GetComponent<PhysicsComponent>();
-		if (body)
+		// Object physics on selected actor
+		if (isClicking)
 		{
-			// Get the direction vector from the camera to the selected object
-			Vec3 dir = selectedActor->GetComponent<TransformComponent>()->pos - mouseWorldPos;
-			float distance = VMath::mag(dir);
+			Ref<PhysicsComponent> body = selectedActor->GetComponent<PhysicsComponent>();
+			if (body)
+			{
 
 
-			mouseSelectionPos = mouseWorldPos;
+				Vec3 rayStart = -camera->GetComponent<TransformComponent>()->pos;
+				Vec3 rayDir = VMath::normalize(mouseWorldPos - rayStart);
+
+				mouseSelectionPos = rayStart + rayDir * selectionDistance;
+
+				float dragCoeff = 0.25f;
+				Vec3 dragForce = body->vel * (-dragCoeff);
+				Vec3 netForce = gravity + dragForce;
+
+				PHYSICS::ApplyForce(body, netForce);
+				PHYSICS::UpdateVel(body, deltaTime);
+				PHYSICS::MouseConstraint(body, deltaTime, Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z));
 
 
-			float dragCoeff = 0.25f;
-			Vec3 dragForce = body->vel * (-dragCoeff);
-			Vec3 netForce = gravity + dragForce;
-			
-			PHYSICS::ApplyForce(body, netForce);
-			PHYSICS::UpdateVel(body, deltaTime);
-			//PHYSICS::MouseConstraint(body, deltaTime, Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z));
+				PHYSICS::UpdatePos(body, deltaTime);
+				//PHYSICS::UpdateOrientation(body, deltaTime);
+				PHYSICS::UpdateTransform(selectedActor);
 
+				//selectedActor->GetComponent<TransformComponent>()->pos = Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z);
+			}
+		}
 
-			PHYSICS::UpdatePos(body, deltaTime);
-			PHYSICS::UpdateOrientation(body, deltaTime);
-			PHYSICS::UpdateTransform(selectedActor);
+		if (isGrabbing)
+		{
+			Grab(deltaTime);
+		}
 
-			//selectedActor->GetComponent<TransformComponent>()->pos = Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z);
+		if (isRotating)
+		{
+
+		}
+
+		if (isScaling)
+		{
+
 		}
 	}
 
+	// Update vulkan meshes to spin
 	if (renderer->GetRendererType() == RendererType::VULKAN)
 	{
 		marioTransform->orientation = QMath::angleAxisRotation(90.0f * deltaTime, Vec3::up()) * marioTransform->orientation;
@@ -491,10 +624,15 @@ void Scene0::Render() const
 
 		// Draw debug primitives
 		{
-			//glUseProgram(debugShader->GetProgram());
+			glUseProgram(debugShader->GetProgram());
 			
-			//glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, Matrix4());
-			//glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
+			glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, Matrix4());
+			glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
+
+			if (selectedActor && isClicking)
+			{
+				DrawDebug::DrawLine(mouseSelectionPos, selectedActor->GetComponent<TransformComponent>()->pos);
+			}
 			
 			//Vec3 p(0.0f, 0.0f, -10.0f);
 			//Quaternion q = QMath::angleAxisRotation(45.0f, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion();
@@ -761,3 +899,73 @@ void Scene0::showPhysicsMenu()
 		ImGui::TreePop();
 	}
 }
+
+void Scene0::Grab(const float deltaTime)
+{
+	if (VMath::mag(Vec3(deltaMouseScreenPos.x, deltaMouseScreenPos.y, deltaMouseScreenPos.z)) > 2.0f)
+	{
+		switch (constraint)
+		{
+		case MovementConstraint::None:
+			// Move object along view plane
+			break;
+		case MovementConstraint::XAxis:
+			// Move object on X axis
+			selectedActor->GetComponent<TransformComponent>()->pos.x += deltaMouseScreenPos.x * deltaTime;
+			break;
+		case MovementConstraint::YAxis:
+			// Move object on Y axis
+			selectedActor->GetComponent<TransformComponent>()->pos.y += deltaMouseScreenPos.y * deltaTime;
+			break;
+		case MovementConstraint::ZAxis:
+			// Move object on Z axis
+			selectedActor->GetComponent<TransformComponent>()->pos.z += deltaMouseScreenPos.y * deltaTime;
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void Scene0::Rotate(const float deltaTime)
+{
+	switch (constraint)
+	{
+	case MovementConstraint::None:
+		// Rotate object along view plane
+		break;
+	case MovementConstraint::XAxis:
+		// Rotate object on X axis
+		break;
+	case MovementConstraint::YAxis:
+		// Rotate object on Y axis
+		break;
+	case MovementConstraint::ZAxis:
+		// Rotate object on Z axis
+		break;
+	default:
+		break;
+	}
+}
+
+void Scene0::Scale(const float deltaTime)
+{
+	switch (constraint)
+	{
+	case MovementConstraint::None:
+		// Scale object uniformly
+		break;
+	case MovementConstraint::XAxis:
+		// Scale object on X axis
+		break;
+	case MovementConstraint::YAxis:
+		// Scale object on Y axis
+		break;
+	case MovementConstraint::ZAxis:
+		// Scale object on Z axis
+		break;
+	default:
+		break;
+	}
+}
+

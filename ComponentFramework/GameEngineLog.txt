@@ -1,4 +1,4 @@
-Thu Nov 16 14:47:00 2023
+Thu Nov 16 17:23:50 2023
 [INFO]: Starting the SceneManager
 [INFO]: OpenGL Version: 4.6.0 NVIDIA 536.67
 [INFO]: Graphics card vendor NVIDIA Corporation
@@ -53,3 +53,4 @@ Thu Nov 16 14:47:00 2023
 "rawHDRI" loc:0
 "view" loc:-1
 
+[INFO]: Image Loaded

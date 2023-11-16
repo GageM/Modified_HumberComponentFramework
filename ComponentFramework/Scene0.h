@@ -18,6 +18,14 @@ class MaterialComponent;
 class OpenGLRenderer;
 class VulkanRenderer;
 
+enum class MovementConstraint
+{
+	None,
+	XAxis,
+	YAxis,
+	ZAxis
+};
+
 struct Scene0 : public Scene
 {
 private:
@@ -28,16 +36,32 @@ private:
 	Vec4 selectionColor;
 	float outlineScale;
 
+	// Flags for object selection & movement
 	bool isClicking;
 
+	bool isGrabbing = false;
+	bool isRotating = false;
+	bool isScaling = false;
+
+	// Enum class to dictate behaviour of grab, rotate, & scale
+	MovementConstraint constraint;
+
+	// The vector contrtolling the force of gravity
 	Vec3 gravity;
 
 	// These will store the mouse position in 2D & 3D space
 	Vec4 mouseScreenPos;
+	Vec4 mouseNDCCoords;
+	Vec4 mousePerspectiveCoords;
 	Vec4 mouseWorldPos;
+
+	Vec4 deltaMouseScreenPos;
+	Vec4 deltaMouseWorldPos;
 
 	// The point represented by the mouse world position + ( the normal of the camera * the distance from the camera to the selected object )
 	Vec4 mouseSelectionPos;
+
+	float selectionDistance;
 
 	// For Adjusting Selected Actor
 	Ref<Actor> selectedActor;
@@ -52,6 +76,10 @@ private:
 	void showMaterialMenu();
 	void showLightsMenu();
 	void showPhysicsMenu();
+
+	void Grab(const float deltaTime);
+	void Rotate(const float deltaTime);
+	void Scale(const float deltaTime);
 
 	// For Vulkan: Variables needed before integration with main program
 	Ref<TransformComponent> marioTransform;
@@ -78,6 +106,7 @@ public:
 
 	// Keep track of Actors from XML asset manager
 	std::unordered_map< std::string, Ref<Actor>> actors;
+
 	// We only have one camera and light, so they don't need to be in the map
 	Ref<CameraActor> camera;
 

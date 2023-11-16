@@ -23,29 +23,30 @@ void PHYSICS::UpdateOrientation(Ref<PhysicsComponent> body, const float deltaTim
 	Quaternion rotation;
 
 	// Can you solve all angles at once?
-	//rotation = QMath::angleAxisRotation(VMath::mag(body->angularVel), VMath::normalize(body->angularVel));
-	//body->orientation = rotation * body->orientation;
+	rotation = QMath::angleAxisRotation(VMath::mag(body->angularVel), VMath::normalize(body->angularVel));
+	body->orientation = rotation * body->orientation;
 
 	// Solve X rotation and add to orientation
-	rotation = QMath::angleAxisRotation(body->angularVel.x, Vec3::right());
-	body->orientation = rotation * body->orientation;
+	//rotation = QMath::angleAxisRotation(body->angularVel.x, Vec3::right());
+	//body->orientation = rotation * body->orientation;
 
 	// Solve Y rotation and add to orientation
-	rotation = QMath::angleAxisRotation(body->angularVel.y, Vec3::up());
-	body->orientation = rotation * body->orientation;
+	//rotation = QMath::angleAxisRotation(body->angularVel.y, Vec3::up());
+	//body->orientation = rotation * body->orientation;
 
 	// Solve Z rotation and add to orientation
-	rotation = QMath::angleAxisRotation(body->angularVel.z, Vec3::forward());
-	body->orientation = rotation * body->orientation;
+	//rotation = QMath::angleAxisRotation(body->angularVel.z, Vec3::forward());
+	//body->orientation = rotation * body->orientation;
 }
 
 void PHYSICS::UpdateTransform(Ref<Actor> actor)
 {
 	Ref<TransformComponent> transform = actor->GetComponent<TransformComponent>();
-	Ref<PhysicsComponent> physics = actor->GetComponent<PhysicsComponent>();
 
 	// Do nothing if the actor does not have a transform component
 	if (!transform) return;
+
+	Ref<PhysicsComponent> physics = actor->GetComponent<PhysicsComponent>();
 
 	// Do nothing if the actor has no physics component
 	if (!physics) return;
