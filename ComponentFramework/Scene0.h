@@ -83,6 +83,7 @@ public:
 
 	std::unordered_map <std::string, Ref<LightActor>> lights;
 	//Ref<LightActor> light;
+
 	Ref<Skybox> skybox;
 
 	std::vector<Ref<Ray>> rays;

@@ -13,12 +13,12 @@
 #define Size1 128
 #define Size2 256
 #define Size3 (10 * KB)
-#define Size4 (1 * MB)
+#define Size4 (10 * MB)
 
 // THESE VALUES CONTROL THE AMOUNT OF MEMORY SEGMENTS OF EACH SIZE
 #define Count0 55000
 #define Count1 500
-#define Count2 50
+#define Count2 500
 #define Count3 50
 #define Count4 50
 

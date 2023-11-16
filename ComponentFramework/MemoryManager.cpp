@@ -1,4 +1,5 @@
 #include "MemoryManager.h"
+#include "Debug.h"
 
 
 // NEW & DELETE OVERRIDES 
@@ -165,7 +166,10 @@ void* MemoryManager::allocate(const size_t numBytes)
 	else
 	{
 		// TO SOLVE: CHECK 'numBytes' AND INCREASE THE SIZE OF THE LARGEST MEMORY SEGMENT SO IT CAN HOLD 'numBytes'
-		printf("ERROR NO MEMORY AVAILABLE!\n");
+		std::string errorMsg = "LARGEST MEMORY SLOT CONTAINS TOO LITTLE MEMORY! NEEDS TO BE OF SIZE: ";
+		errorMsg.append(std::to_string(numBytes));
+
+		Debug::FatalError(errorMsg, __FILE__, __LINE__);
 		throw;
 		return nullptr;
 	}
@@ -183,8 +187,9 @@ void* MemoryManager::allocate(const size_t numBytes)
 		}
 	}
 	
-
-	printf("ERROR NO MEMORY AVAILABLE!\n");
+	std::string errorMsg = "NOT ENOUGH MEMORY SLOTS OF SIZE: ";
+	errorMsg.append(std::to_string(numBytes));
+	Debug::FatalError(errorMsg, __FILE__, __LINE__);
 	// TO SOLVE: CHECK 'numBytes' AND INCREASE THE AMOUNT OF MEMORY SEGMENTS OF THAT SIZE UNTIL... 
 	// ...THERE ARE ENOUGH SLOTS FOR ALL DATA OF SIZE 'numBytes'
 	throw;

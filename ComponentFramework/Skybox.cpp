@@ -61,8 +61,6 @@ bool Skybox::OnCreate()
 	default:
 		break;
 	}
-
-
 	
 	return true;
 }
