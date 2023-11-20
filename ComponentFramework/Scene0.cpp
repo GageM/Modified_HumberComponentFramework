@@ -26,23 +26,25 @@
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 
-Scene0::Scene0(Ref<Renderer> renderer_) : 
-	Scene(renderer_, false), 
-	assetManager(nullptr), 
-	bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), 
+Scene0::Scene0(Ref<Renderer> renderer_) :
+	Scene(renderer_, false),
+	assetManager(nullptr),
+	bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)),
 	debugColor(Vec4(0.0f, 0.0f, 1.0f, 1.0f)),
-	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), 
-	selectedActorName(""), 
-	outlineScale(1.05f), 
-	culledActors(0), 
-	isClicking(false), 
+	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)),
+	selectedActorName(""),
+	outlineScale(1.05f),
+	culledActors(0),
+	isClicking(false),
 	gravity(Vec3(0.0f, -9.81f, 0.0f)),
-	mouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), 
-	mouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), 
-	marioTransform(nullptr), 
-	deltaMouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), 
-	deltaMouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), 
-	constraint(MovementConstraint::None)
+	mouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)),
+	mouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)),
+	marioTransform(nullptr),
+	deltaMouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)),
+	deltaMouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)),
+	constraint(MovementConstraint::None),
+
+	particleTest(nullptr)
 {
 	assetManager = std::make_shared<XMLAssetManager>(renderer);
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
@@ -81,6 +83,16 @@ bool Scene0::OnCreate()
 		skybox = assetManager->GetComponent<Skybox>("MainSkybox"); 
 
 		debugShader = assetManager->GetComponent<ShaderComponent>("debugShader");
+
+		particleTest = std::make_shared<ParticleComponent>(nullptr, renderer, 10);
+		particleTest->OnCreate();
+
+		Ref<MaterialComponent> particleMat = std::make_shared<MaterialComponent>(nullptr, renderer);
+		particleMat->SetShader(assetManager->GetComponent<ShaderComponent>("PBR_Shader"));
+		particleMat->SetCubemap(skybox->GetCubemap());
+		particleMat->OnCreate();
+
+		particleTest->SetMaterial(particleMat);
 	}
 		break;
 	case RendererType::VULKAN:
@@ -117,6 +129,8 @@ void Scene0::OnDestroy()
 	if(skybox) skybox = nullptr;
 
 	if (marioTransform) marioTransform = nullptr;
+
+	if (particleTest) particleTest = nullptr;
 }
 
 void Scene0::HandleEvents(const SDL_Event& sdlEvent)
@@ -412,8 +426,7 @@ void Scene0::Update(const float deltaTime)
 		}
 	}
 	
-
-
+	// Solve actor physics
 	if (selectedActor)
 	{
 		// Object physics on selected actor
@@ -462,6 +475,9 @@ void Scene0::Update(const float deltaTime)
 
 		}
 	}
+
+	// Run particle sim
+	particleTest->Simulate(gravity, deltaTime);
 
 	// Update vulkan meshes to spin
 	if (renderer->GetRendererType() == RendererType::VULKAN)
@@ -519,12 +535,6 @@ void Scene0::Render() const
 					}
 					actor->GetComponent<MaterialComponent>()->PostRender();
 
-					// Draw actor particle system
-					//glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
-					//glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
-					//actor->GetComponent<ParticleComponent>()->Render();
-
-
 					// Draw actor collider
 					glUseProgram(debugShader->GetProgram());
 					if (renderCollisionShapes) {
@@ -541,6 +551,7 @@ void Scene0::Render() const
 			}
 		}
 
+		// Draw selection
 		if (selectedActor)
 		{
 
@@ -600,6 +611,7 @@ void Scene0::Render() const
 			}
 		}
 
+		// Draw raycasts
 		if (renderRaycasts)
 		{
 			glUseProgram(debugShader->GetProgram());
@@ -634,6 +646,9 @@ void Scene0::Render() const
 			//DrawDebug::DrawCylinder(Vec3(0.0f, -1.0f, -10.0f), Vec3(0.0f, 1.0f, -10.0f), q, 0.5f, 12);
 		
 		}
+
+		// Draw particle system
+		particleTest->Render();
 
 		break;
 	}

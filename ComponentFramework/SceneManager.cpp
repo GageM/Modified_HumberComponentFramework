@@ -19,9 +19,16 @@
 // This style using : to initialize
 // gets them done before the constructor even starts
 SceneManager::SceneManager(): 
-	currentScene(nullptr), timer(nullptr), controllerManager(nullptr),
-	fps(60), isRunning(false), fullScreen(false), show_demo_window(false),
-	handleEventsProfiler(nullptr), updateProfiler(nullptr), renderProfiler(nullptr),
+	currentScene(nullptr), 
+	timer(nullptr), 
+	controllerManager(nullptr),
+	fps(60), 
+	isRunning(false), 
+	fullScreen(false), 
+	show_demo_window(false),
+	handleEventsProfiler(nullptr), 
+	updateProfiler(nullptr), 
+	renderProfiler(nullptr),
 	controller(nullptr),
 	rendererType(RendererType::OPENGL)
 {
@@ -189,7 +196,19 @@ void SceneManager::Run() {
 
 		HandleGUI();
 
-
+		// This needs to be here for ImGui to work
+		switch (rendererType)
+		{
+		case RendererType::OPENGL:
+			SDL_GL_SwapWindow(glRenderer->GetWindow());
+			SDL_Delay(timer->GetSleepTime(fps));
+			break;
+		case RendererType::VULKAN:
+			// TODO:: Implement Vulkan Renderer ImGui
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -315,18 +334,7 @@ void SceneManager::Render()
 
 	currentScene->Render();
 
-	switch (rendererType)
-	{
-	case RendererType::OPENGL:
-		SDL_GL_SwapWindow(glRenderer->GetWindow());
-		SDL_Delay(timer->GetSleepTime(fps));
-		break;
-	case RendererType::VULKAN:
-		// TODO:: Implement Vulkan Renderer ImGui
-		break;
-	default:
-		break;
-	}
+
 
 	if (enableProfilers)
 	{

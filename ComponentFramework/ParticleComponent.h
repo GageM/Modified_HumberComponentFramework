@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "MeshComponent.h"
-#include "ShaderComponent.h"
+#include "MaterialComponent.h"
 
 using namespace MATH;
 
@@ -32,7 +32,12 @@ public:
 class ParticleComponent : Component
 {
 public:
-	ParticleComponent(Ref<Component> parent_, Ref<Renderer> renderer_, Ref<MeshComponent> instance_, int particleCount_ = 1);
+	ParticleComponent(
+		Ref<Component> parent_, 
+		Ref<Renderer> renderer_,
+		int particleCount_ = 1,
+		Ref<MaterialComponent> material_ = nullptr, 
+		Ref<MeshComponent> instance_ = nullptr);
 	// using = default; is the same as {};
 	~ParticleComponent() = default;
 	bool OnCreate();
@@ -40,9 +45,22 @@ public:
 	void Update(const float deltaTime_);
 	void Render()const;
 
+	// Helper functions
+
+	// Getters
+	inline Ref<MaterialComponent> GetMaterial() { return material; }
+	inline Ref<MeshComponent> GetInstance() { return instance; }
+
+	// Setters
+	inline void SetMaterial(const Ref<MaterialComponent> m) { material = m; }
+	inline void SetInstance(const Ref<MeshComponent> i) { instance = i; }
+
 	// Simulation bounds
-	Vec3 boundingBoxPosition;
-	Vec3 boundingBoxHalfExtents;
+	Vec3 bBPosition;
+	Vec3 bBHalfExtents;
+
+	// Simulation Parameters
+	const float dampening;
 
 	// Particle info
 	int particleCount;
@@ -50,11 +68,11 @@ public:
 
 	void Simulate(const Vec3& force, const float deltaTime);
 
-	void UpdateParticle(Ref<Particle> point, const Vec3& force, const float deltaTime);
+	void UpdateParticle(Ref<Particle> p, const Vec3& force, const float deltaTime);
 
 private:
 	Ref<MeshComponent> instance;
-	Ref<ShaderComponent> shader;
+	Ref<MaterialComponent> material;
 };
 
 

@@ -15,6 +15,7 @@ class Ray;
 struct RayIntersectionInfo;
 class ShaderComponent;
 class MaterialComponent;
+class ParticleComponent;
 
 class OpenGLRenderer;
 class VulkanRenderer;
@@ -117,6 +118,8 @@ public:
 	Ref<Skybox> skybox;
 
 	std::vector<Ref<Ray>> rays;
+
+	Ref<ParticleComponent> particleTest;
 
 	Ref<ShaderComponent> debugShader;
 
