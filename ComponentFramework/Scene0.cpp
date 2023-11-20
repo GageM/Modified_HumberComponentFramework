@@ -14,6 +14,7 @@
 #include "MaterialComponent.h"
 #include "PhysicsComponent.h"
 #include "Physics.h"
+#include "ParticleComponent.h"
 
 #include "DrawDebug.h"
 
@@ -64,8 +65,9 @@ bool Scene0::OnCreate()
 			lights[name] = assetManager->GetComponent<LightActor>(name.c_str());
 		}
 
-		skybox = std::make_shared<Skybox>(camera, renderer);
-		skybox->OnCreate();
+		skybox = assetManager->GetComponent<Skybox>("MainSkybox"); 
+		//skybox = std::make_shared<Skybox>(camera, renderer);
+		//skybox->OnCreate();
 
 		debugShader = assetManager->GetComponent<ShaderComponent>("debugShader");
 	}
@@ -108,14 +110,11 @@ void Scene0::OnDestroy()
 
 void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 {
-	std::mutex mtx;
 	mtx.lock();
-
 	Ref<TransformComponent> cameraTransform = camera->GetComponent <TransformComponent>();
-	switch (sdlEvent.type) {
 
 	// Keyboard Button Pressed
-	case SDL_KEYDOWN:
+	if(sdlEvent.type == SDL_KEYDOWN)
 	{
 		if (!showMenu)
 		{
@@ -221,12 +220,10 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 				break;
 			}
 		}
-
-		break;
 	}
 
 	// Mouse Movement
-	case SDL_MOUSEMOTION:
+	else if (sdlEvent.type == SDL_MOUSEMOTION)
 	{
 		// Capture last mouse position;
 		deltaMouseScreenPos = mouseScreenPos;
@@ -246,12 +243,10 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		// Get the change in mouse position
 		deltaMouseScreenPos = mouseScreenPos - deltaMouseScreenPos;
 		deltaMouseWorldPos = mouseWorldPos - deltaMouseWorldPos;
-
-		break;
 	}
 		
 	// Mouse Button Pressed
-	case SDL_MOUSEBUTTONDOWN:
+	else if (sdlEvent.type == SDL_MOUSEBUTTONDOWN)
 	{
 		switch (sdlEvent.button.button)
 		{
@@ -324,12 +319,10 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		default:
 			break;
 		}
-
-		break;
 	}
 
 	// Mouse Button Released
-	case SDL_MOUSEBUTTONUP:
+	else if (sdlEvent.type == SDL_MOUSEBUTTONUP)
 	{
 		switch (sdlEvent.button.button)
 		{
@@ -341,12 +334,10 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		default:
 			break;
 		}
-
-		break;
 	}
 
 	// Controller Button Pressed
-	case SDL_CONTROLLERBUTTONDOWN:
+	else if (sdlEvent.type == SDL_CONTROLLERBUTTONDOWN)
 	{
 		switch (sdlEvent.cbutton.button)
 		{
@@ -374,12 +365,10 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		default:
 			break;
 		}
-
-		break;
 	}
 
 	// Controller Stick Movement
-	case SDL_CONTROLLERAXISMOTION:
+	else if (sdlEvent.type == SDL_CONTROLLERAXISMOTION)
 	{
 		switch (sdlEvent.caxis.axis)
 		{
@@ -394,12 +383,6 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		default:
 			break;
 		}
-
-		break;
-	}
-
-	default:
-		break;
 	}
 
 	mtx.unlock();
@@ -407,11 +390,7 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 
 void Scene0::Update(const float deltaTime)
 {
-	std::mutex mtx;
 	mtx.lock();
-
-
-
 	// Clear drawn rays after they age out
 	for (unsigned int i = 0; i < rays.size(); i++)
 	{
@@ -432,8 +411,6 @@ void Scene0::Update(const float deltaTime)
 			Ref<PhysicsComponent> body = selectedActor->GetComponent<PhysicsComponent>();
 			if (body)
 			{
-
-
 				Vec3 rayStart = -camera->GetComponent<TransformComponent>()->pos;
 				Vec3 rayDir = VMath::normalize(mouseWorldPos - rayStart);
 
@@ -456,16 +433,19 @@ void Scene0::Update(const float deltaTime)
 			}
 		}
 
+		// Move selected actor in viewport
 		if (isGrabbing)
 		{
 			Grab(deltaTime);
 		}
 
+		// Rotate selected actor in viewport
 		if (isRotating)
 		{
 
 		}
 
+		// Scale selected actor in viewport
 		if (isScaling)
 		{
 
@@ -477,13 +457,11 @@ void Scene0::Update(const float deltaTime)
 	{
 		marioTransform->orientation = QMath::angleAxisRotation(90.0f * deltaTime, Vec3::up()) * marioTransform->orientation;
 	}
-
 	mtx.unlock();
 }
 
 void Scene0::Render() const
 {
-	std::mutex mtx;
 	mtx.lock();
 	switch (renderer->GetRendererType()) {
 
@@ -524,14 +502,17 @@ void Scene0::Render() const
 					glUseProgram(actor->GetComponent<MaterialComponent>()->GetShader()->GetProgram());
 					glUniformMatrix4fv(actor->GetComponent<MaterialComponent>()->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
 
-					actor->GetComponent<MaterialComponent>()->SetCubemap(skybox->GetCubemap());
-
 					actor->GetComponent<MaterialComponent>()->Render();
 					if (renderMeshes) {
 						actor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 					}
-
 					actor->GetComponent<MaterialComponent>()->PostRender();
+
+					// Draw actor particle system
+					//glUniformMatrix4fv(debugShader->GetUniformID("modelMatrix"), 1, GL_FALSE, actor->GetModelMatrix());
+					//glUniform4fv(debugShader->GetUniformID("debugColor"), 1, debugColor);
+					//actor->GetComponent<ParticleComponent>()->Render();
+
 
 					// Draw actor collider
 					glUseProgram(debugShader->GetProgram());
@@ -591,13 +572,11 @@ void Scene0::Render() const
 				glUseProgram(selectedActor->GetComponent<MaterialComponent>()->GetShader()->GetProgram());
 				glUniformMatrix4fv(selectedActor->GetComponent<MaterialComponent>()->GetShader()->GetUniformID("modelMatrix"), 1, GL_FALSE, selectedActor->GetModelMatrix());
 
-				selectedActor->GetComponent<MaterialComponent>()->SetCubemap(skybox->GetCubemap());
-
 				selectedActor->GetComponent<MaterialComponent>()->Render();
 				if (renderMeshes) {
 					selectedActor->GetComponent<MeshComponent>()->Render(GL_TRIANGLES);
 				}
-
+				selectedActor->GetComponent<MaterialComponent>()->PostRender();
 
 				//glStencilMask(0xFF);
 				glUseProgram(debugShader->GetProgram());

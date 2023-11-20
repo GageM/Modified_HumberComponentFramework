@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 #include "Actor.h"
 #include "LightActor.h"
 #include "CameraActor.h"
@@ -105,7 +106,7 @@ public:
 	virtual void HandleGUI();
 
 	// Keep track of Actors from XML asset manager
-	std::unordered_map< std::string, Ref<Actor>> actors;
+	std::unordered_map<std::string, Ref<Actor>> actors;
 
 	// We only have one camera and light, so they don't need to be in the map
 	Ref<CameraActor> camera;
@@ -118,6 +119,8 @@ public:
 	std::vector<Ref<Ray>> rays;
 
 	Ref<ShaderComponent> debugShader;
+
+	mutable std::mutex mtx;
 
 	// TODO for Assignment 2:
 	// We'll use a ray to click on our geometry objects 

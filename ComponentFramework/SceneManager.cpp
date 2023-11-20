@@ -175,35 +175,21 @@ void SceneManager::Run() {
 	while (isRunning) {
 
 		// Handle Events
+		// Can't be called in a thread. Events can only be viewed from main thread
 		HandleEvents();
-		//std::thread eventsThread([this] {HandleEvents(); });
 	
 		// Update
-		Update();
-		//std::thread updateThread([this] {Update(); });
+		//Update();
+		std::thread updateThread([this] {Update(); });
 
 		// Render
 		Render();
-		//std::thread renderThread([this] {Render(); });
 
-		//eventsThread.join();
-		//updateThread.join();
-		//renderThread.join();
+		updateThread.join();
 
 		HandleGUI();
 
-		switch (rendererType)
-		{
-		case RendererType::OPENGL:
-			SDL_GL_SwapWindow(glRenderer->GetWindow());
-			SDL_Delay(timer->GetSleepTime(fps));
-			break;
-		case RendererType::VULKAN:
-			// TODO:: Implement Vulkan Renderer ImGui
-			break;
-		default:
-			break;
-		}
+
 	}
 }
 
@@ -216,6 +202,8 @@ void SceneManager::HandleEvents() {
 
 	SDL_Event sdlEvent;
 	while (SDL_PollEvent(&sdlEvent)) {
+
+		// Handle ImGui events per render engine
 		switch (rendererType)
 		{
 		case::RendererType::OPENGL:
@@ -232,25 +220,38 @@ void SceneManager::HandleEvents() {
 			isRunning = false;
 			return;
 		}
+
 		else if (sdlEvent.type == SDL_KEYDOWN) {
 			switch (sdlEvent.key.keysym.scancode) {
+
 				// Toggle Menus
 			case SDL_SCANCODE_TAB:
+			{
 				showSceneMenu = !showSceneMenu;
 				currentScene->showMenu = showSceneMenu;
 				break;
+			}
 
+				// Quit Game/ Game Engine
 			case SDL_SCANCODE_ESCAPE:
+			{
 				isRunning = false;
 				return;
 				[[fallthrough]]; /// C17 Prevents switch/case fallthrough warnings
+			}
+
+				// Default
 			default:
+			{
 				break;
+			}
+
 			}
 		}
 
 		else if (sdlEvent.type == SDL_CONTROLLERBUTTONDOWN)
 		{
+			// Face Buttons
 			switch (sdlEvent.cbutton.button)
 			{
 			case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A:
@@ -272,10 +273,11 @@ void SceneManager::HandleEvents() {
 		}
 
 		if (currentScene == nullptr) {
-			Debug::FatalError("Failed to initialize Scene", __FILE__, __LINE__);
+			Debug::FatalError("No current scene", __FILE__, __LINE__);
 			isRunning = false;
 			return;
 		}
+
 		currentScene->HandleEvents(sdlEvent);
 	}
 
@@ -312,6 +314,19 @@ void SceneManager::Render()
 	}
 
 	currentScene->Render();
+
+	switch (rendererType)
+	{
+	case RendererType::OPENGL:
+		SDL_GL_SwapWindow(glRenderer->GetWindow());
+		SDL_Delay(timer->GetSleepTime(fps));
+		break;
+	case RendererType::VULKAN:
+		// TODO:: Implement Vulkan Renderer ImGui
+		break;
+	default:
+		break;
+	}
 
 	if (enableProfilers)
 	{

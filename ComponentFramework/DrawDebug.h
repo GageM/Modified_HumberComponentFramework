@@ -5,6 +5,9 @@
 #include <Vector.h>
 #include <Quaternion.h>
 
+// DO NOT USE IN PROGRAM UNLESS ABSOLUTELY NECESSARY
+// These functions, while easy to use, also use a ridiculous amount of memory
+
 using namespace MATH;
 
 class DrawDebug

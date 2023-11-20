@@ -188,7 +188,7 @@
 			 falloffx="0.0" falloffy="0.0" falloffz="0.0"/>	
     
     <!-- Set up skybox actor-->
-    <Skybox name="Skybox1" parent="Camera1" mesh ="CubeMesh" shader="CubemapShader" cubemap="mainCubemap"/>
+    <Skybox name="MainSkybox" parent="Camera1" mesh ="CubeMesh" shader="CubemapShader" cubemap="mainCubemap"/>
     
   </Scene0>
 </Root>

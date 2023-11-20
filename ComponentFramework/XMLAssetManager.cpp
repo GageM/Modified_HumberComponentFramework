@@ -239,12 +239,17 @@ void XMLAssetManager::AddTexture(const tinyxml2::XMLElement* child)
 
 void XMLAssetManager::AddCubemap(const tinyxml2::XMLElement* child)
 {
-	/*
-	Ref<CubemapComponent> cubemap = std::make_shared<CubemapComponent>(nullptr, child->Attribute("PXfile"), child->Attribute("PYfile"), child->Attribute("PZfile"),
-		child->Attribute("NXfile"), child->Attribute("NYfile"), child->Attribute("NZfile"));
+	if (std::string(child->Name()) == "Cubemap") {
+	Ref<CubemapComponent> cubemap = std::make_shared<CubemapComponent>(nullptr, renderer, 
+		child->Attribute("PXfile"), 
+		child->Attribute("PYfile"), 
+		child->Attribute("PZfile"),
+		child->Attribute("NXfile"),
+		child->Attribute("NYfile"), 
+		child->Attribute("NZfile"));
 	cubemap->OnCreate();
 	AddComponent<CubemapComponent>(child->Attribute("name"), cubemap);
-	*/
+	}
 }
 
 void XMLAssetManager::AddShader(const tinyxml2::XMLElement* child)
@@ -267,6 +272,7 @@ void XMLAssetManager::AddMaterial(const tinyxml2::XMLElement* child)
 			child->FloatAttribute("metallic"));
 
 		material->SetShader(GetComponent<ShaderComponent>("PBR_Shader"));
+		material->SetCubemap(GetComponent<CubemapComponent>("mainCubemap"));
 
 		material->OnCreate();
 
@@ -361,7 +367,13 @@ void XMLAssetManager::AddSkybox(const tinyxml2::XMLElement* child, Ref<Component
 {
 	if (std::string(child->Name()) == "Skybox")
 	{
-		Ref<Skybox> skybox = std::make_shared<Skybox>(GetComponent<Component>(child->Attribute("parent")), renderer);
+		Ref<Skybox> skybox = std::make_shared<Skybox>(
+			GetComponent<Component>(child->Attribute("parent")), 
+			renderer,
+			GetComponent<MeshComponent>(child->Attribute("mesh")),
+			GetComponent<ShaderComponent>(child->Attribute("shader")),
+			GetComponent<CubemapComponent>(child->Attribute("cubemap"))
+			);
 
 		AddComponent(child->Attribute("name"), skybox);
 	}
@@ -452,6 +464,10 @@ void XMLAssetManager::AddMaterialToActor(const tinyxml2::XMLElement* child, Ref<
 		Ref<MaterialComponent> material = GetComponent<MaterialComponent>(name);
 		actor->AddComponent<MaterialComponent>(name, material);
 	}
+}
+
+void XMLAssetManager::SaveAssets()
+{
 }
 
 

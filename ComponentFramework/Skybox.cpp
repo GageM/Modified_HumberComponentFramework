@@ -30,20 +30,29 @@ Skybox::~Skybox()
 bool Skybox::OnCreate()
 {
 	// Add Mesh Component
-	mesh = std::make_shared<MeshComponent>(nullptr, renderer, "meshes/Cube.obj");
-	mesh->OnCreate();
+	if (!mesh)
+	{
+		mesh = std::make_shared<MeshComponent>(nullptr, renderer, "meshes/Cube.obj");
+		mesh->OnCreate();
+	}
 
 	// Add Shader Component
-	shader = std::make_shared<ShaderComponent>(nullptr, renderer, "shaders/SkyboxVert.glsl", "shaders/SkyboxFrag.glsl");
-	shader->OnCreate();
+	if (!shader)
+	{
+		shader = std::make_shared<ShaderComponent>(nullptr, renderer, "shaders/SkyboxVert.glsl", "shaders/SkyboxFrag.glsl");
+		shader->OnCreate();
+	}
 
 	hdrShader = std::make_shared<ShaderComponent>(nullptr, renderer, "shaders/HDRIMapVert.glsl", "shaders/HDRIMapFrag.glsl");
 	hdrShader->OnCreate();
 
 	// Add CubemapComponent
-	cubemap = std::make_shared<CubemapComponent>(nullptr, renderer, "textures/CN_Tower/posx.jpg", "textures/CN_Tower/posy.jpg", "textures/CN_Tower/posz.jpg",
-		"textures/CN_Tower/negx.jpg", "textures/CN_Tower/negy.jpg", "textures/CN_Tower/negz.jpg");
-	cubemap->OnCreate();
+	if (!cubemap)
+	{
+		cubemap = std::make_shared<CubemapComponent>(nullptr, renderer, "textures/CN_Tower/posx.jpg", "textures/CN_Tower/posy.jpg", "textures/CN_Tower/posz.jpg",
+			"textures/CN_Tower/negx.jpg", "textures/CN_Tower/negy.jpg", "textures/CN_Tower/negz.jpg");
+		cubemap->OnCreate();
+	}
 
 	switch (renderer->GetRendererType())
 	{

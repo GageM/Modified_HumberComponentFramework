@@ -76,7 +76,7 @@ struct XMLAssetManager {
 	void AddPhysicsToActor  (const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent);
 	void AddMaterialToActor(const tinyxml2::XMLElement* child, Ref<Actor> actor, Ref<Component> parent); // NEW!
 
-
+	void SaveAssets();
 
 
 	//XMLAssetManager() {}

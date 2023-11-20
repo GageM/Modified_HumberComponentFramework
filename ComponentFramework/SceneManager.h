@@ -44,7 +44,7 @@ private:
 	
 	Ref<ControllerManager> controllerManager;
 	SDL_GameController* controller;
-	
+		
 	unsigned int fps;
 	bool isRunning;
 	bool fullScreen;

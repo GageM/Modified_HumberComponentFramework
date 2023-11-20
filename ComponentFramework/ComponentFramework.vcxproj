@@ -171,6 +171,7 @@
     <ClCompile Include="LightActor.cpp" />
     <ClCompile Include="MaterialComponent.cpp" />
     <ClCompile Include="DrawDebug.cpp" />
+    <ClCompile Include="ParticleComponent.cpp" />
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="Skybox.cpp" />
@@ -217,6 +218,7 @@
     <ClInclude Include="LightActor.h" />
     <ClInclude Include="MaterialComponent.h" />
     <ClInclude Include="DrawDebug.h" />
+    <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="Skybox.h" />
