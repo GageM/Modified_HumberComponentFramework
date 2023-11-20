@@ -26,10 +26,23 @@
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 
-Scene0::Scene0(Ref<Renderer> renderer_) : Scene(renderer_, false), assetManager(nullptr), bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), debugColor(Vec4(0.0f, 0.0f, 1.0f, 1.0f)),
-	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), selectedActorName(""), outlineScale(1.05f), culledActors(0), isClicking(false), gravity(Vec3(0.0f, -9.81f, 0.0f)),
-	mouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), mouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), marioTransform(nullptr), 
-	deltaMouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), deltaMouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), constraint(MovementConstraint::None)
+Scene0::Scene0(Ref<Renderer> renderer_) : 
+	Scene(renderer_, false), 
+	assetManager(nullptr), 
+	bGColor(Vec4(0.0f, 0.0f, 0.0f, 1.0f)), 
+	debugColor(Vec4(0.0f, 0.0f, 1.0f, 1.0f)),
+	selectionColor(Vec4(1.0f, 0.5f, 0.0f, 1.0f)), 
+	selectedActorName(""), 
+	outlineScale(1.05f), 
+	culledActors(0), 
+	isClicking(false), 
+	gravity(Vec3(0.0f, -9.81f, 0.0f)),
+	mouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), 
+	mouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), 
+	marioTransform(nullptr), 
+	deltaMouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), 
+	deltaMouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)), 
+	constraint(MovementConstraint::None)
 {
 	assetManager = std::make_shared<XMLAssetManager>(renderer);
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
@@ -66,8 +79,6 @@ bool Scene0::OnCreate()
 		}
 
 		skybox = assetManager->GetComponent<Skybox>("MainSkybox"); 
-		//skybox = std::make_shared<Skybox>(camera, renderer);
-		//skybox->OnCreate();
 
 		debugShader = assetManager->GetComponent<ShaderComponent>("debugShader");
 	}
