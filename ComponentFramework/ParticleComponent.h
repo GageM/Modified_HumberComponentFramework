@@ -5,6 +5,7 @@
 
 #include "MeshComponent.h"
 #include "MaterialComponent.h"
+#include "KDTree.h"
 
 using namespace MATH;
 
@@ -35,7 +36,9 @@ public:
 	ParticleComponent(
 		Ref<Component> parent_, 
 		Ref<Renderer> renderer_,
-		int particleCount_ = 1,
+		const int& particleCount_ = 1,
+		const float& particleRadius_ = 1.0f, 
+		const Vec3& initialVelocity_ = Vec3::right(),
 		Ref<MaterialComponent> material_ = nullptr, 
 		Ref<MeshComponent> instance_ = nullptr);
 	// using = default; is the same as {};
@@ -61,18 +64,35 @@ public:
 
 	// Simulation Parameters
 	const float dampening;
+	const int subFrameIterations;
 
 	// Particle info
 	int particleCount;
 	std::vector<Ref<Particle>> particles;
 
+	const float particleRadius;
+	const Vec3 initialVelocity;
+
 	void Simulate(const Vec3& force, const float deltaTime);
 
 	void UpdateParticle(Ref<Particle> p, const Vec3& force, const float deltaTime);
 
+	// Returns the index of the nearest particle to the one given
+	int IndexOfNearest(Ref<Particle> p);
+
+
+	inline void SetHalfExtents(const Vec3& v) { bBHalfExtents = v; }
 private:
 	Ref<MeshComponent> instance;
 	Ref<MaterialComponent> material;
+
+	// Needed for particle collisions
+	Ref<KDTree::Node> particleTree;
+
+	float timeSinceLastSpawn;
+	float spawnDelay;
 };
+
+
 
 

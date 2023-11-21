@@ -182,7 +182,7 @@
 	  </Camera>
 
 	  <Light lightname="Light1" parent="none" lightstyle="DirectionLight"
-			 posx="0.0" posy="0.0" posz="-10.0"
+			 posx="0.0" posy="30.0" posz="6.0"
 		     red="1.0" green="1.0" blue="1.0" alpha="1.0"
 			 intensity="3.0"
 			 falloffx="0.0" falloffy="0.0" falloffz="0.0"/>	

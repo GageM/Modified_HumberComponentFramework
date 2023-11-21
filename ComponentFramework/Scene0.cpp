@@ -55,7 +55,7 @@ Scene0::~Scene0()
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
 }
 
-bool Scene0::OnCreate()
+bool Scene0::OnCreate()	
 {
 	switch (renderer->GetRendererType())
 	{
@@ -84,12 +84,15 @@ bool Scene0::OnCreate()
 
 		debugShader = assetManager->GetComponent<ShaderComponent>("debugShader");
 
-		particleTest = std::make_shared<ParticleComponent>(nullptr, renderer, 10);
+		particleTest = std::make_shared<ParticleComponent>(nullptr, renderer, 30, 0.1f, Vec3(3.0f, 0.0f, 0.0f));
+		particleTest->SetHalfExtents(Vec3(35.0f, 35.0f, 35.0f));
 		particleTest->OnCreate();
 
 		Ref<MaterialComponent> particleMat = std::make_shared<MaterialComponent>(nullptr, renderer);
 		particleMat->SetShader(assetManager->GetComponent<ShaderComponent>("PBR_Shader"));
 		particleMat->SetCubemap(skybox->GetCubemap());
+		particleMat->baseColor = Vec4(0.3f, 0.5f, 0.7f, 1.0f);
+		particleMat->roughness = 0.1f;
 		particleMat->OnCreate();
 
 		particleTest->SetMaterial(particleMat);
@@ -476,7 +479,8 @@ void Scene0::Update(const float deltaTime)
 		}
 	}
 
-	// Run particle sim
+	// Update & Run particle sim
+	particleTest->Update(deltaTime);
 	particleTest->Simulate(gravity, deltaTime);
 
 	// Update vulkan meshes to spin
