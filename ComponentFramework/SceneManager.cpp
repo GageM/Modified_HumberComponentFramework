@@ -25,7 +25,7 @@ SceneManager::SceneManager():
 	fps(60), 
 	isRunning(false), 
 	fullScreen(false), 
-	show_demo_window(false),
+	show_demo_window(true),
 	handleEventsProfiler(nullptr), 
 	updateProfiler(nullptr), 
 	renderProfiler(nullptr),
@@ -366,25 +366,36 @@ void SceneManager::HandleGUI()
 			ImGui::SetWindowSize(ImVec2(600.0f, 300.0f));
 			ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
 
-			if (ImGui::CollapsingHeader("System"))
+			ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+			if (ImGui::BeginTabBar("", tab_bar_flags))
 			{
-				showSystemMenu();
-			}
-
-			if (ImGui::CollapsingHeader("Scene Manager"))
-			{
-				if (ImGui::TreeNode("Settings"))
+				if (ImGui::BeginTabItem("System"))
 				{
-					ImGui::TreePop();
+					showSystemMenu();
+					ImGui::EndTabItem();
 				}
-				if (ImGui::TreeNode("Profilers"))
-				{
-					showProfilerMenu();
-				}
-			}
 
-			// Add Scene Menu  
-			currentScene->HandleGUI();
+				if (ImGui::BeginTabItem("Scene Manager"))
+				{
+					if (ImGui::TreeNode("Settings"))
+					{
+						ImGui::TreePop();
+					}
+					if (ImGui::TreeNode("Profilers"))
+					{
+						showProfilerMenu();
+					}
+
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("Scene"))
+				{
+					currentScene->HandleGUI();
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
+			}
 
 			ImGui::End();
 

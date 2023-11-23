@@ -33,15 +33,9 @@ public:
 class ParticleComponent : Component
 {
 public:
-	ParticleComponent(
-		Ref<Component> parent_, 
-		Ref<Renderer> renderer_,
-		const int& particleCount_ = 1,
-		const float& particleRadius_ = 1.0f, 
-		const Vec3& initialVelocity_ = Vec3::right(),
-		Ref<MaterialComponent> material_ = nullptr, 
-		Ref<MeshComponent> instance_ = nullptr);
-	// using = default; is the same as {};
+	ParticleComponent( Ref<Component> parent_, Ref<Renderer> renderer_, const int& particleCount_ = 1, const float& particleRadius_ = 1.0f, 
+		const Vec3& initialVelocity_ = Vec3::right(), Ref<MaterialComponent> material_ = nullptr, Ref<MeshComponent> instance_ = nullptr);
+
 	~ParticleComponent() = default;
 	bool OnCreate();
 	void OnDestroy();

@@ -5,31 +5,11 @@
 // Fluid Sim based on 'fluid simulation with geometry nodes' by CGMatter
 // https://www.youtube.com/watch?v=-RBbVCphQPw
 
-ParticleComponent::ParticleComponent(
-	Ref<Component> parent_,
-	Ref<Renderer> renderer_,
-	const int& particleCount_,
-	const float& particleRadius_,
-	const Vec3& initialVelocity_,
-	Ref<MaterialComponent> material_,
-	Ref<MeshComponent> instance_) :
-	// Initialization
-	// Base Parameters
-	Component(parent_, renderer_),
-	particleCount(particleCount_),
-	material(material_),
-	instance(instance_),
-	timeSinceLastSpawn(0.0f),
-
-	// Sim parameters
-	particleRadius(particleRadius_),
-	initialVelocity(initialVelocity_),
-
-	bBPosition(Vec3(0.0f, 2.0f, -5.0f)),
-	bBHalfExtents(Vec3(10.0f, 10.0f, 10.0f)),
-	dampening(0.96f),
-	subFrameIterations(300),
-	spawnDelay(0.1f)
+ParticleComponent::ParticleComponent(Ref<Component> parent_,Ref<Renderer> renderer_,
+	const int& particleCount_, const float& particleRadius_, const Vec3& initialVelocity_,
+	Ref<MaterialComponent> material_, Ref<MeshComponent> instance_) : Component(parent_, renderer_), particleCount(particleCount_), 
+	material(material_), instance(instance_), timeSinceLastSpawn(0.0f), particleRadius(particleRadius_), initialVelocity(initialVelocity_), 
+	bBPosition(Vec3(0.0f, 2.0f, -5.0f)),bBHalfExtents(Vec3(10.0f, 10.0f, 10.0f)), dampening(0.96f), subFrameIterations(300), spawnDelay(0.1f)
 {
 }
 
@@ -203,12 +183,7 @@ int ParticleComponent::IndexOfNearest(Ref<Particle> p)
 	return index;
 }
 
-Particle::Particle(
-	Vec3 position_, 
-	float radius_, 
-	Vec3 velocity_, 
-	Vec3 acceleration_, 
-	float mass_) :
+Particle::Particle(	Vec3 position_, float radius_, Vec3 velocity_, Vec3 acceleration_, float mass_) :
 	// Initialization
 	position(position_), 
 	radius(radius_), 

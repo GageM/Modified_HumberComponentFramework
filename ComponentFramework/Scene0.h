@@ -78,6 +78,11 @@ private:
 	void showMaterialMenu();
 	void showLightsMenu();
 	void showPhysicsMenu();
+	void showMaterialSwapMenu();
+	
+	void SetActorMaterial(Ref<Actor> actor, Ref<MaterialComponent> material, std::string newMaterialName);
+
+	void CreateNewDefaultMaterial();
 
 	void Grab(const float deltaTime);
 	void Rotate(const float deltaTime);

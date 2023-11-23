@@ -45,12 +45,13 @@ struct XMLAssetManager {
 
 	// Returns a vector of components of a given type
 	template<typename Type>
-	std::vector<Ref<Type>> GetAllComponentsOfType() const
+	std::unordered_map<std::string, Ref<Type>> GetAllComponentsOfType() const
 	{
-		std::vector<Ref<Type>> componentsOfType;
+		std::unordered_map< std::string, Ref<Type> > componentsOfType;		
+
 		for (auto const& pair : xmlAssets) {
 			if (std::dynamic_pointer_cast<Type>(pair.second) != nullptr) {
-				componentsOfType.push_back(std::dynamic_pointer_cast<Type>(pair.second));
+				componentsOfType[pair.first] = std::dynamic_pointer_cast<Type>(pair.second);
 			}
 		}
 		return componentsOfType;

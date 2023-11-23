@@ -84,7 +84,8 @@ bool Scene0::OnCreate()
 
 		debugShader = assetManager->GetComponent<ShaderComponent>("debugShader");
 
-		particleTest = std::make_shared<ParticleComponent>(nullptr, renderer, 30, 0.1f, Vec3(3.0f, 0.0f, 0.0f));
+		// Particle Component Testing
+		particleTest = std::make_shared<ParticleComponent>(nullptr, renderer, 1, 0.1f, Vec3(3.0f, 0.0f, 0.0f));
 		particleTest->SetHalfExtents(Vec3(35.0f, 35.0f, 35.0f));
 		particleTest->OnCreate();
 
@@ -690,24 +691,23 @@ void Scene0::HandleGUI()
 		switch (renderer->GetRendererType())
 		{
 		case RendererType::OPENGL:
-			if (ImGui::CollapsingHeader("Scene"))
+
+			showSceneSettings();
+			showHeirarchy();
+			
+			if (ImGui::TreeNode("Add Actor"))
 			{
-				showSceneSettings();
-				showHeirarchy();
-
-				if (ImGui::TreeNode("Add Actor"))
-				{
-					showAddActorMenu();
-					ImGui::TreePop();
-				}
-
-				// If there is an actor selected show the dropdown
-				if (selectedActor && ImGui::TreeNode(selectedActorName.c_str()))
-				{
-					showSelectionSettings();
-					ImGui::TreePop();
-				}
+				showAddActorMenu();
+				ImGui::TreePop();
 			}
+			
+			// If there is an actor selected show the dropdown
+			if (selectedActor && ImGui::TreeNode(selectedActorName.c_str()))
+			{
+				showSelectionSettings();
+				ImGui::TreePop();
+			}
+			
 			break;
 		default:
 			break;
@@ -841,7 +841,26 @@ void Scene0::showComponentMenu()
 
 void Scene0::showAddActorMenu()
 {
-	// TODO:: Add an add actor menu
+	// Print out all usable components
+	if (ImGui::TreeNode("Meshes"))
+	{
+		for (const auto& pair : assetManager->GetAllComponentsOfType<MeshComponent>())
+		{
+			ImGui::Text("%s", pair.first.c_str());
+		}
+		ImGui::TreePop();
+	}
+
+
+	if (ImGui::TreeNode("Textures"))
+	{
+		for (const auto& pair : assetManager->GetAllComponentsOfType<TextureComponent>())
+		{
+			ImGui::Text("%s", pair.first.c_str());
+		}
+		ImGui::TreePop();
+	}
+
 }
 
 void Scene0::showMaterialMenu()
@@ -849,7 +868,14 @@ void Scene0::showMaterialMenu()
 	Ref<MaterialComponent> material = selectedActor->GetComponent<MaterialComponent>();
 	if (!material) return;
 
-	if (ImGui::TreeNode("Material"))
+	showMaterialSwapMenu();
+
+	if (ImGui::Button("Add New Material"))
+	{
+		CreateNewDefaultMaterial();
+	}
+
+	if (ImGui::TreeNode("Material Properties"))
 	{
 		ImGui::ColorEdit4("Base Color", material->baseColor);
 		ImGui::DragFloat("Roughness", &material->roughness, 0.01f, 0.0f, 1.0f);
@@ -907,6 +933,71 @@ void Scene0::showPhysicsMenu()
 		ImGui::DragFloat("Z", &gravity.z, 0.1f, -100.0f, 100.0f);
 		ImGui::TreePop();
 	}
+}
+
+void Scene0::showMaterialSwapMenu()
+{
+	// Get a list of all the material names
+	std::vector<std::string> names;
+	for (const auto& pair : assetManager->GetAllComponentsOfType<MaterialComponent>())
+	{
+		names.push_back(pair.first);
+	}
+
+	static int item_current_idx = -1;
+
+	std::unordered_map <std::string, Ref<MaterialComponent>> materialList = selectedActor->GetAllComponentsOfType<MaterialComponent>();
+	std::pair <std::string, Ref<MaterialComponent>> pair = std::pair <std::string, Ref<MaterialComponent>>(materialList.begin()->first, materialList.begin()->second);
+
+	int materialSlot = 0;
+
+	for (const auto& pair : materialList)
+	{
+		std::string slotName = "Material Slot "; slotName.append(std::to_string(materialSlot));
+		if (ImGui::BeginCombo(slotName.c_str(), pair.first.c_str()))
+		{
+			for (int i = 0; i < names.size(); i++)
+			{
+				const bool is_selected = (item_current_idx == i);
+				if (ImGui::Selectable(names[i].c_str(), is_selected))
+				{
+					item_current_idx = i;
+					SetActorMaterial(selectedActor, assetManager->GetComponent<MaterialComponent>(names[i].c_str()), names[i]);
+				}
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_selected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+		materialSlot++;
+	}
+
+}
+
+void Scene0::SetActorMaterial(Ref<Actor> actor, Ref<MaterialComponent> material, std::string newMaterialName)
+{
+	actor->RemoveComponent<MaterialComponent>();
+	actor->AddComponent<MaterialComponent>(newMaterialName, material);
+}
+
+void Scene0::CreateNewDefaultMaterial()
+{
+	// Create a new default material
+	Ref<MaterialComponent> material = std::make_shared<MaterialComponent>(nullptr, renderer);
+	material->SetCubemap(skybox->GetCubemap());
+	material->SetShader(assetManager->GetComponent<ShaderComponent>("PBR_Shader"));
+	material->OnCreate();
+
+	// Create a default name for the new material
+	std::string materialName = "Material ";
+	materialName.append(std::to_string(assetManager->GetAllComponentsOfType<MaterialComponent>().size()));
+
+	// Add the new material to the asset manager
+	assetManager->AddComponent(materialName.c_str(), material);
 }
 
 void Scene0::Grab(const float deltaTime)

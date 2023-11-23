@@ -104,6 +104,23 @@ public:
 		return Ref<Type>(nullptr);
 	}
 
+	// Returns an unordered map of all components of a given type
+	template<typename Type>
+	std::unordered_map<std::string, Ref<Type>> GetAllComponentsOfType()
+	{
+		std::unordered_map<std::string, Ref<Type>> result;
+
+		for (const auto& component : components)
+		{
+			// if the component has the same name and is the right type
+			if (std::dynamic_pointer_cast<Type>(component.second))
+			{
+				result[component.first] = std::dynamic_pointer_cast<Type>(component.second);
+			}
+		}
+		return result;
+	}
+
 	// Removes a component given a name and type
 	template<typename Type>
 	void RemoveComponent(std::string name)
@@ -124,7 +141,7 @@ public:
 	{
 		for (const auto& component : components)
 		{
-			if (std::dynamic_pointer_cast<Type>(component) != nullptr)
+			if (std::dynamic_pointer_cast<Type>(component.second) != nullptr)
 			{
 				components.erase(component.first);
 				break;
