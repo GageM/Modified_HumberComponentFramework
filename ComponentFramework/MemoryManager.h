@@ -11,16 +11,16 @@
 // AVAILABLE MEMORY IN EACH SEGMENT WILL BE 1 BYTE LESS Eg, 64 Bytes -> 63 Bytes
 #define Size0 64
 #define Size1 128
-#define Size2 256
+#define Size2 512
 #define Size3 (10 * KB)
-#define Size4 (10 * MB)
+#define Size4 (2 * MB)
 
 // THESE VALUES CONTROL THE AMOUNT OF MEMORY SEGMENTS OF EACH SIZE
 #define Count0 55000
 #define Count1 2000
 #define Count2 500
-#define Count3 50
-#define Count4 50
+#define Count3 100
+#define Count4 30
 
 
 class MemoryMonitor
@@ -78,6 +78,8 @@ public:
 private:
 	size_t segmentCount[5]{ Count0, Count1, Count2, Count3, Count4 };
 	size_t segmentSize[5]{ Size0, Size1, Size2, Size3, Size4 };
+	char* memoryBlocks[5]{ blockSet0, blockSet1, blockSet2, blockSet3, blockSet4 };
+	int blockCount = 5;
 
 	MemoryManager();
 };

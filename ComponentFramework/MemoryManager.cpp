@@ -89,37 +89,18 @@ void MemoryMonitor::Print(std::size_t numBytes, bool isAllocating)
 // MEMORY MANAGER
 MemoryManager::MemoryManager()
 {
-	printf("PREALLOCATING MEMORY\n");
-	char* blockSetIterator = blockSet0;
-	for (int i = 0; i < Count0; i++)
+	for (int n = 0; n < blockCount; n++)
 	{
-		size_t index = i * Size0;
-		blockSetIterator[index] = 'a';
+		char* blockSetIterator = memoryBlocks[n];
+		{
+			for (int i = 0; i < segmentCount[n]; i++)
+			{
+				size_t index = i * segmentSize[n];
+				blockSetIterator[index] = 'a';
+			}
+		}
 	}
-	blockSetIterator = blockSet1;
-	for (int i = 0; i < Count1; i++)
-	{
-		size_t index = i * Size1;
-		blockSetIterator[index] = 'a';
-	}
-	blockSetIterator = blockSet2;
-	for (int i = 0; i < Count2; i++)
-	{
-		size_t index = i * Size2;
-		blockSetIterator[index] = 'a';
-	}
-	blockSetIterator = blockSet3;
-	for (int i = 0; i < Count3; i++)
-	{
-		size_t index = i * Size3;
-		blockSetIterator[index] = 'a';
-	}
-	blockSetIterator = blockSet4;
-	for (int i = 0; i < Count4; i++)
-	{
-		size_t index = i * Size4;
-		blockSetIterator[index] = 'a';
-	}
+	printf("PREALLOCATED MEMORY\n");
 }
 
 MemoryManager::~MemoryManager()
@@ -135,39 +116,41 @@ MemoryManager& MemoryManager::GetInstance()
 
 void* MemoryManager::allocate(const size_t numBytes)
 {
-	int blockSelector;
-	char* blockSetIterator;
+	int blockSelector = 0;
+	char* blockSetIterator = memoryBlocks[0];
 
-	if (numBytes < Size0)
+	bool foundUsableBlock = false;
+
+	for (int i = 0; i < blockCount; i++)
 	{
-		blockSelector = 0;
-		blockSetIterator = blockSet0;
+		if (numBytes < segmentSize[i])
+		{
+			blockSelector = i;
+			blockSetIterator = memoryBlocks[i];
+			foundUsableBlock = true;
+			break;
+		}
 	}
-	else if (numBytes < Size1)
-	{
-		blockSelector = 1;
-		blockSetIterator = blockSet1;
-	}
-	else if (numBytes < Size2)
-	{
-		blockSelector = 2;
-		blockSetIterator = blockSet2;
-	}
-	else if (numBytes < Size3)
-	{
-		blockSelector = 3;
-		blockSetIterator = blockSet3;
-	}
-	else if (numBytes < Size4)
-	{
-		blockSelector = 4;
-		blockSetIterator = blockSet4;
-	}
-	else
+
+	if (!foundUsableBlock)
 	{
 		// TO SOLVE: CHECK 'numBytes' AND INCREASE THE SIZE OF THE LARGEST MEMORY SEGMENT SO IT CAN HOLD 'numBytes'
 		std::string errorMsg = "LARGEST MEMORY SLOT CONTAINS TOO LITTLE MEMORY! NEEDS TO BE OF SIZE: ";
-		errorMsg.append(std::to_string(numBytes));
+		unsigned long long v = numBytes;
+		if (v > MB)
+		{
+			v /= MB;
+			errorMsg.append(std::to_string(v) + " MB");
+		}
+		else if (v > KB)
+		{
+			v /= KB;
+			errorMsg.append(std::to_string(v) + " KB");
+		}
+		else
+		{
+			errorMsg.append(std::to_string(v));
+		};
 
 		Debug::FatalError(errorMsg, __FILE__, __LINE__);
 		throw;
@@ -188,7 +171,21 @@ void* MemoryManager::allocate(const size_t numBytes)
 	}
 	
 	std::string errorMsg = "NOT ENOUGH MEMORY SLOTS OF SIZE: ";
-	errorMsg.append(std::to_string(numBytes));
+	unsigned long long v = numBytes;
+	if (v > MB)
+	{
+		v /= MB;
+		errorMsg.append(std::to_string(v) + " MB");
+	}
+	else if (v > KB)
+	{
+		v /= KB;
+		errorMsg.append(std::to_string(v) + " KB");
+	}
+	else
+	{
+		errorMsg.append(std::to_string(v));
+	}
 	Debug::FatalError(errorMsg, __FILE__, __LINE__);
 	// TO SOLVE: CHECK 'numBytes' AND INCREASE THE AMOUNT OF MEMORY SEGMENTS OF THAT SIZE UNTIL... 
 	// ...THERE ARE ENOUGH SLOTS FOR ALL DATA OF SIZE 'numBytes'
