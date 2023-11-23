@@ -335,15 +335,28 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 
 			// Right Mouse Button
 		case SDL_BUTTON_RIGHT:
-			if (!isClicking && selectedActor)
+			if (selectedActor)
 			{
-				// Get orthographic distance to the object from the camera
-				Vec4 objectOrthoPos = camera->GetViewMatrix() * selectedActor->GetModelMatrix() * selectedActor->GetComponent<TransformComponent>()->pos;
+				Vec3 rayStart = -cameraTransform->pos;
+				Vec3 rayDir = VMath::normalize(mouseWorldPos - rayStart);
 
-				selectionDistance = abs(objectOrthoPos.z);
+				Matrix4 worldToLocalSpace = MMath::inverse(selectedActor->GetModelMatrix());
+				Vec4 localSpaceRayStart = worldToLocalSpace * Vec4(rayStart, 1.0f);
+				Vec4 localSpaceRayDir = worldToLocalSpace * Vec4(rayDir, 0.0f);
+				Ray localSpaceRay(localSpaceRayStart, localSpaceRayDir);
+
+				rayInfo = std::make_shared<RayIntersectionInfo>(selectedActor->GetComponent<ShapeComponent>()->shape->rayIntersectionInfo(localSpaceRay));
+
+				if (rayInfo->isIntersected)
+				{
+					mouseSelectionPos = selectedActor->GetModelMatrix() * rayInfo->intersectionPoint;
+					isClicking = true;
+				}
+
+
 			}
 
-			isClicking = true;
+
 			break;
 		default:
 			break;
@@ -439,10 +452,10 @@ void Scene0::Update(const float deltaTime)
 			Ref<PhysicsComponent> body = selectedActor->GetComponent<PhysicsComponent>();
 			if (body)
 			{
-				Vec3 rayStart = -camera->GetComponent<TransformComponent>()->pos;
-				Vec3 rayDir = VMath::normalize(mouseWorldPos - rayStart);
-
-				mouseSelectionPos = rayStart + rayDir * selectionDistance;
+				//Vec3 rayStart = -camera->GetComponent<TransformComponent>()->pos;
+				//Vec3 rayDir = VMath::normalize(mouseWorldPos - rayStart);
+				//
+				//mouseSelectionPos = rayStart + rayDir * selectionDistance;
 
 				float dragCoeff = 0.25f;
 				Vec3 dragForce = body->vel * (-dragCoeff);
