@@ -433,72 +433,76 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 void Scene0::Update(const float deltaTime)
 {
 	mtx.lock();
-	// Clear drawn rays after they age out
-	for (unsigned int i = 0; i < rays.size(); i++)
+
+	if (renderer->GetRendererType() == RendererType::OPENGL)
 	{
-		rays[i]->age += deltaTime;
-		if (rays[i]->age >= rays[i]->maxAge)
+		// Clear drawn rays after they age out
+		for (unsigned int i = 0; i < rays.size(); i++)
 		{
-			rays.erase(rays.begin() + i);
-		}
-	}
-	
-	// Solve actor physics
-	if (selectedActor)
-	{
-		// Object physics on selected actor
-		if (isClicking)
-		{
-			Ref<PhysicsComponent> body = selectedActor->GetComponent<PhysicsComponent>();
-			if (body)
+			rays[i]->age += deltaTime;
+			if (rays[i]->age >= rays[i]->maxAge)
 			{
-				//Vec3 rayStart = -camera->GetComponent<TransformComponent>()->pos;
-				//Vec3 rayDir = VMath::normalize(mouseWorldPos - rayStart);
-				//
-				//mouseSelectionPos = rayStart + rayDir * selectionDistance;
-
-				float dragCoeff = 0.25f;
-				Vec3 dragForce = body->vel * (-dragCoeff);
-				Vec3 netForce = gravity + dragForce;
-
-				PHYSICS::ApplyForce(body, netForce);
-				PHYSICS::UpdateVel(body, deltaTime);
-				PHYSICS::MouseConstraint(body, deltaTime, Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z));
-
-
-				PHYSICS::UpdatePos(body, deltaTime);
-				//PHYSICS::UpdateOrientation(body, deltaTime);
-				PHYSICS::UpdateTransform(selectedActor);
-
-				//selectedActor->GetComponent<TransformComponent>()->pos = Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z);
+				rays.erase(rays.begin() + i);
 			}
 		}
 
-		// Move selected actor in viewport
-		if (isGrabbing)
+		// Solve actor physics
+		if (selectedActor)
 		{
-			Grab(deltaTime);
+			// Object physics on selected actor
+			if (isClicking)
+			{
+				Ref<PhysicsComponent> body = selectedActor->GetComponent<PhysicsComponent>();
+				if (body)
+				{
+					//Vec3 rayStart = -camera->GetComponent<TransformComponent>()->pos;
+					//Vec3 rayDir = VMath::normalize(mouseWorldPos - rayStart);
+					//
+					//mouseSelectionPos = rayStart + rayDir * selectionDistance;
+
+					float dragCoeff = 0.25f;
+					Vec3 dragForce = body->vel * (-dragCoeff);
+					Vec3 netForce = gravity + dragForce;
+
+					PHYSICS::ApplyForce(body, netForce);
+					PHYSICS::UpdateVel(body, deltaTime);
+					PHYSICS::MouseConstraint(body, deltaTime, Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z));
+
+
+					PHYSICS::UpdatePos(body, deltaTime);
+					//PHYSICS::UpdateOrientation(body, deltaTime);
+					PHYSICS::UpdateTransform(selectedActor);
+
+					//selectedActor->GetComponent<TransformComponent>()->pos = Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z);
+				}
+			}
+
+			// Move selected actor in viewport
+			if (isGrabbing)
+			{
+				Grab(deltaTime);
+			}
+
+			// Rotate selected actor in viewport
+			if (isRotating)
+			{
+
+			}
+
+			// Scale selected actor in viewport
+			if (isScaling)
+			{
+
+			}
 		}
 
-		// Rotate selected actor in viewport
-		if (isRotating)
-		{
-
-		}
-
-		// Scale selected actor in viewport
-		if (isScaling)
-		{
-
-		}
+		// Update & Run particle sim
+		particleTest->Update(deltaTime);
+		particleTest->Simulate(gravity, deltaTime);
 	}
 
-	// Update & Run particle sim
-	particleTest->Update(deltaTime);
-	particleTest->Simulate(gravity, deltaTime);
-
 	// Update vulkan meshes to spin
-	if (renderer->GetRendererType() == RendererType::VULKAN)
+	else if (renderer->GetRendererType() == RendererType::VULKAN)
 	{
 		marioTransform->orientation = QMath::angleAxisRotation(90.0f * deltaTime, Vec3::up()) * marioTransform->orientation;
 	}

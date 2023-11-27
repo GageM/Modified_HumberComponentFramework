@@ -565,7 +565,7 @@ void VulkanRenderer::createDescriptorSetLayout() {
     }
 }
 
-void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fragSPV) {
+void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fragSPV, const char* geoSPV) {
     auto vertShaderCode = readFile(vertSPV);
     auto fragShaderCode = readFile(fragSPV);
 
@@ -584,7 +584,28 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
     fragShaderStageInfo.module = fragShaderModule;
     fragShaderStageInfo.pName = "main";
 
-    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+    VkPipelineShaderStageCreateInfo* shaderStages;
+
+    if (geoSPV != nullptr)
+    {
+        auto geoShaderCode = readFile(geoSPV);
+
+        VkShaderModule geoShaderModule = createShaderModule(geoShaderCode);
+
+        VkPipelineShaderStageCreateInfo geoShaderStageInfo{};
+        geoShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        geoShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        geoShaderStageInfo.module = geoShaderModule;
+        geoShaderStageInfo.pName = "main";
+
+        VkPipelineShaderStageCreateInfo temp[] = { vertShaderStageInfo, geoShaderStageInfo, fragShaderStageInfo };
+        shaderStages = temp;
+    }
+    else
+    {
+        VkPipelineShaderStageCreateInfo temp[] = { vertShaderStageInfo, fragShaderStageInfo };
+        shaderStages = temp;
+    }
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -1292,7 +1313,7 @@ void VulkanRenderer::recordCommandBuffer(uint32_t currentImage)
     {
         for (int i = 0; i < meshes.size(); i++)
         {
-            meshPushConstants.modelMatrix = MMath::translate(Vec3(3.0f, 0.0f, 0.0f)) * meshPushConstants.modelMatrix;
+            SetMeshPushConstants(MMath::translate(Vec3(3.0f, 0.0f, 0.0f)) * meshPushConstants.modelMatrix);
 
             // TODO::PUSH_CONSTANTS: Send the push constants to the command buffer (model matrix)
             vkCmdPushConstants(commandBuffers[currentImage], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(meshPushConstants), &meshPushConstants);
@@ -1357,6 +1378,7 @@ void VulkanRenderer::SetGLightsUBO(const int& index, const Vec4& position, const
 void VulkanRenderer::SetMeshPushConstants(const Matrix4& modelMatrix)
 {
     meshPushConstants.modelMatrix = modelMatrix;
+    meshPushConstants.normalMatrix = MMath::inverse(MMath::transpose(modelMatrix));
 }
 
 // TODO::UBO: updateUBO implementation

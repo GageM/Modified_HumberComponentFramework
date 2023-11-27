@@ -126,6 +126,7 @@ struct GLightsUBO {
 
 struct MeshPushConstants {
     Matrix4 modelMatrix;
+    Matrix4 normalMatrix;
 };
 
 struct Buffer {
@@ -160,7 +161,7 @@ public:
     void SetMeshPushConstants(const Matrix4& modelMatrix);
     SDL_Window* GetWindow() { return window; }
     void CreateTextureImage(const char* filename_);
-    void CreateGraphicsPipeline(const char* vertSPV, const char* fragSPV);
+    void CreateGraphicsPipeline(const char* vertSPV, const char* fragSPV, const char* goeSPV = nullptr);
     void LoadModelIndexed(const char* filename);
 
 private:
