@@ -142,7 +142,7 @@ void VulkanRenderer::initVulkan() {
     createRenderPass();
     createDescriptorSetLayout();
 
-    useGeometryShader = true;
+    useGeometryShader = false;
 
     // if else to debug geometry shader
     if (useGeometryShader)
@@ -615,14 +615,14 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
 
 
     VkShaderModule geoShaderModule{};
+    VkPipelineShaderStageCreateInfo geoShaderStageInfo{};
 
-    if (geoSPV != nullptr)
+    if (useGeometryShader && geoSPV != nullptr)
     {
         auto geoShaderCode = readFile(geoSPV);
 
         geoShaderModule = createShaderModule(geoShaderCode);
 
-        VkPipelineShaderStageCreateInfo geoShaderStageInfo{};
         geoShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         geoShaderStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
         geoShaderStageInfo.module = geoShaderModule;
@@ -731,7 +731,15 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount = 2;
+
+    if (useGeometryShader)
+    {
+        pipelineInfo.stageCount = 3;
+    }
+    else
+    {
+        pipelineInfo.stageCount = 2;
+    }
     pipelineInfo.pStages = shaderStages;
     pipelineInfo.pVertexInputState = &vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -752,7 +760,7 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
     vkDestroyShaderModule(device, fragShaderModule, nullptr);
     vkDestroyShaderModule(device, vertShaderModule, nullptr);
 
-    if (geoSPV != nullptr)
+    if (useGeometryShader)
     {
         vkDestroyShaderModule(device, geoShaderModule, nullptr);
     }
