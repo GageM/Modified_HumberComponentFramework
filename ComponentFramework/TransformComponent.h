@@ -66,7 +66,7 @@ struct TransformComponent : public Component {
 	}
 
 	// Getters for forward, right and up vectors from current orientation
-	Vec3 forward() { return VMath::normalize(orientation * Vec3(0.0f, 0.0f, 1.0f)); }
-	Vec3 right() { return VMath::normalize(orientation * Vec3(1.0f, 0.0f, 0.0f)); }
-	Vec3 up() { return VMath::normalize(orientation * Vec3(0.0f, 1.0f, 0.0f)); }
+	Vec3 forward() { return VMath::normalize(QMath::rotate(Vec3(0.0f, 0.0f, 1.0f), orientation)); }
+	Vec3 right() { return VMath::normalize(QMath::rotate(Vec3(1.0f, 0.0f, 0.0f), orientation)); }
+	Vec3 up() { return VMath::normalize(QMath::rotate(Vec3(0.0f, 1.0f, 0.0f), orientation)); }
 };

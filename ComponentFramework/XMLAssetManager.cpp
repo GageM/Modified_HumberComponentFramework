@@ -315,6 +315,12 @@ void XMLAssetManager::AddCamera(const tinyxml2::XMLElement* child)
 
 		camera->AddComponent<TransformComponent>("Transform", transform);
 		camera->OnCreate();
+
+		// Force add physics component to cameras (They are needed for smooth camera control)
+		Ref<PhysicsComponent> physics = nullptr;
+		physics = std::make_shared<PhysicsComponent>(nullptr, renderer, transform, 1.0f);
+		camera->AddComponent<PhysicsComponent>("Physics", physics);
+
 		AddComponent(child->Attribute("cameraname"), camera);
 	}
 }

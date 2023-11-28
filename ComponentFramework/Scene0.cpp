@@ -43,6 +43,10 @@ Scene0::Scene0(Ref<Renderer> renderer_) :
 	deltaMouseScreenPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)),
 	deltaMouseWorldPos(Vec4(0.0f, 0.0f, 0.0f, 0.0f)),
 	constraint(MovementConstraint::None),
+	cameraSpeed(300.0f),
+	cameraInput(Vec3()),
+	lookSensitivity(50.0f),
+	cameraLook(Vec3()),
 
 	particleTest(nullptr)
 {
@@ -175,40 +179,46 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 			// Raise/Lower Camera Y position
 			case SDL_SCANCODE_Q:
 			{
-				cameraTransform->SetTransform(cameraTransform->pos + Vec3(0.0f, 1.0f, 0.0f), cameraTransform->GetOrientation());
-				camera->UpdateViewMatrix();
+				//cameraTransform->SetTransform(cameraTransform->pos + Vec3(0.0f, 1.0f, 0.0f), cameraTransform->GetOrientation());
+				//camera->UpdateViewMatrix();
+				cameraInput.y += 1.0f;
 				break;
 			}
 			case SDL_SCANCODE_E:
 			{
-				cameraTransform->SetTransform(cameraTransform->pos + Vec3(0.0f, -1.0f, 0.0f), cameraTransform->GetOrientation());
-				camera->UpdateViewMatrix();
+				cameraInput.y -= 1.0f;
+				//cameraTransform->SetTransform(cameraTransform->pos + Vec3(0.0f, -1.0f, 0.0f), cameraTransform->GetOrientation());
+				//camera->UpdateViewMatrix();
 				break;
 			}
 
 			// Move Camera on XZ Plane
 			case SDL_SCANCODE_W:
 			{
-				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(0.0f, 0.0f, 1.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
-				camera->UpdateViewMatrix();
+				cameraInput.z += 1.0f;
+				//cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(0.0f, 0.0f, 1.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
+				//camera->UpdateViewMatrix();
 				break;
 			}
 			case SDL_SCANCODE_A:
 			{
-				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
-				camera->UpdateViewMatrix();
+				cameraInput.x += 1.0f;
+				//cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
+				//camera->UpdateViewMatrix();
 				break;
 			}
 			case SDL_SCANCODE_S:
 			{
-				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(0.0f, 0.0f, -1.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
-				camera->UpdateViewMatrix();
+				cameraInput.z -= 1.0f;
+				//cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(0.0f, 0.0f, -1.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
+				//camera->UpdateViewMatrix();
 				break;
 			}
 			case SDL_SCANCODE_D:
 			{
-				cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(-1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
-				camera->UpdateViewMatrix();
+				cameraInput.x -= 1.0f;
+				//cameraTransform->SetTransform(cameraTransform->pos + QMath::rotate(Vec3(-1.0f, 0.0f, 0.0f), cameraTransform->GetOrientation()), cameraTransform->GetOrientation());
+				//camera->UpdateViewMatrix();
 				break;
 			}
 
@@ -251,6 +261,30 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		}
 	}
 
+	else if (sdlEvent.type == SDL_KEYUP)
+	{
+		if (!showMenu)
+		{
+			switch (sdlEvent.key.keysym.scancode)
+			{
+				// Stop accelerating camera
+			case SDL_SCANCODE_Q:
+			case SDL_SCANCODE_E:
+			case SDL_SCANCODE_W:
+			case SDL_SCANCODE_A:
+			case SDL_SCANCODE_S:
+			case SDL_SCANCODE_D:
+			{
+				cameraInput = Vec3();
+				break;
+			}
+
+
+			default:
+				break;
+			}
+		}
+	}
 	// Mouse Movement
 	else if (sdlEvent.type == SDL_MOUSEMOTION)
 	{
@@ -399,14 +433,48 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 			printf("Y Button Pressed\n");
 			break;
 		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+			cameraInput.y -= 1.0f;
 			printf("Right Shoulder Pressed\n");
 			break;
 		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+			cameraInput.y += 1.0f;
 			printf("Left Shoulder Pressed\n");
 			break;
 		default:
 			break;
 		}
+	}
+
+	else if (sdlEvent.type == SDL_CONTROLLERBUTTONUP)
+	{
+		switch (sdlEvent.cbutton.button)
+		{
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A:
+			printf("A Button Released\n");
+			break;
+
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B:
+			printf("B Button Released\n");
+			break;
+
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X:
+			printf("X Button Released\n");
+			break;
+
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y:
+			printf("Y Button Released\n");
+			break;
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+			cameraInput.y = 0.0f;
+			printf("Right Shoulder Released\n");
+			break;
+		case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+			cameraInput.y = 0.0f;
+			printf("Left Shoulder Released\n");
+			break;
+		default:
+			break;
+	}
 	}
 
 	// Controller Stick Movement
@@ -415,12 +483,20 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		switch (sdlEvent.caxis.axis)
 		{
 		case SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX:
+			cameraInput.x = -(float)sdlEvent.caxis.value / 32767.0f;
+			if (abs(cameraInput.x) < 0.05f) cameraInput.x = 0.0f; // Create dead zone
 			break;
 		case SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY:
+			cameraInput.z = -(float)sdlEvent.caxis.value / 32767.0f;
+			if (abs(cameraInput.z) < 0.05f) cameraInput.z = 0.0f;  // Create dead zone
 			break;
 		case SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX:
+			cameraLook.y = (float)sdlEvent.caxis.value / 32767.0f;
+			if (abs(cameraLook.y) < 0.05f) cameraLook.y = 0.0f;  // Create dead zone
 			break;
 		case SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTY:
+			cameraLook.x = (float)sdlEvent.caxis.value / 32767.0f;
+			if (abs(cameraLook.x) < 0.05f) cameraLook.x = 0.0f;  // Create dead zone
 			break;
 		default:
 			break;
@@ -496,9 +572,30 @@ void Scene0::Update(const float deltaTime)
 			}
 		}
 
+		// Solve camera movement
+		Ref<PhysicsComponent> cameraPhysics = camera->GetComponent<PhysicsComponent>();
+		Ref<TransformComponent> cameraTransform = camera->GetComponent<TransformComponent>();
+
+		if (VMath::mag(cameraInput) > 0.1f)
+		{
+			cameraInput = VMath::normalize(cameraInput);
+		}
+		cameraInput *= cameraSpeed;
+
+		cameraPhysics->vel = (cameraTransform->forward() * cameraInput.z + cameraTransform->right() * cameraInput.x + cameraTransform->up() * cameraInput.y) * deltaTime;
+		PHYSICS::UpdatePos(cameraPhysics, deltaTime);
+		cameraTransform->pos = cameraPhysics->pos;
+
+		if (abs(cameraLook.y) > 0.3f) cameraTransform->orientation = QMath::angleAxisRotation(lookSensitivity * deltaTime, Vec3::up() * cameraLook.y) * cameraTransform->GetOrientation();
+		if (abs(cameraLook.x) > 0.3f) cameraTransform->orientation = QMath::angleAxisRotation(lookSensitivity * deltaTime, cameraTransform->right() * cameraLook.x) * cameraTransform->GetOrientation();
+		
+
+		//PHYSICS::UpdateTransform(camera); Can't use because it also affects orientation
+		camera->UpdateViewMatrix();
+
 		// Update & Run particle sim
-		particleTest->Update(deltaTime);
-		particleTest->Simulate(gravity, deltaTime);
+		//particleTest->Update(deltaTime);
+		//particleTest->Simulate(gravity, deltaTime);
 	}
 
 	// Update vulkan meshes to spin

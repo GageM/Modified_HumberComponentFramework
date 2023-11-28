@@ -51,6 +51,12 @@ private:
 	// The vector contrtolling the force of gravity
 	Vec3 gravity;
 
+	// Camera control settings
+	float cameraSpeed;
+	Vec3 cameraInput;
+	float lookSensitivity;
+	Vec3 cameraLook;
+
 	// These will store the mouse position in 2D & 3D space
 	Vec4 mouseScreenPos;
 	Vec4 mouseNDCCoords;
