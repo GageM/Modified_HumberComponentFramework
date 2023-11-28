@@ -160,8 +160,11 @@ void VulkanRenderer::initVulkan() {
     createCommandPool();
     createDepthResources();
     createFramebuffers();
+
+    // Create textures
     CreateTextureImage("textures/mario_fire.png");
-    createTextureImageView();
+    CreateTextureImage("textures/mario_mime.png");
+    //createTextureImageView("Mario Fire");
     createTextureSampler();
 
     // TODO::Meshes: Move this to MeshComponent
@@ -223,10 +226,11 @@ void VulkanRenderer::cleanup() {
     cleanupSwapChain();
 
     vkDestroySampler(device, textureSampler, nullptr);
-    vkDestroyImageView(device, textureImageView, nullptr);
 
-    vkDestroyImage(device, textureImage, nullptr);
-    vkFreeMemory(device, textureImageMemory, nullptr);
+    for (auto& texture : textures)
+    {
+        texture.OnDestroy(device);
+    }
 
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
@@ -844,6 +848,8 @@ void VulkanRenderer::CreateTextureImage(const char* filename_) {
     const char* filename = filename_;
     SDL_Surface* image = IMG_Load(filename);
 
+    Texture temp{};
+
     // Size of the image (width * height * 4 channels)
     VkDeviceSize imageSize = image->w * image->h * 4;
 
@@ -857,19 +863,23 @@ void VulkanRenderer::CreateTextureImage(const char* filename_) {
     vkUnmapMemory(device, stagingBufferMemory);
 
   
-    createImage(image->w, image->h, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
-    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(image->w), static_cast<uint32_t>(image->h));
-    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    createImage(image->w, image->h, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, temp.textureImage, temp.textureImageMemory);
+    transitionImageLayout(temp.textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyBufferToImage(stagingBuffer, temp.textureImage, static_cast<uint32_t>(image->w), static_cast<uint32_t>(image->h));
+    transitionImageLayout(temp.textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
 
     SDL_FreeSurface(image);
+
+    temp.textureImageView = createImageView(temp.textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+
+    textures.push_back(temp);
 }
 
 void VulkanRenderer::createTextureImageView() {
-    textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+    textures[textures.size() - 1].textureImageView = createImageView(textures[textures.size() - 1].textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 void VulkanRenderer::createTextureSampler() {
@@ -1188,7 +1198,8 @@ void VulkanRenderer::createDescriptorSets() {
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = textureImageView;
+        // TODO::Textures we can set different textures here
+        imageInfo.imageView = textures[textures.size() - 1].textureImageView;
         imageInfo.sampler = textureSampler;
 
         std::array<VkWriteDescriptorSet, 3> descriptorWrites{};

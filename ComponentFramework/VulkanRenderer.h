@@ -142,6 +142,20 @@ struct Mesh {
     std::vector<uint32_t> indices;
 };
 
+struct Texture
+{
+    VkImage textureImage;
+    VkDeviceMemory textureImageMemory;
+    VkImageView textureImageView;
+
+    void OnDestroy(VkDevice device) {
+
+        vkDestroyImageView(device, textureImageView, nullptr);
+        vkDestroyImage(device, textureImage, nullptr);
+        vkFreeMemory(device, textureImageMemory, nullptr);
+    }
+};
+
 class VulkanRenderer : public Renderer {
 public:
     /// C11 precautions 
@@ -193,6 +207,8 @@ private:
 
     
     std::vector<Mesh> meshes;
+
+    std::vector<Texture> textures;
 
     std::vector<Buffer>cameraBuffers;
     std::vector<Buffer>gLightsBuffers;
@@ -275,9 +291,8 @@ private:
     VkCommandBuffer beginSingleTimeCommands();
     void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
-    VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
-    VkImageView textureImageView;
+
+
     VkSampler textureSampler;
 
 
