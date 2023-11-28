@@ -141,7 +141,22 @@ void VulkanRenderer::initVulkan() {
     createImageViews();
     createRenderPass();
     createDescriptorSetLayout();
-    CreateGraphicsPipeline("shaders/vulkanShaders/phong.vert.spv", "shaders/vulkanShaders/phong.frag.spv");
+
+    useGeometryShader = true;
+
+    // if else to debug geometry shader
+    if (useGeometryShader)
+    {
+        CreateGraphicsPipeline("shaders/vulkanShaders/phong.vert.spv",
+            "shaders/vulkanShaders/drawNormals.frag.spv",
+            "shaders/vulkanShaders/drawNormals.geom.spv");
+    }
+    else
+    {
+        CreateGraphicsPipeline("shaders/vulkanShaders/phong.vert.spv",
+            "shaders/vulkanShaders/phong.frag.spv");
+    }
+
     createCommandPool();
     createDepthResources();
     createFramebuffers();
@@ -269,7 +284,18 @@ void VulkanRenderer::recreateSwapChain() {
     createSwapChain();
     createImageViews();
     createRenderPass();
-    CreateGraphicsPipeline("shaders/vulkanShaders/phong.vert.spv", "shaders/vulkanShaders/phong.frag.spv");
+    // if else to debug geometry shader
+    if (useGeometryShader)
+    {
+        CreateGraphicsPipeline("shaders/vulkanShaders/phong.vert.spv",
+            "shaders/vulkanShaders/drawNormals.frag.spv",
+            "shaders/vulkanShaders/drawNormals.geom.spv");
+    }
+    else
+    {
+        CreateGraphicsPipeline("shaders/vulkanShaders/phong.vert.spv",
+            "shaders/vulkanShaders/phong.frag.spv");
+    }
     createDepthResources();
     createFramebuffers();
     createCameraUBO();
@@ -385,6 +411,7 @@ void VulkanRenderer::createLogicalDevice() {
 
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
+    deviceFeatures.geometryShader = VK_TRUE;
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -538,7 +565,7 @@ void VulkanRenderer::createDescriptorSetLayout() {
     cameraLayoutBinding.descriptorCount = 1;
     cameraLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     cameraLayoutBinding.pImmutableSamplers = nullptr;
-    cameraLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    cameraLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT;
 
     VkDescriptorSetLayoutBinding gLightsLayoutBinding{};
     gLightsLayoutBinding.binding = 1;
@@ -586,15 +613,18 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
 
     VkPipelineShaderStageCreateInfo* shaderStages;
 
+
+    VkShaderModule geoShaderModule{};
+
     if (geoSPV != nullptr)
     {
         auto geoShaderCode = readFile(geoSPV);
 
-        VkShaderModule geoShaderModule = createShaderModule(geoShaderCode);
+        geoShaderModule = createShaderModule(geoShaderCode);
 
         VkPipelineShaderStageCreateInfo geoShaderStageInfo{};
         geoShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        geoShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        geoShaderStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
         geoShaderStageInfo.module = geoShaderModule;
         geoShaderStageInfo.pName = "main";
 
@@ -721,6 +751,11 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
 
     vkDestroyShaderModule(device, fragShaderModule, nullptr);
     vkDestroyShaderModule(device, vertShaderModule, nullptr);
+
+    if (geoSPV != nullptr)
+    {
+        vkDestroyShaderModule(device, geoShaderModule, nullptr);
+    }
 }
 
 void VulkanRenderer::createFramebuffers() {

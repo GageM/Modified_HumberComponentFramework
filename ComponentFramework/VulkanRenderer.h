@@ -165,6 +165,8 @@ public:
     void LoadModelIndexed(const char* filename);
 
 private:
+    bool useGeometryShader;
+
     const size_t MAX_FRAMES_IN_FLIGHT = 2;
     SDL_Event sdlEvent;
     uint32_t windowWidth;

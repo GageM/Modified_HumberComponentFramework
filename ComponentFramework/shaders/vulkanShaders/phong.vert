@@ -25,7 +25,9 @@ layout(push_constant) uniform PushConstants {
 	mat4 normalMatrix;
 } pushConstants;
 
-layout (location = 0) out vec3 vertNormal;
+layout (location = 0) out VertexStage {
+    vec3 normal;
+} vs_out;
 layout (location = 1) out vec3 lightDir[MAX_LIGHTS];
 layout (location = 2 + MAX_LIGHTS) out vec3 eyeDir; 
 layout (location = 3 + MAX_LIGHTS) out vec2 fragTextCords;
@@ -34,7 +36,7 @@ layout (location = 3 + MAX_LIGHTS) out vec2 fragTextCords;
 void main() {
 	fragTextCords = texCoords;
 	//mat3 normalMatrix = mat3(inverse(transpose(pushConstants.modelMatrix)));
-	vertNormal = normalize(mat3(pushConstants.normalMatrix) * vNormal.xyz); /// Rotate the normal to the correct orientation 
+	vs_out.normal = normalize(mat3(pushConstants.normalMatrix) * vNormal.xyz); /// Rotate the normal to the correct orientation 
 	vec3 vertPos = vec3(ubo.view * pushConstants.modelMatrix * vVertex); /// This is the position of the vertex from the origin
 	vec3 vertDir = normalize(vertPos);
 	eyeDir = -vertDir;
