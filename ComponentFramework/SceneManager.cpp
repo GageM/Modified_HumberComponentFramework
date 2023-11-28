@@ -30,7 +30,7 @@ SceneManager::SceneManager():
 	updateProfiler(nullptr), 
 	renderProfiler(nullptr),
 	controller(nullptr),
-	rendererType(RendererType::VULKAN)
+	rendererType(RendererType::OPENGL)
 {
 	Debug::Info("Starting the SceneManager", __FILE__, __LINE__);
 }
@@ -186,13 +186,13 @@ void SceneManager::Run() {
 		HandleEvents();
 	
 		// Update
-		//Update();
-		std::thread updateThread([this] {Update(); });
+		Update();
+		//std::thread updateThread([this] {Update(); });
 
 		// Render
 		Render();
 
-		updateThread.join();
+		//updateThread.join();
 
 		HandleGUI();
 

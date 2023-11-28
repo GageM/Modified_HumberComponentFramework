@@ -158,22 +158,26 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 				// Rotate Camera Buttons
 			case SDL_SCANCODE_LEFT:
 			{
-				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(-15.0f, Vec3(0.0f, 1.0f, 0.0f)));
-				camera->UpdateViewMatrix();
+				//cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(-15.0f, Vec3(0.0f, 1.0f, 0.0f)));
+				//camera->UpdateViewMatrix();
+				cameraLook.y -= 1.0f;
 				break;
 			}
 			case SDL_SCANCODE_RIGHT:
 			{
-				cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(15.0f, Vec3(0.0f, 1.0f, 0.0f)));
-				camera->UpdateViewMatrix();
+				//cameraTransform->SetTransform(cameraTransform->pos, cameraTransform->GetOrientation() * QMath::angleAxisRotation(15.0f, Vec3(0.0f, 1.0f, 0.0f)));
+				//camera->UpdateViewMatrix();
+				cameraLook.y += 1.0f;
 				break;
 			}
 			case SDL_SCANCODE_UP:
 			{
+				cameraLook.x -= 1.0f;
 				break;
 			}
 			case SDL_SCANCODE_DOWN:
 			{
+				cameraLook.x += 1.0f;
 				break;
 			}
 
@@ -268,6 +272,17 @@ void Scene0::HandleEvents(const SDL_Event& sdlEvent)
 		{
 			switch (sdlEvent.key.keysym.scancode)
 			{
+			case SDL_SCANCODE_LEFT:
+			case SDL_SCANCODE_RIGHT:
+				cameraLook.y = 0.0f;
+				break;
+			
+			case SDL_SCANCODE_UP:
+			case SDL_SCANCODE_DOWN:
+				cameraLook.x = 0.0f;
+				break;
+
+
 				// Stop accelerating camera
 			case SDL_SCANCODE_Q:
 			case SDL_SCANCODE_E:
@@ -813,7 +828,7 @@ void Scene0::HandleGUI()
 			
 			if (ImGui::TreeNode("Add Actor"))
 			{
-				showAddActorMenu();
+				//showAddActorMenu();
 				ImGui::TreePop();
 			}
 			
