@@ -51,6 +51,7 @@ Scene0::Scene0(Ref<Renderer> renderer_) :
 	particleTest(nullptr)
 {
 	assetManager = std::make_shared<XMLAssetManager>(renderer);
+	if (renderer->GetRendererType() == RendererType::VULKAN) cameraSpeed *= 10.0f;
 	Debug::Info("Created Scene0", __FILE__, __LINE__);
 }
 

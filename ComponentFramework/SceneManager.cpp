@@ -186,13 +186,13 @@ void SceneManager::Run() {
 		HandleEvents();
 	
 		// Update
-		Update();
-		//std::thread updateThread([this] {Update(); });
+		//Update();
+		std::thread updateThread([this] {Update(); });
 
 		// Render
 		Render();
 
-		//updateThread.join();
+		updateThread.join();
 
 		HandleGUI();
 
