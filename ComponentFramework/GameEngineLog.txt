@@ -1,61 +1,14 @@
-Tue Nov 28 02:37:50 2023
+Tue Nov 28 03:01:42 2023
 [INFO]: Starting the SceneManager
-[INFO]: OpenGL Version: 4.6.0 NVIDIA 537.13
-[INFO]: Graphics card vendor NVIDIA Corporation
-[INFO]: Graphics card name NVIDIA GeForce RTX 3080 Laptop GPU/PCIe/SSE2
-[INFO]: GLSL Version 4.60 NVIDIA
-[INFO]: Uniforms:
-"colour" loc:-1
-"lightPos" loc:-1
-"modelMatrix" loc:3
-"myTexture" loc:0
-"projection" loc:-1
-"view" loc:-1
-
-[INFO]: Uniforms:
-"debugColor" loc:2
-"modelMatrix" loc:1
-"projection" loc:-1
-"view" loc:-1
-
-[INFO]: Uniforms:
-"baseColorMap" loc:7
-"baseColor_" loc:4
-"colour" loc:-1
-"lightPos" loc:-1
-"metallicMap" loc:8
-"metallic_" loc:6
-"modelMatrix" loc:20
-"projection" loc:-1
-"roughnessMap" loc:9
-"roughness_" loc:5
-"useBaseColorMap" loc:0
-"useMetallicMap" loc:2
-"useRoughnessMap" loc:1
-"view" loc:-1
-
-[INFO]: Uniforms:
-"modelMatrix" loc:1
-"projection" loc:-1
-"skybox" loc:0
-"view" loc:-1
-
 [INFO]: Created Scene0
-[INFO]: Deleted MaterialComponent
 [INFO]: Created Scene0
 [INFO]: Deleting assets for Actor/Components: 
 [INFO]: Deleting assets for Actor/Components: 
 [INFO]: Deleting assets for Actor/Components: 
 [INFO]: Deleting assets for Actor/Components: 
 [INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleted MaterialComponent
 [INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleted MaterialComponent
 [INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleted MaterialComponent
 [INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleted MaterialComponent
-[INFO]: Deleting assets for Actor/Components: 
-[INFO]: Deleted MaterialComponent
 [INFO]: Deleting assets for Actor/Components: 
 [INFO]: Deleting the SceneManager

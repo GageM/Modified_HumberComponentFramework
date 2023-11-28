@@ -572,27 +572,6 @@ void Scene0::Update(const float deltaTime)
 			}
 		}
 
-		// Solve camera movement
-		Ref<PhysicsComponent> cameraPhysics = camera->GetComponent<PhysicsComponent>();
-		Ref<TransformComponent> cameraTransform = camera->GetComponent<TransformComponent>();
-
-		if (VMath::mag(cameraInput) > 0.1f)
-		{
-			cameraInput = VMath::normalize(cameraInput);
-		}
-		cameraInput *= cameraSpeed;
-
-		cameraPhysics->vel = (cameraTransform->forward() * cameraInput.z + cameraTransform->right() * cameraInput.x + cameraTransform->up() * cameraInput.y) * deltaTime;
-		PHYSICS::UpdatePos(cameraPhysics, deltaTime);
-		cameraTransform->pos = cameraPhysics->pos;
-
-		if (abs(cameraLook.y) > 0.3f) cameraTransform->orientation = QMath::angleAxisRotation(lookSensitivity * deltaTime, Vec3::up() * cameraLook.y) * cameraTransform->GetOrientation();
-		if (abs(cameraLook.x) > 0.3f) cameraTransform->orientation = QMath::angleAxisRotation(lookSensitivity * deltaTime, cameraTransform->right() * cameraLook.x) * cameraTransform->GetOrientation();
-		
-
-		//PHYSICS::UpdateTransform(camera); Can't use because it also affects orientation
-		camera->UpdateViewMatrix();
-
 		// Update & Run particle sim
 		//particleTest->Update(deltaTime);
 		//particleTest->Simulate(gravity, deltaTime);
@@ -603,6 +582,28 @@ void Scene0::Update(const float deltaTime)
 	{
 		marioTransform->orientation = QMath::angleAxisRotation(90.0f * deltaTime, Vec3::up()) * marioTransform->orientation;
 	}
+
+	// Solve camera movement
+	Ref<PhysicsComponent> cameraPhysics = camera->GetComponent<PhysicsComponent>();
+	Ref<TransformComponent> cameraTransform = camera->GetComponent<TransformComponent>();
+
+	if (VMath::mag(cameraInput) > 0.1f)
+	{
+		cameraInput = VMath::normalize(cameraInput);
+	}
+	cameraInput *= cameraSpeed;
+
+	cameraPhysics->vel = (cameraTransform->forward() * cameraInput.z + cameraTransform->right() * cameraInput.x + cameraTransform->up() * cameraInput.y) * deltaTime;
+	PHYSICS::UpdatePos(cameraPhysics, deltaTime);
+	cameraTransform->pos = cameraPhysics->pos;
+
+	if (abs(cameraLook.y) > 0.3f) cameraTransform->orientation = QMath::angleAxisRotation(lookSensitivity * deltaTime, Vec3::up() * cameraLook.y) * cameraTransform->GetOrientation();
+	if (abs(cameraLook.x) > 0.3f) cameraTransform->orientation = QMath::angleAxisRotation(lookSensitivity * deltaTime, cameraTransform->right() * cameraLook.x) * cameraTransform->GetOrientation();
+
+
+	//PHYSICS::UpdateTransform(camera); Can't use because it also affects orientation
+	camera->UpdateViewMatrix();
+
 	mtx.unlock();
 }
 
