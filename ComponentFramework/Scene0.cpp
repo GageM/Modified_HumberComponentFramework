@@ -650,7 +650,7 @@ void Scene0::Render() const
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 
-
+		culledActors = 0;
 
 		// Draw unselected actors		
 		for (auto it = actors.begin(); it != actors.end(); ++it) {
@@ -682,8 +682,9 @@ void Scene0::Render() const
 				}
 				else
 				{
-
+					culledActors++;
 				}
+
 			}
 		}
 

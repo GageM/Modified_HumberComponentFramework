@@ -15,17 +15,17 @@ void Frustrum::Set(Matrix4 projection, Matrix4 view)
 	Matrix4 m = view * projection;
 
 	// Left Plane
-	LP = Plane(m[12] + m[0], m[13] + m[1], m[14] + m[2], m[15] + m[3]);
+	LP = Plane(m[41] + m[11], m[42] + m[12], m[43] + m[13], m[44] + m[14]);
 	// Right Plane
-	RP = Plane(m[12] - m[0], m[13] - m[1], m[14] - m[2], m[15] - m[3]);
+	RP = Plane(m[41] - m[11], m[42] - m[12], m[43] - m[13], m[44] - m[14]);
 	// Top Plane
-	TP = Plane(m[12] - m[4], m[13] - m[5], m[14] - m[6], m[15] - m[7]);
+	TP = Plane(m[41] - m[21], m[42] - m[21], m[43] - m[23], m[44] - m[24]);
 	// Bottom Plane
-	BP = Plane(m[12] + m[4], m[13] + m[5], m[14] + m[6], m[15] + m[7]);
+	BP = Plane(m[41] + m[21], m[42] + m[22], m[43] + m[23], m[44] + m[24]);
 	// Near Plane
-	NP = Plane(m[12] + m[8], m[13] + m[9], m[14] + m[10], m[15] + m[11]);
+	NP = Plane(m[41] + m[31], m[42] + m[32], m[43] + m[33], m[44] + m[34]);
 	// Far Plane
-	FP = Plane(m[12] - m[8], m[13] - m[9], m[14] - m[10], m[15] - m[11]);
+	FP = Plane(m[41] - m[31], m[42] - m[32], m[43] - m[33], m[44] - m[34]);
 
 	Normalize();
 }
