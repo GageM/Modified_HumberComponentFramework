@@ -159,7 +159,7 @@
     <ClCompile Include="CubemapComponent.cpp" />
     <ClCompile Include="Cylinder.cpp" />
     <ClCompile Include="Debug.cpp" />
-    <ClCompile Include="Frustrum.cpp" />
+    <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="FunctionProfiler.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -205,7 +205,7 @@
     <ClInclude Include="CubemapComponent.h" />
     <ClInclude Include="Cylinder.h" />
     <ClInclude Include="Debug.h" />
-    <ClInclude Include="Frustrum.h" />
+    <ClInclude Include="Frustum.h" />
     <ClInclude Include="FunctionProfiler.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />

@@ -5,12 +5,12 @@
 
 using namespace MATH;
 
-class Frustrum
+class Frustum
 {
 public:
-	Frustrum() {}
+	Frustum() {}
 
-	Frustrum(Matrix4 projection, Matrix4 view);
+	Frustum(Matrix4 projection, Matrix4 view);
 	
 	void Set(Matrix4 projection, Matrix4 view);
 
@@ -18,7 +18,7 @@ public:
 
 	float DistanceFunction(const Plane& plane, const Vec3& point);
 
-	bool InFrustrum(const Vec3& point);
+	bool InFrustum(const Vec3& point);
 
 	// 0:Left, 1:Right, 2:Top, 3:Bottom, 4:Near, 5:Far
 	Plane LP, RP, TP, BP, NP, FP;

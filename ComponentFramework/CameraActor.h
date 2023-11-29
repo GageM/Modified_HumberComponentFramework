@@ -5,7 +5,7 @@
 #include "Actor.h"
 #include "TransformComponent.h"
 #include <glew.h>
-#include "Frustrum.h"
+#include "Frustum.h"
 
 class CameraActor:public Actor {
 private:
@@ -17,8 +17,8 @@ private:
 	GLuint uboMatricesID; // can be an unsigned int instead of a GLuint
 	const GLuint bindingPoint = 0; // This must be unique to the camera = 0. And never change it! This will be where the VRAM needs to know where this is (and the shader too). btw lights will be = 1
 
-	// This is needed for frustrum culling
-	Ref<Frustrum> frustrum;
+	// This is needed for Frustum culling
+	Ref<Frustum> frustum;
 
 public:
 	CameraActor(Ref<Component> parent_, Ref<Renderer> renderer_);
@@ -40,6 +40,6 @@ public:
 	void UpdateViewMatrix();
 	GLuint GetMatricesID() const { return uboMatricesID; }
 
-	bool CheckFrustrum(const Vec3& point);
+	bool CheckFrustum(const Vec3& point);
 };
 

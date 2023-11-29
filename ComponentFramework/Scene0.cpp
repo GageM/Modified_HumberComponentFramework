@@ -658,8 +658,8 @@ void Scene0::Render() const
 
 			if (actor != selectedActor)
 			{
-				// Check if the actor is in the frustrum || if frustrum culling is disabled
-				if (camera->CheckFrustrum(actor->GetComponent<TransformComponent>()->pos) || !enableFrustrumCulling)
+				// Check if the actor is in the Frustum || if Frustum culling is disabled
+				if (camera->CheckFrustum(actor->GetComponent<TransformComponent>()->pos) || !enableFrustumCulling)
 				{
 					// Draw actor mesh
 					glUseProgram(actor->GetComponent<MaterialComponent>()->GetShader()->GetProgram());
@@ -691,7 +691,6 @@ void Scene0::Render() const
 		// Draw selection
 		if (selectedActor)
 		{
-
 			// Draw Outline Around Selected actor
 			{
 				glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -864,8 +863,8 @@ void Scene0::showSceneSettings()
 		ImGui::Checkbox("Render Colliders", &renderCollisionShapes);
 		ImGui::Checkbox("Render Raycasts", &renderRaycasts);
 		ImGui::Checkbox("Render Cubemap", &renderCubemap);
-		ImGui::Checkbox("Enable Frustrum Culling", &enableFrustrumCulling);
-		if (enableFrustrumCulling)
+		ImGui::Checkbox("Enable Frustum Culling", &enableFrustumCulling);
+		if (enableFrustumCulling)
 		{
 			ImGui::Text("Culled Actors: %d", culledActors);
 		}

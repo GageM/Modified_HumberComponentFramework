@@ -5,7 +5,7 @@
 #include "Debug.h"
 #include "UBO_Padding.h"
 using namespace MATH;
-CameraActor::CameraActor(Ref<Component> parent_, Ref<Renderer> renderer_):Actor(parent_, renderer_), frustrum(nullptr) {
+CameraActor::CameraActor(Ref<Component> parent_, Ref<Renderer> renderer_):Actor(parent_, renderer_), frustum(nullptr) {
 // lets set up the projection and view
 	projectionMatrix = Matrix4();
 	viewMatrix = Matrix4();
@@ -63,7 +63,7 @@ bool CameraActor::OnCreate()
 		break;
 	}
 
-	frustrum = std::make_shared<Frustrum>(projectionMatrix, viewMatrix);
+	frustum = std::make_shared<Frustum>(projectionMatrix, viewMatrix);
 
 	// can't have near at zero, will crash
 	UpdateProjectionMatrix(45.0f, (16.0f / 9.0f), 0.5f, 100.0f);
@@ -106,7 +106,7 @@ void CameraActor::UpdateProjectionMatrix(const float fovy, const float aspectRat
 
 
 
-	frustrum->Set(projectionMatrix, viewMatrix);
+	frustum->Set(projectionMatrix, viewMatrix);
 }
 
 void CameraActor::UpdateViewMatrix()
@@ -153,12 +153,12 @@ void CameraActor::UpdateViewMatrix()
 		break;
 	}
 
-	frustrum->Set(projectionMatrix, viewMatrix);
+	frustum->Set(projectionMatrix, viewMatrix);
 }
 
-bool CameraActor::CheckFrustrum(const Vec3& point)
+bool CameraActor::CheckFrustum(const Vec3& point)
 {
-	return frustrum->InFrustrum(point);
+	return frustum->InFrustum(point);
 }
 
 void CameraActor::OnDestroy()
