@@ -5,8 +5,8 @@
 
 
 VulkanRenderer::VulkanRenderer(): /// Initialize all the variables
-    window(nullptr), instance(nullptr), debugMessenger(0), surface(0),commandPool(0),device(nullptr),graphicsPipeline(0),
-    windowWidth(0), windowHeight(0),presentQueue(0),graphicsQueue(nullptr),pipelineLayout(0), renderPass(0), swapChain(0),
+    window(nullptr), instance(nullptr), debugMessenger(0), surface(0),commandPool(0),device(nullptr),
+    windowWidth(0), windowHeight(0),presentQueue(0),graphicsQueue(nullptr), renderPass(0), swapChain(0),
     swapChainExtent{},swapChainImageFormat{} {   
      
  }
@@ -202,8 +202,11 @@ void VulkanRenderer::cleanupSwapChain() {
 
     vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 
-    vkDestroyPipeline(device, graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    for (auto& pipeline : pipelines)
+    {
+        pipeline.OnDestroy(device);
+    }
+
     vkDestroyRenderPass(device, renderPass, nullptr);
 
     for (auto imageView : swapChainImageViews) {
@@ -597,6 +600,9 @@ void VulkanRenderer::createDescriptorSetLayout() {
 }
 
 void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fragSPV, const char* geoSPV) {
+    Pipeline temp;
+
+
     auto vertShaderCode = readFile(vertSPV);
     auto fragShaderCode = readFile(fragSPV);
 
@@ -616,7 +622,6 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
     fragShaderStageInfo.pName = "main";
 
     VkPipelineShaderStageCreateInfo* shaderStages;
-
 
     VkShaderModule geoShaderModule{};
     VkPipelineShaderStageCreateInfo geoShaderStageInfo{};
@@ -729,7 +734,7 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
     pipelineLayoutInfo.pushConstantRangeCount = 1;
     pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
-    if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &temp.pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
@@ -752,12 +757,12 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pDepthStencilState = &depthStencil;
     pipelineInfo.pColorBlendState = &colorBlending;
-    pipelineInfo.layout = pipelineLayout;
+    pipelineInfo.layout = temp.pipelineLayout;
     pipelineInfo.renderPass = renderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &temp.graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
@@ -768,6 +773,8 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
     {
         vkDestroyShaderModule(device, geoShaderModule, nullptr);
     }
+
+    pipelines.push_back(temp);
 }
 
 void VulkanRenderer::createFramebuffers() {
@@ -1357,10 +1364,10 @@ void VulkanRenderer::recordCommandBuffer(uint32_t currentImage)
 
     vkCmdBeginRenderPass(commandBuffers[currentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdBindPipeline(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelines.size() - 1].graphicsPipeline);
 
     // Bind our descriptor sets (our UBOs)
-    vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentImage], 0, nullptr);
+    vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelines.size() - 1].pipelineLayout, 0, 1, &descriptorSets[currentImage], 0, nullptr);
 
     // Here is where we render our meshes
     if(meshes.size() > 0)
@@ -1370,7 +1377,7 @@ void VulkanRenderer::recordCommandBuffer(uint32_t currentImage)
             SetMeshPushConstants(MMath::translate(Vec3(3.0f, 0.0f, 0.0f)) * meshPushConstants.modelMatrix);
 
             // TODO::PUSH_CONSTANTS: Send the push constants to the command buffer (model matrix)
-            vkCmdPushConstants(commandBuffers[currentImage], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(meshPushConstants), &meshPushConstants);
+            vkCmdPushConstants(commandBuffers[currentImage], pipelines[pipelines.size() - 1].pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(meshPushConstants), &meshPushConstants);
 
             // Bind mesh vertex buffer
             VkBuffer vertexBuffers[] = { meshes[i].vertexBuffer.bufferID};

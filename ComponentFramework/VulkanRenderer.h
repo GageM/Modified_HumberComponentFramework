@@ -156,6 +156,17 @@ struct Texture
     }
 };
 
+struct Pipeline
+{
+    VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
+
+    inline void OnDestroy(VkDevice device) {
+        vkDestroyPipeline(device, graphicsPipeline, nullptr);
+        vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    }
+};
+
 class VulkanRenderer : public Renderer {
 public:
     /// C11 precautions 
@@ -193,18 +204,16 @@ private:
     VkDevice device;
     VkRenderPass renderPass;
     VkDescriptorSetLayout descriptorSetLayout;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
+
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
     VkImage depthImage;
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
-
     VkCommandPool commandPool;
 
-
+    std::vector<Pipeline> pipelines;
     
     std::vector<Mesh> meshes;
 

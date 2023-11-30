@@ -38,13 +38,6 @@ void Frustum::Normalize()
 	PMath::normalize(BP);
 	PMath::normalize(NP);
 	PMath::normalize(FP);
-
-	LP.print("LP");
-	RP.print("RP");
-	TP.print("TP");
-	BP.print("BP");
-	NP.print("NP");
-	FP.print("FP");
 }
 
 float Frustum::DistanceFunction(const Plane& plane, const Vec3& point)

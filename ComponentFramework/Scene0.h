@@ -102,7 +102,7 @@ public:
 	bool renderCollisionShapes = false;
 	bool renderRaycasts = false;
 	bool renderCubemap = true;
-	bool enableFrustumCulling = true; // Still in develelopment!
+	bool enableFrustumCulling = false;
 	mutable int culledActors;
 
 

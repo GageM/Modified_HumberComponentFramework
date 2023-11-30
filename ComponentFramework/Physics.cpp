@@ -56,6 +56,7 @@ void PHYSICS::UpdateTransform(Ref<Actor> actor)
 	if (!physics) return;
 
 	transform->pos = physics->pos;
+
 	transform->orientation = physics->orientation;
 }
 
@@ -102,9 +103,9 @@ void PHYSICS::MouseConstraint(Ref<PhysicsComponent> body, const float deltaTime,
 	// calculate deltaV as the lagrangian to save a variable
 	Vec3 deltaV = MMath::inverse(Meff) * -JV;
 
-	Vec3 deltaAV = VMath::cross(r, deltaV);
-
 	body->vel += deltaV;
+
+	Vec3 deltaAV = VMath::cross(r, deltaV);
 
 	body->angularVel += deltaAV;
 }

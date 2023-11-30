@@ -562,10 +562,8 @@ void Scene0::Update(const float deltaTime)
 
 
 					PHYSICS::UpdatePos(body, deltaTime);
-					//PHYSICS::UpdateOrientation(body, deltaTime);
+					PHYSICS::UpdateOrientation(body, deltaTime);
 					PHYSICS::UpdateTransform(selectedActor);
-
-					//selectedActor->GetComponent<TransformComponent>()->pos = Vec3(mouseSelectionPos.x, mouseSelectionPos.y, mouseSelectionPos.z);
 				}
 			}
 
