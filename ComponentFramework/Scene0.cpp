@@ -90,14 +90,14 @@ bool Scene0::OnCreate()
 		debugShader = assetManager->GetComponent<ShaderComponent>("debugShader");
 
 		// Particle Component Testing
-		particleTest = std::make_shared<ParticleComponent>(nullptr, renderer, 1, 0.1f, Vec3(3.0f, 0.0f, 0.0f));
+		particleTest = std::make_shared<ParticleComponent>(nullptr, renderer, 200, 0.8f, Vec3(1.0f, 0.4f, 0.0f));
 		particleTest->SetHalfExtents(Vec3(35.0f, 35.0f, 35.0f));
 		particleTest->OnCreate();
 
 		Ref<MaterialComponent> particleMat = std::make_shared<MaterialComponent>(nullptr, renderer);
 		particleMat->SetShader(assetManager->GetComponent<ShaderComponent>("PBR_Shader"));
 		particleMat->SetCubemap(skybox->GetCubemap());
-		particleMat->baseColor = Vec4(0.3f, 0.5f, 0.7f, 1.0f);
+		particleMat->baseColor = Vec4(0.3f, 0.3f, 0.7f, 1.0f);
 		particleMat->roughness = 0.1f;
 		particleMat->OnCreate();
 
@@ -587,8 +587,13 @@ void Scene0::Update(const float deltaTime)
 		}
 
 		// Update & Run particle sim
-		//particleTest->Update(deltaTime);
-		//particleTest->Simulate(gravity, deltaTime);
+		int particleSubsteps = 2;
+
+		for (int i = 0; i < particleSubsteps; i++)
+		{
+			particleTest->Update(deltaTime / particleSubsteps);
+			particleTest->Simulate(gravity, deltaTime / particleSubsteps);
+		}
 	}
 
 	// Update vulkan meshes to spin
@@ -798,6 +803,8 @@ void Scene0::Render() const
 			//counter++;
 		}
 		vRenderer->SetGLightsUBO(0, Vec3(100.0f, 10.0f, 100.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		vRenderer->SetGLightsUBO(1, Vec3(100.0f, 30.0f, 10.0f), Vec4(1.0f, 0.0f, 0.0f, 1.0f), Vec4(0.0f, 1.0f, 0.0f, 1.0f), Vec4(0.0f, 0.0f, 1.0f, 1.0f));
+		vRenderer->SetGLightsUBO(2, Vec3(-100.0f, 10.0f, 100.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f), Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		counter = 0;
 
 		vRenderer->SetMeshPushConstants(marioTransform->GetTransformMatrix());

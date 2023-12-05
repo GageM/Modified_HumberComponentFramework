@@ -5,9 +5,9 @@ layout (triangles) in; /// bringing in triangles
 
 layout (line_strip, max_vertices = 2) out; 
 
-layout (std140, binding = 0) uniform CameraMatricies {
-    mat4 projection;
+layout (binding = 0) uniform CameraUBO {
     mat4 view;
+    mat4 projection;
 };
 
 

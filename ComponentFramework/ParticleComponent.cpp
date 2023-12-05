@@ -9,7 +9,7 @@ ParticleComponent::ParticleComponent(Ref<Component> parent_,Ref<Renderer> render
 	const int& particleCount_, const float& particleRadius_, const Vec3& initialVelocity_,
 	Ref<MaterialComponent> material_, Ref<MeshComponent> instance_) : Component(parent_, renderer_), particleCount(particleCount_), 
 	material(material_), instance(instance_), timeSinceLastSpawn(0.0f), particleRadius(particleRadius_), initialVelocity(initialVelocity_), 
-	bBPosition(Vec3(0.0f, 2.0f, -5.0f)),bBHalfExtents(Vec3(10.0f, 10.0f, 10.0f)), dampening(0.96f), subFrameIterations(300), spawnDelay(0.1f)
+	bBPosition(Vec3(0.0f, 3.0f, -5.0f)),bBHalfExtents(Vec3(5.0f, 0.0f, 5.0f)), dampening(0.86f), subFrameIterations(20), spawnDelay(0.1f)
 {
 }
 
@@ -110,11 +110,11 @@ void ParticleComponent::UpdateParticle(Ref<Particle> p, const Vec3& force, const
 			Vec3 dir = p->position - particles[index]->position;
 			float distance = VMath::mag(dir);
 			if (distance > VERY_SMALL) dir = VMath::normalize(dir);
-			//else dir = Vec3(0.5f, 0.5f, 0.0f);
+			else dir = Vec3(0.5f, 0.5f, 0.0f);
 			if (distance < 2 * p->radius)
 			{
-				//p->position -= dir * ((2 * p->radius) - distance);
-				collisionForce += dir * ((2 * p->radius) - distance);
+				//p->velocity += dir * ((2 * p->radius) - distance);
+				collisionForce += dir * ((2 * p->radius) - distance) * dampening;
 			}
 		}
 	}
@@ -134,20 +134,20 @@ void ParticleComponent::UpdateParticle(Ref<Particle> p, const Vec3& force, const
 
 		if (p->position.y <= bBPosition.y - bBHalfExtents.y)
 		{
-			p->velocity.y *= -dampening;
+			p->velocity.y *= -1.0f; // -dampening;
 		}
 	}
 
 	// Clamp X & Z Position
 	{
-		//p->position.x = std::clamp(p->position.x, bBPosition.x - bBHalfExtents.x, bBPosition.x + bBHalfExtents.x);
+		p->position.x = std::clamp(p->position.x, bBPosition.x - bBHalfExtents.x, bBPosition.x + bBHalfExtents.x);
 
 		if (abs(p->position.x - bBPosition.z) >= bBHalfExtents.x)
 		{
 			p->velocity.x *= -dampening;
 		}
 
-		//p->position.z = std::clamp(p->position.z, bBPosition.z - bBHalfExtents.z, bBPosition.z + bBHalfExtents.z);
+		p->position.z = std::clamp(p->position.z, bBPosition.z - bBHalfExtents.z, bBPosition.z + bBHalfExtents.z);
 
 		if (abs(p->position.z - bBPosition.z) >= bBHalfExtents.z)
 		{
@@ -156,7 +156,7 @@ void ParticleComponent::UpdateParticle(Ref<Particle> p, const Vec3& force, const
 	}
 
 	// Dampen velocity to add air resistance and friction
-	p->velocity *= 0.995f;
+	p->velocity *= 0.98f;
 
 
 }
