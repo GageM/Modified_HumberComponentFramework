@@ -110,16 +110,6 @@ struct QueueFamilyIndices {
             }
         };
     }
-
-static struct VulkanData
-{
-    static VkDevice device;
-    static VkPhysicalDevice physicalDevice;
-    static VkQueue graphicsQueue;
-    static VkCommandPool commandPool;
-    static VkDescriptorPool descriptorPool;
-    static VkDescriptorSetLayout descriptorSetLayout;
-};
  
 struct CameraUBO {
     Matrix4 view;
@@ -212,13 +202,13 @@ private:
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
     VkSurfaceKHR surface;
-    //VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    //VkDevice device;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice device;
     VkRenderPass renderPass;
-    //VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorSetLayout descriptorSetLayout;
     VkDescriptorSetLayout textureDescriptorSetLayout;
 
-    //VkDescriptorPool descriptorPool;
+    VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
 
@@ -226,7 +216,7 @@ private:
     VkImage depthImage;
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
-    //VkCommandPool commandPool;
+    VkCommandPool commandPool;
 
     std::vector<Pipeline> pipelines;
     
@@ -312,7 +302,7 @@ private:
     std::vector<const char*> getRequiredExtensions();
     bool checkValidationLayerSupport();
 
-    //VkQueue graphicsQueue;
+    VkQueue graphicsQueue;
     VkQueue presentQueue;
 
     VkCommandBuffer beginSingleTimeCommands();

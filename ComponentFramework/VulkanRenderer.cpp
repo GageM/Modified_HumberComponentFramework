@@ -9,8 +9,6 @@ VulkanRenderer::VulkanRenderer(): /// Initialize all the variables
     windowWidth(0), windowHeight(0),presentQueue(0),graphicsQueue(nullptr), renderPass(0), swapChain(0),
     swapChainExtent{},swapChainImageFormat{} {   
      
-
-    VulkanData::physicalDevice = VK_NULL_HANDLE;
  }
 
 
@@ -31,7 +29,7 @@ bool VulkanRenderer::OnCreate(){
     return true;
 }
 void VulkanRenderer::OnDestroy() {
-    vkDeviceWaitIdle(VulkanData::device); /// Wait for all commands to clear
+    vkDeviceWaitIdle(device); /// Wait for all commands to clear
     cleanup();
 }
 
