@@ -1,16 +1,17 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_KHR_vulkan_glsl : enable
 
 #define MAX_LIGHTS 5
 
-layout(binding = 2) uniform sampler2D texSampler;
+layout(set = 1, binding = 0) uniform sampler2D texSampler;
 
 layout (location = 0) in vec3 vertNormal;
 layout (location = 1) in vec3 lightDir[MAX_LIGHTS];
 layout (location = 2 + MAX_LIGHTS) in vec3 eyeDir; 
 layout (location = 3 + MAX_LIGHTS) in vec2 fragTextCords;
 
-layout(binding = 1) uniform GlobalLightingUBO {
+layout(set = 0, binding = 1) uniform GlobalLightingUBO {
 	vec4 position[MAX_LIGHTS];
 	vec4 diffuse[MAX_LIGHTS];
 	vec4 specular[MAX_LIGHTS];

@@ -111,11 +111,21 @@ struct QueueFamilyIndices {
         };
     }
 
+static struct VulkanData
+{
+    static VkDevice device;
+    static VkPhysicalDevice physicalDevice;
+    static VkQueue graphicsQueue;
+    static VkCommandPool commandPool;
+    static VkDescriptorPool descriptorPool;
+    static VkDescriptorSetLayout descriptorSetLayout;
+};
  
 struct CameraUBO {
     Matrix4 view;
     Matrix4 proj;
 };
+
 struct GLightsUBO {
     Vec4 position[maxLights];
     Vec4 diffuse[maxLights];
@@ -147,6 +157,8 @@ struct Texture
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
     VkImageView textureImageView;
+
+    VkDescriptorSet descriptorSet;
 
     void OnDestroy(VkDevice device) {
 
@@ -200,18 +212,21 @@ private:
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
     VkSurfaceKHR surface;
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice device;
+    //VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    //VkDevice device;
     VkRenderPass renderPass;
-    VkDescriptorSetLayout descriptorSetLayout;
+    //VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorSetLayout textureDescriptorSetLayout;
 
-    VkDescriptorPool descriptorPool;
+    //VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
+
+
 
     VkImage depthImage;
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
-    VkCommandPool commandPool;
+    //VkCommandPool commandPool;
 
     std::vector<Pipeline> pipelines;
     
@@ -268,6 +283,9 @@ private:
     void createGLightsUBO();
     void createDescriptorPool();
     void createDescriptorSets();
+
+    void createTextureDescriptorSet(Texture texture);
+
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     void createCommandBuffers();
@@ -294,7 +312,7 @@ private:
     std::vector<const char*> getRequiredExtensions();
     bool checkValidationLayerSupport();
 
-    VkQueue graphicsQueue;
+    //VkQueue graphicsQueue;
     VkQueue presentQueue;
 
     VkCommandBuffer beginSingleTimeCommands();

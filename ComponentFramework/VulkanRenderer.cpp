@@ -9,6 +9,8 @@ VulkanRenderer::VulkanRenderer(): /// Initialize all the variables
     windowWidth(0), windowHeight(0),presentQueue(0),graphicsQueue(nullptr), renderPass(0), swapChain(0),
     swapChainExtent{},swapChainImageFormat{} {   
      
+
+    VulkanData::physicalDevice = VK_NULL_HANDLE;
  }
 
 
@@ -29,7 +31,7 @@ bool VulkanRenderer::OnCreate(){
     return true;
 }
 void VulkanRenderer::OnDestroy() {
-    vkDeviceWaitIdle(device); /// Wait for all commands to clear
+    vkDeviceWaitIdle(VulkanData::device); /// Wait for all commands to clear
     cleanup();
 }
 
@@ -163,9 +165,12 @@ void VulkanRenderer::initVulkan() {
 
     // Create textures
     CreateTextureImage("textures/mario_fire.png");
+
     CreateTextureImage("textures/mario_mime.png");
+
     //createTextureImageView("Mario Fire");
     createTextureSampler();
+
 
     // TODO::Meshes: Move this to MeshComponent
     LoadModelIndexed("meshes/mario.obj");
@@ -185,6 +190,12 @@ void VulkanRenderer::initVulkan() {
     createGLightsUBO();
     createDescriptorPool();
     createDescriptorSets();
+
+    for (Texture& texture : textures)
+    {
+        createTextureDescriptorSet(texture);
+    }
+
     createCommandBuffers();
     createSyncObjects();
 }
@@ -236,6 +247,7 @@ void VulkanRenderer::cleanup() {
     }
 
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+    vkDestroyDescriptorSetLayout(device, textureDescriptorSetLayout, nullptr);
 
     // Clear all mesh data
     for (Mesh& mesh : meshes)
@@ -581,14 +593,7 @@ void VulkanRenderer::createDescriptorSetLayout() {
     gLightsLayoutBinding.pImmutableSamplers = nullptr;
     gLightsLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-    samplerLayoutBinding.binding = 2;
-    samplerLayoutBinding.descriptorCount = 1;
-    samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    samplerLayoutBinding.pImmutableSamplers = nullptr;
-    samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-    std::array<VkDescriptorSetLayoutBinding, 3> bindings = { cameraLayoutBinding,gLightsLayoutBinding, samplerLayoutBinding };
+    std::array<VkDescriptorSetLayoutBinding, 2> bindings = { cameraLayoutBinding,gLightsLayoutBinding };
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -596,6 +601,21 @@ void VulkanRenderer::createDescriptorSetLayout() {
 
     if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor set layout!");
+    }
+
+    VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+    samplerLayoutBinding.binding = 0;
+    samplerLayoutBinding.descriptorCount = 1;
+    samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    samplerLayoutBinding.pImmutableSamplers = nullptr;
+    samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &samplerLayoutBinding;
+
+    if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &textureDescriptorSetLayout) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture descriptor set layout!");
     }
 }
 
@@ -725,10 +745,12 @@ void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fra
     pushConstantRange.offset = 0;
     pushConstantRange.size = sizeof(meshPushConstants);
 
+    VkDescriptorSetLayout setLayouts[] = { descriptorSetLayout, textureDescriptorSetLayout };
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+    pipelineLayoutInfo.setLayoutCount = 2;
+    pipelineLayoutInfo.pSetLayouts = setLayouts;
 
     // TODO::PUSH_CONSTANTS: Set Up Push Constant Pipeline Layout Info
     pipelineLayoutInfo.pushConstantRangeCount = 1;
@@ -1165,13 +1187,14 @@ void VulkanRenderer::createDescriptorPool() {
     poolSizes[1].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
 
     poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[2].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
+    poolSizes[2].descriptorCount = 2; //static_cast<uint32_t>(swapChainImages.size());
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size());
+    poolInfo.maxSets = static_cast<uint32_t>(swapChainImages.size()) + 2;
 
     if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
@@ -1203,13 +1226,7 @@ void VulkanRenderer::createDescriptorSets() {
         gLightsBufferInfo.offset = 0;
         gLightsBufferInfo.range = sizeof(GLightsUBO);
 
-        VkDescriptorImageInfo imageInfo{};
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        // TODO::Textures we can set different textures here
-        imageInfo.imageView = textures[textures.size() - 1].textureImageView;
-        imageInfo.sampler = textureSampler;
-
-        std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
+        std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
         descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[0].dstSet = descriptorSets[i];
@@ -1227,16 +1244,40 @@ void VulkanRenderer::createDescriptorSets() {
         descriptorWrites[1].descriptorCount = 1;
         descriptorWrites[1].pBufferInfo = &gLightsBufferInfo;
 
-        descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[2].dstSet = descriptorSets[i];
-        descriptorWrites[2].dstBinding = 2;
-        descriptorWrites[2].dstArrayElement = 0;
-        descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptorWrites[2].descriptorCount = 1;
-        descriptorWrites[2].pImageInfo = &imageInfo;
-
         vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
+}
+
+void VulkanRenderer::createTextureDescriptorSet(Texture texture)
+{
+    //std::vector<VkDescriptorSetLayout> layouts(swapChainImages.size(), textureDescriptorSetLayout);
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &textureDescriptorSetLayout;
+
+    if (vkAllocateDescriptorSets(device, &allocInfo, &texture.descriptorSet) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate descriptor sets!");
+    }
+
+    VkDescriptorImageInfo imageInfo{};
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    // TODO::Textures we can set different textures here
+    imageInfo.imageView = texture.textureImageView;
+    imageInfo.sampler = textureSampler;
+    
+    VkWriteDescriptorSet descriptorWrite{};
+    
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = texture.descriptorSet; //descriptorSets[i];
+    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+    
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
@@ -1366,7 +1407,7 @@ void VulkanRenderer::recordCommandBuffer(uint32_t currentImage)
 
     vkCmdBindPipeline(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelines.size() - 1].graphicsPipeline);
 
-    // Bind our descriptor sets (our UBOs & Textures)
+    // Bind our descriptor sets (our UBOs)
     vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelines.size() - 1].pipelineLayout, 0, 1, &descriptorSets[currentImage], 0, nullptr);
 
     // Here is where we render our meshes
@@ -1375,6 +1416,7 @@ void VulkanRenderer::recordCommandBuffer(uint32_t currentImage)
         for (int i = 0; i < meshes.size(); i++)
         {
             // Here we should bind our texture for each object
+            vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelines.size() - 1].pipelineLayout, 1, 1, &textures[0].descriptorSet, 0, nullptr);
 
             SetMeshPushConstants(MMath::translate(Vec3(3.0f, 0.0f, 0.0f)) * meshPushConstants.modelMatrix);
 

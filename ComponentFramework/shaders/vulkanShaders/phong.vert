@@ -1,5 +1,6 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_KHR_vulkan_glsl : enable
 
 #define MAX_LIGHTS 5
 
@@ -7,12 +8,12 @@ layout (location = 0) in  vec4 vVertex;
 layout (location = 1) in  vec4 vNormal;
 layout (location = 2) in  vec2 texCoords;
 
-layout(binding = 0) uniform CameraUBO {
+layout(set = 0, binding = 0) uniform CameraUBO {
     mat4 view;
     mat4 proj;
 } ubo;
 
-layout(binding = 1) uniform GlobalLightingUBO {
+layout(set = 0, binding = 1) uniform GlobalLightingUBO {
 	vec4 position[MAX_LIGHTS];
 	vec4 diffuse[MAX_LIGHTS];
 	vec4 specular[MAX_LIGHTS];
