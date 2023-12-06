@@ -163,7 +163,6 @@ void VulkanRenderer::initVulkan() {
 
     // Create textures
     CreateTextureImage("textures/mario_fire.png");
-
     CreateTextureImage("textures/mario_mime.png");
 
     //createTextureImageView("Mario Fire");
@@ -1246,7 +1245,7 @@ void VulkanRenderer::createDescriptorSets() {
     }
 }
 
-void VulkanRenderer::createTextureDescriptorSet(Texture texture)
+void VulkanRenderer::createTextureDescriptorSet(Texture& texture)
 {
     //std::vector<VkDescriptorSetLayout> layouts(swapChainImages.size(), textureDescriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
@@ -1414,7 +1413,15 @@ void VulkanRenderer::recordCommandBuffer(uint32_t currentImage)
         for (int i = 0; i < meshes.size(); i++)
         {
             // Here we should bind our texture for each object
-            vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelines.size() - 1].pipelineLayout, 1, 1, &textures[0].descriptorSet, 0, nullptr);
+            if (i < 1)
+            {
+                vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelines.size() - 1].pipelineLayout, 1, 1, &textures[0].descriptorSet, 0, nullptr);
+            }
+            else
+            {
+                vkCmdBindDescriptorSets(commandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelines.size() - 1].pipelineLayout, 1, 1, &textures[1].descriptorSet, 0, nullptr);
+            }
+
 
             SetMeshPushConstants(MMath::translate(Vec3(3.0f, 0.0f, 0.0f)) * meshPushConstants.modelMatrix);
 

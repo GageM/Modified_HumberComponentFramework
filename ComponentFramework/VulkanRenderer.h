@@ -155,7 +155,7 @@ struct Texture
         vkDestroyImageView(device, textureImageView, nullptr);
         vkDestroyImage(device, textureImage, nullptr);
         vkFreeMemory(device, textureImageMemory, nullptr);
-    }
+    }    
 };
 
 struct Pipeline
@@ -274,7 +274,7 @@ private:
     void createDescriptorPool();
     void createDescriptorSets();
 
-    void createTextureDescriptorSet(Texture texture);
+    void createTextureDescriptorSet(Texture& texture);
 
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
