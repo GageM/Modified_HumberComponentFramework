@@ -142,12 +142,12 @@ void VulkanRenderer::initVulkan() {
     createRenderPass();
     createDescriptorSetLayout();
 
-    useGeometryShader = false;
+    useGeometryShader = true;
 
     // if else to debug geometry shader
     if (useGeometryShader)
     {
-        CreateGraphicsPipeline("shaders/vulkanShaders/phong.vert.spv",
+        CreateGraphicsPipeline("shaders/vulkanShaders/drawNormals.vert.spv",
             "shaders/vulkanShaders/drawNormals.frag.spv",
             "shaders/vulkanShaders/drawNormals.geom.spv");
     }
@@ -618,7 +618,6 @@ void VulkanRenderer::createDescriptorSetLayout() {
 
 void VulkanRenderer::CreateGraphicsPipeline(const char* vertSPV, const char* fragSPV, const char* geoSPV) {
     Pipeline temp;
-
 
     auto vertShaderCode = readFile(vertSPV);
     auto fragShaderCode = readFile(fragSPV);
