@@ -30,7 +30,7 @@ SceneManager::SceneManager():
 	updateProfiler(nullptr), 
 	renderProfiler(nullptr),
 	controller(nullptr),
-	rendererType(RendererType::VULKAN)
+	rendererType(RendererType::OPENGL)
 {
 	Debug::Info("Starting the SceneManager", __FILE__, __LINE__);
 }

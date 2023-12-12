@@ -23,9 +23,9 @@ void Frustum::Set(Matrix4 projection, Matrix4 view)
 	// Bottom Plane
 	BP = Plane(m[12] + m[4], m[13] + m[5], m[14] + m[6], m[15] + m[7]);
 	// Near Plane
-	NP = Plane(m[12] + m[8], m[13] + m[9], m[14] + m[10], m[15] + m[11]);
+	//NP = Plane(m[12] + m[8], m[13] + m[9], m[14] + m[10], m[15] + m[11]);
 	// Far Plane
-	FP = Plane(m[12] - m[8], m[13] - m[9], m[14] - m[10], m[15] - m[11]);
+	//FP = Plane(m[12] - m[8], m[13] - m[9], m[14] - m[10], m[15] - m[11]);
 
 	Normalize();
 }

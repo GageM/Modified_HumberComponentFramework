@@ -37,7 +37,6 @@ void operator delete[](void* memoryLocation) {
 		size_t* numBytes = (size_t*)memoryLocation - 1;
 		if (numBytes)
 		{
-
 			MemoryMonitor::GetInstance().setMemoryUsage(MemoryMonitor::GetInstance().getMemoryUsage() - numBytes[0]);
 			MemoryMonitor::GetInstance().Print(numBytes[0], false);
 

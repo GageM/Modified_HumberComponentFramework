@@ -591,8 +591,8 @@ void Scene0::Update(const float deltaTime)
 
 		for (int i = 0; i < particleSubsteps; i++)
 		{
-			particleTest->Update(deltaTime / particleSubsteps);
-			particleTest->Simulate(gravity, deltaTime / particleSubsteps);
+			//particleTest->Update(deltaTime / particleSubsteps);
+			//particleTest->Simulate(gravity, deltaTime / particleSubsteps);
 		}
 	}
 

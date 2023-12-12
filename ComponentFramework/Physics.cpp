@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <MMath.h>
+#include <QMath.h>
 
 #include "TransformComponent.h"
 
@@ -27,7 +28,7 @@ void PHYSICS::UpdateOrientation(Ref<PhysicsComponent> body, const float deltaTim
 	Quaternion rotation;
 
 	// Can you solve all angles at once?
-	rotation = QMath::angleAxisRotation(VMath::mag(body->angularVel), VMath::normalize(body->angularVel));
+	rotation = QMath::angleAxisRotation(VMath::mag(body->angularVel), VMath::normalize(QMath::rotate(body->angularVel, QMath::inverse(body->orientation))));
 	body->orientation = rotation * body->orientation;
 
 	// Solve X rotation and add to orientation
