@@ -1,5 +1,5 @@
 # Description
-This repo is the culmination of several classes at Humber College in a single semester. I combined projects for three courses (Game Engines 5, Game Physics 3, and GPU Programming) into one codebase. 
+This is the culmination of several classes at Humber College in a single semester. I combined projects for three courses (Game Engines 5, Game Physics 3, and GPU Programming) into one codebase. 
 
 ## Features From Game Engines 5
 - GUI using ImGUI
