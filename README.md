@@ -7,7 +7,8 @@ This repo is the culmination of several classes at Humber College in a single se
 - Memory Preallocation at engine startup
 - In-Engine memory monitor
 - Allows use of a Game Controller for 3D navigation
-- Engine Profiler (Monitors Update, Render, HandleEvents functions) 
+- Engine Profiler (Monitors Update, Render, HandleEvents functions)
+- Primary rendering engine using OpenGL
 
 
 ## Features From Game Physics 3
@@ -17,6 +18,6 @@ This repo is the culmination of several classes at Humber College in a single se
 
 
 ## Features From GPU Programming
-- Secondary render engine based using Vulkan
+- Secondary rendering engine using Vulkan
 - Vulkan Phong rendering using multiple lights and multiple textures
 - Geometry Shader to display object normals
